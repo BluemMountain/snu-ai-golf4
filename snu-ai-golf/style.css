@@ -1,0 +1,802 @@
+:root {
+    --primary-color: #1e3a2b;
+    /* Deep Green */
+    --secondary-color: #c5a059;
+    /* Gold */
+    --text-color: #333333;
+    --light-bg: #f9f9f9;
+    --white: #ffffff;
+    --font-serif: 'Noto Serif KR', serif;
+    --font-sans: 'Noto Sans KR', sans-serif;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: var(--font-sans);
+    line-height: 1.6;
+    color: var(--text-color);
+    background-color: var(--white);
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+img {
+    max-width: 100%;
+    display: block;
+}
+
+/* Utilities */
+.container {
+    width: 90%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.section-padding {
+    padding: 80px 0;
+}
+
+.text-white {
+    color: var(--white);
+}
+
+.bg-light {
+    background-color: var(--light-bg);
+}
+
+.bg-dark {
+    background-color: var(--primary-color);
+}
+
+/* Typography */
+h1,
+h2,
+h3 {
+    font-family: var(--font-serif);
+    font-weight: 700;
+}
+
+.section-header {
+    text-align: center;
+    margin-bottom: 50px;
+}
+
+.section-header h2 {
+    font-size: 2.5rem;
+    margin-bottom: 15px;
+    color: var(--primary-color);
+}
+
+.section-header.text-white h2 {
+    color: var(--white);
+}
+
+.divider {
+    width: 60px;
+    height: 3px;
+    background-color: var(--secondary-color);
+    margin: 0 auto;
+}
+
+.white-divider {
+    background-color: var(--white);
+}
+
+/* Hero Section */
+#hero {
+    height: 100vh;
+    background: url('https://images.unsplash.com/photo-1587174486073-ae5e5cff23aa?q=80&w=1920&auto=format&fit=crop') no-repeat center center/cover;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    color: var(--white);
+}
+
+.overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 1;
+}
+
+.hero-content {
+    position: relative;
+    z-index: 2;
+    padding: 20px;
+}
+
+.hero-content .subtitle {
+    font-size: 1.2rem;
+    letter-spacing: 2px;
+    margin-bottom: 15px;
+    text-transform: uppercase;
+    color: var(--secondary-color);
+    font-weight: 500;
+}
+
+.hero-content .title {
+    font-size: 3rem;
+    margin-bottom: 20px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.hero-content .description {
+    font-size: 1.1rem;
+    margin-bottom: 40px;
+    opacity: 0.9;
+}
+
+.cta-button {
+    display: inline-block;
+    padding: 15px 40px;
+    background-color: var(--secondary-color);
+    color: var(--white);
+    font-weight: 600;
+    border-radius: 2px;
+    /* 약간 각지게 */
+    transition: all 0.3s ease;
+    font-size: 1.1rem;
+}
+
+.cta-button:hover {
+    background-color: #a88540;
+    transform: translateY(-2px);
+}
+
+/* Greeting Section */
+.greeting-content {
+    text-align: center;
+    max-width: 800px;
+    margin: 0 auto;
+    font-size: 1.2rem;
+}
+
+.greeting-content p {
+    margin-bottom: 25px;
+}
+
+.greeting-content strong {
+    color: var(--primary-color);
+}
+
+.signature {
+    margin-top: 40px;
+    font-family: var(--font-serif);
+    font-style: italic;
+    color: #666;
+}
+
+/* Info Grid */
+.grid-3 {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 30px;
+}
+
+.info-card {
+    background: var(--white);
+    padding: 40px 30px;
+    text-align: center;
+    border: 1px solid #eee;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    transition: transform 0.3s ease;
+}
+
+.info-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+.icon-box {
+    font-size: 2.5rem;
+    color: var(--secondary-color);
+    margin-bottom: 20px;
+}
+
+.info-card h3 {
+    font-size: 1.5rem;
+    margin-bottom: 15px;
+    color: var(--primary-color);
+}
+
+.info-card p {
+    color: #555;
+    font-size: 1.1rem;
+    margin-bottom: 5px;
+}
+
+.info-card .sub-text {
+    font-size: 0.9rem;
+    color: #888;
+}
+
+/* Schedule Section */
+.schedule-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 20px;
+}
+
+.schedule-card {
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 30px 20px;
+    text-align: center;
+    background-color: var(--white);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.schedule-card:hover {
+    border-color: var(--secondary-color);
+    background-color: #fafafa;
+}
+
+.schedule-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background-color: var(--primary-color);
+}
+
+.schedule-card.break {
+    background-color: #f0f0f0;
+    opacity: 0.8;
+}
+
+.schedule-card.break::before {
+    background-color: #999;
+}
+
+.schedule-card .month {
+    font-size: 1.1rem;
+    color: var(--secondary-color);
+    font-weight: 700;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+}
+
+.schedule-card .date {
+    font-size: 2.2rem;
+    font-family: var(--font-serif);
+    font-weight: 700;
+    color: var(--primary-color);
+    margin-bottom: 5px;
+}
+
+.schedule-card .day {
+    font-size: 1rem;
+    color: #777;
+}
+
+.schedule-card .event-label {
+    margin-top: 15px;
+    font-size: 0.85rem;
+    color: #d35400;
+    font-weight: 600;
+    padding: 4px 10px;
+    background: #fff5e6;
+    border-radius: 4px;
+    display: inline-block;
+    border: 1px solid #ffe0b2;
+}
+
+/* Score Table Section */
+.table-container-wrapper {
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    padding: 20px;
+    overflow: hidden;
+    /* Contains the scrollable area */
+}
+
+.score-table-container {
+    overflow-x: auto;
+    width: 100%;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: var(--secondary-color) #f0f0f0;
+}
+
+.score-table-container::-webkit-scrollbar {
+    height: 8px;
+}
+
+.score-table-container::-webkit-scrollbar-track {
+    background: #f0f0f0;
+}
+
+.score-table-container::-webkit-scrollbar-thumb {
+    background-color: var(--secondary-color);
+    border-radius: 4px;
+}
+
+#score-table {
+    width: 100%;
+    border-collapse: collapse;
+    white-space: nowrap;
+    /* Prevent line wrapping */
+    font-size: 0.9rem;
+}
+
+#score-table th,
+#score-table td {
+    padding: 12px 15px;
+    border-bottom: 1px solid #eee;
+    vertical-align: middle;
+}
+
+#score-table th {
+    background-color: var(--primary-color);
+    color: var(--white);
+    font-weight: 500;
+    text-align: center;
+}
+
+#score-table td {
+    text-align: center;
+    color: #555;
+}
+
+/* Data Row Styling */
+#score-table tr:hover td {
+    background-color: #f9f9f9;
+}
+
+/* Sticky Column Styling */
+/* Sticky Columns */
+.sticky-col {
+    position: sticky;
+    background-color: #fff;
+    z-index: 20;
+}
+
+#score-table th,
+#score-table td {
+    border-right: 1px solid #ddd;
+}
+
+/* Vertical Separator Line after CC/HD column */
+.sticky-col:nth-child(3) {
+    border-right: 3px solid #1e3a2b !important;
+}
+
+/* Sticky Name Column (1st Column) */
+#score-table th:first-child,
+#score-table td:first-child {
+    position: sticky;
+    left: 0;
+    z-index: 20;
+    background-color: var(--white);
+    /* For body cells */
+    border-right: 2px solid #f0f0f0;
+    font-weight: 600;
+    color: var(--primary-color);
+}
+
+#score-table th:first-child {
+    background-color: var(--primary-color);
+    /* Maintain header bg */
+    z-index: 30;
+    /* Higher than normal sticky */
+}
+
+/* Make sure hover effect works on sticky column */
+#score-table tr:hover td:first-child {
+    background-color: #f9f9f9;
+}
+
+.loading-spinner {
+    text-align: center;
+    padding: 40px;
+    color: #888;
+}
+
+.score-cell {
+    font-family: var(--font-sans);
+}
+
+/* Specific styling based on the content if needed */
+.score-header-row th {
+    /* Main header row */
+}
+
+.score-sub-header-row td {
+    /* The Handicap/CC row */
+    background-color: #f5f5f5 !important;
+    font-weight: 600;
+    color: #444;
+}
+
+.cancel-row td {
+    color: #aaa;
+    /* font-style: italic; */
+}
+
+
+/* Location Section */
+.location-content {
+    text-align: center;
+}
+
+.location-content h3 {
+    font-size: 2rem;
+    margin-bottom: 10px;
+    color: var(--secondary-color);
+}
+
+.location-content p {
+    font-size: 1.2rem;
+    margin-bottom: 40px;
+    opacity: 0.9;
+}
+
+.map-link-container {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.map-btn {
+    display: inline-block;
+    padding: 12px 30px;
+    background-color: #03c75a;
+    /* Naver Green */
+    color: white;
+    border-radius: 4px;
+    font-weight: 500;
+    transition: opacity 0.3s;
+}
+
+.map-btn.kakao {
+    background-color: #fee500;
+    color: #000;
+}
+
+.map-btn:hover {
+    opacity: 0.9;
+}
+
+/* Footer */
+footer {
+    background-color: #112118;
+    color: #888;
+    padding: 30px 0;
+    text-align: center;
+    font-size: 0.9rem;
+}
+
+/* Animations */
+.fade-in-up {
+    animation: fadeInUp 1s ease-out;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fade-in-on-scroll {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+}
+
+.fade-in-on-scroll.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Media Queries */
+@media (max-width: 768px) {
+    .hero-content .title {
+        font-size: 2rem;
+    }
+
+    .section-header h2 {
+        font-size: 2rem;
+    }
+
+    .schedule-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 480px) {
+
+    .schedule-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Admin Link Top */
+.admin-link-top {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    color: rgba(255, 255, 255, 0.7);
+    text-decoration: none;
+    font-size: 0.9rem;
+    z-index: 10;
+    transition: color 0.3s;
+}
+
+.admin-link-top:hover {
+    color: #c5a059;
+    text-decoration: underline;
+}
+
+/* Hero Buttons */
+.hero-buttons {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    margin-top: 30px;
+}
+
+/* Secondary Button */
+.cta-button.secondary {
+    background-color: transparent;
+    border: 2px solid #c5a059;
+    color: #c5a059;
+}
+
+.cta-button.secondary:hover {
+    background-color: #c5a059;
+    color: white;
+}
+
+/* T Map Button */
+.map-btn.tmap {
+    background-color: #1e3a2b;
+    /* Fallback or combine with brand color */
+    border: 1px solid #e6005d;
+    color: white;
+}
+
+.map-btn.tmap:hover {
+    background-color: #e6005d;
+    border-color: #e6005d;
+}
+
+/* RSVP Modal */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.5);
+    animation: fadeIn 0.3s;
+}
+
+.modal-content {
+    background-color: var(--white);
+    margin: 15% auto;
+    padding: 30px;
+    border: 1px solid #888;
+    width: 90%;
+    max-width: 500px;
+    border-radius: 8px;
+    position: relative;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    animation: slideDown 0.3s;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideDown {
+    from {
+        top: -50px;
+        opacity: 0;
+    }
+
+    to {
+        top: 0;
+        opacity: 1;
+    }
+}
+
+.close-btn {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.close-btn:hover,
+.close-btn:focus {
+    color: #000;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.form-group {
+    margin-bottom: 20px;
+    text-align: left;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+}
+
+.form-group input[type="text"],
+.form-group input[type="tel"] {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 1rem;
+}
+
+.radio-group label {
+    display: inline-block;
+    margin-right: 20px;
+    cursor: pointer;
+    font-weight: normal;
+}
+
+.full-width {
+    display: block;
+    width: 100%;
+    text-align: center;
+    margin-top: 20px;
+    border: none;
+    cursor: pointer;
+}
+
+/* Make Schedule Cards Clickable */
+.schedule-card:not(.break) {
+    cursor: pointer;
+}
+
+.schedule-card:not(.break):hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+/* Member List Styles */
+.members-grid-container {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    margin-top: 30px;
+}
+
+@media (max-width: 1024px) {
+    .members-grid-container {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .members-grid-container {
+        grid-template-columns: 1fr;
+    }
+}
+
+.member-group h3 {
+    text-align: center;
+    border-bottom: 2px solid #577b2d;
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+    color: #1e3a2b;
+}
+
+.member-list {
+    background: #fff;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    min-height: 100px;
+}
+
+.executive-card {
+    transition: all 0.3s ease;
+}
+
+.executive-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+    border-color: #577b2d !important;
+}
+
+@media (max-width: 480px) {
+    #member-list-executive {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .executive-card {
+        width: 100%;
+        max-width: 250px;
+    }
+}
+
+/* Admin Tabs */
+.admin-tabs {
+    display: flex;
+    border-bottom: 2px solid #ddd;
+    margin-bottom: 20px;
+}
+
+.tab-btn {
+    padding: 10px 20px;
+    background: none;
+    border: none;
+    font-size: 1rem;
+    cursor: pointer;
+    font-weight: bold;
+    color: #888;
+}
+
+.tab-btn.active {
+    color: #1e3a2b;
+    border-bottom: 3px solid #1e3a2b;
+    margin-bottom: -2px;
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+/* RSVP Status Public Styles */
+.public-rsvp-card {
+    transition: all 0.3s ease;
+}
+
+.public-rsvp-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1) !important;
+}
+
+@media (max-width: 1024px) {
+    .public-rsvp-card {
+        margin-bottom: 15px;
+    }
+}

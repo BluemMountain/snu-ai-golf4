@@ -1,0 +1,49 @@
+/* Member List Styles */
+.members-grid-container {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    margin-top: 30px;
+}
+
+@media (max-width: 1024px) {
+    .members-grid-container {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .members-grid-container {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* RSVP Status Public Styles */
+.rsvp-status-container {
+    margin-top: 20px;
+}
+
+.public-rsvp-card {
+    transition: all 0.3s ease;
+}
+
+.public-rsvp-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1) !important;
+}
+
+@media (max-width: 480px) {
+    #member-list-executive {
+        flex-direction: column;
+        align-items: center;
+    }
+    .executive-card {
+        width: 100%;
+        max-width: 250px;
+    }
+}
+
+/* ... existing styles ... */
+/* NOTE: I will only append the new styles to the end to preserve existing ones if I was using partial edit.
+   Since I am overwriting, I should include the basic structure. 
+   Actually, I'll use replace_file_content at the end to be safer than a blind overwrite of the WHOLE CSS. */
