@@ -363,16 +363,29 @@ function initMembers() {
     if (!stored || JSON.parse(stored).length === 0) {
         const initialNames = ["강순대", "곽노준", "권민오", "김기록", "김대욱", "김태일", "남서우", "문성욱", "박상길", "박철호", "박청산", "박희석", "송원득", "신소우", "심민선", "안삼근", "안원익", "이교구", "이대식", "이문형", "이상열", "이석환", "이용환", "정대규", "정민호", "정지환", "조중규", "현성호", "박지선", "신수희", "김윤석", "이진우", "장병탁", "이성원", "전은미", "최정훈", "김종세", "배태근", "권혁찬", "한예성", "최철호", "이재욱", "이준기", "이주민", "김은현", "채성희", "김도열", "이영규"];
 
-        const members = initialNames.map(name => ({
-            name: name,
-            type: 'ilban' // Default to General Member
-        }));
+        const members = initialNames.map(name => {
+            let type = 'ilban';
+            let role = '';
 
-        // 송원득님은 명단 초기화 시에도 일반회원으로 설정 (사용자 요청: 문의하기에서 제외)
+            if (name === '김대욱') {
+                type = 'executive';
+                role = '회장';
+            } else if (name === '박철호' || name === '정민호') {
+                type = 'executive';
+                role = '부회장';
+            }
+
+            const obj = { name, type };
+            if (role) obj.role = role;
+            return obj;
+        });
+
         localStorage.setItem('snu_golf_members', JSON.stringify(members));
     } else {
-        // 기존 데이터가 있는 경우 송원득님을 찾아서 임원에서 일반으로 변경 (임원인 경우에만)
+        // 기존 데이터가 있는 경우의 업데이트 로직 (필요시)
         const members = JSON.parse(stored);
+
+        // 송원득님은 명단 초기화 시에도 일반회원으로 설정 (사용자 요청: 문의하기에서 제외)
         const targetIdx = members.findIndex(m => m.name === '송원득');
         if (targetIdx !== -1 && members[targetIdx].type === 'executive') {
             members[targetIdx].type = 'ilban';
