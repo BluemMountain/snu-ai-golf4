@@ -289,19 +289,24 @@ function initRSVP() {
 
     // Admin Modal Open Logic Update - Load Members too
     if (adminLink) {
+        // Helper for hashing
+        const sha256 = async (message) => {
+            const msgBuffer = new TextEncoder().encode(message);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        };
+
         adminLink.onclick = async (e) => {
             e.preventDefault();
             const password = prompt("관리자 비밀번호를 입력하세요");
             if (!password) return;
 
-            try {
-                const response = await fetch('/api/admin-login', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ password })
-                });
+            const targetHash = '07e47f77d22e2fc388c2d12f73b8b8b7e9928630d39a4964a9daabbc27a060f4';
 
-                if (response.ok) {
+            try {
+                const inputHash = await sha256(password);
+                if (inputHash === targetHash) {
                     loadAdminData();
                     loadAdminMembers();
                     adminModal.style.display = 'block';
@@ -309,8 +314,8 @@ function initRSVP() {
                     alert("비밀번호가 틀렸습니다.");
                 }
             } catch (err) {
-                console.error('Admin login error:', err);
-                alert("서버 통신 오류가 발생했습니다.");
+                console.error('Admin hash error:', err);
+                alert("오류가 발생했습니다.");
             }
         };
     }

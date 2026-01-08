@@ -106,19 +106,25 @@
     </div>
 
     <script>
+        async function sha256(message) {
+            const msgBuffer = new TextEncoder().encode(message);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
         document.getElementById('login-form').addEventListener('submit', async function (e) {
             e.preventDefault();
             const password = document.getElementById('password').value;
             const errorMsg = document.getElementById('error-msg');
 
-            try {
-                const response = await fetch('/api/login', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ password })
-                });
+            // Hashed version of 'aiceo4thgolf'
+            const targetHash = 'e8b4f6ec0fc711b46eabf2891dc653f6b04e8e2bb9cefb8319c02fc6155b3264';
 
-                if (response.ok) {
+            try {
+                const inputHash = await sha256(password);
+
+                if (inputHash === targetHash) {
                     localStorage.setItem('snu_golf_logged_in', 'true');
 
                     // redirect 처리
@@ -132,7 +138,7 @@
             } catch (err) {
                 console.error('Login error:', err);
                 errorMsg.style.display = 'block';
-                errorMsg.textContent = '서버 통신 오류가 발생했습니다.';
+                errorMsg.textContent = '오류가 발생했습니다.';
             }
         });
     </script>
