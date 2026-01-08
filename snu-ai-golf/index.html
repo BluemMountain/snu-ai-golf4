@@ -31,22 +31,25 @@
 
 <body>
 
-    <header id="hero">
+    <header id="hero" class="public-section">
         <div class="overlay"></div>
-        <a href="#" id="admin-link" class="admin-link-top">관리자 모드</a>
+        <div class="header-links">
+            <a href="login.html" id="login-link" class="header-link">로그인</a>
+            <a href="#" id="admin-link" class="header-link">관리자 모드</a>
+        </div>
         <div class="hero-content fade-in-up">
             <p class="subtitle">서울대 AI CEO 과정 4기</p>
             <h1 class="title">2026년 골프회 정기 라운드 안내</h1>
             <p class="description">품격 있는 리더들의 특별한 만남, 2026년에도 이어집니다.</p>
             <div class="hero-buttons">
                 <a href="#schedule" class="cta-button">일정 확인하기</a>
-                <a href="#scores" class="cta-button secondary">회원 핸디캡</a>
+                <a href="#scores" id="hero-scores-btn" class="cta-button secondary">회원 핸디캡</a>
                 <button id="hero-rsvp-btn" class="cta-button secondary">다음 라운드 신청</button>
             </div>
         </div>
     </header>
 
-    <section id="greeting" class="section-padding">
+    <section id="greeting" class="section-padding public-section">
         <div class="container fade-in-on-scroll">
             <div class="section-header">
                 <h2>초대의 글</h2>
@@ -64,7 +67,7 @@
         </div>
     </section>
 
-    <section id="info" class="section-padding bg-light">
+    <section id="info" class="section-padding bg-light public-section">
         <div class="container fade-in-on-scroll">
             <div class="grid-3">
                 <div class="info-card">
@@ -89,7 +92,7 @@
         </div>
     </section>
 
-    <section id="schedule" class="section-padding">
+    <section id="schedule" class="section-padding public-section">
         <div class="container fade-in-on-scroll">
             <div class="section-header">
                 <h2>2026년 연간 일정</h2>
@@ -160,7 +163,7 @@
     </section>
 
     <!-- RSVP Status Section (Public) -->
-    <section id="rsvp-status" class="section-padding bg-light">
+    <section id="rsvp-status" class="section-padding bg-light protected-section">
         <div class="container fade-in-on-scroll">
             <div class="section-header">
                 <h2>신청 현황</h2>
@@ -174,7 +177,7 @@
         </div>
     </section>
 
-    <section id="contact" class="section-padding bg-light">
+    <section id="contact" class="section-padding bg-light protected-section">
         <div class="container fade-in-on-scroll">
             <div class="section-header">
                 <h2>문의하기</h2>
@@ -192,7 +195,7 @@
         </div>
     </section>
 
-    <section id="scores" class="section-padding bg-light">
+    <section id="scores" class="section-padding bg-light protected-section">
         <div class="container fade-in-on-scroll">
             <div class="section-header">
                 <h2>회원 핸디캡</h2>
@@ -208,7 +211,7 @@
         </div>
     </section>
 
-    <section id="honors" class="section-padding" style="background-color: #fdfdfd;">
+    <section id="honors" class="section-padding protected-section" style="background-color: #fdfdfd;">
         <div class="container fade-in-on-scroll">
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 40px;">
                 <!-- Hall of Fame -->
@@ -262,7 +265,7 @@
         </div>
     </section>
 
-    <section id="location" class="section-padding bg-dark text-white">
+    <section id="location" class="section-padding bg-dark text-white protected-section">
         <div class="container fade-in-on-scroll">
             <div class="section-header text-white">
                 <h2>오시는 길</h2>

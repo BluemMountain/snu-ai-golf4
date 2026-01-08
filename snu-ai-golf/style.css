@@ -536,21 +536,30 @@ footer {
     }
 }
 
-/* Admin Link Top */
-.admin-link-top {
+/* Header Links */
+.header-links {
     position: absolute;
     top: 20px;
     right: 20px;
+    display: flex;
+    gap: 20px;
+    z-index: 10;
+}
+
+.header-link {
     color: rgba(255, 255, 255, 0.7);
     text-decoration: none;
     font-size: 0.9rem;
-    z-index: 10;
     transition: color 0.3s;
 }
 
-.admin-link-top:hover {
-    color: #c5a059;
+.header-link:hover {
+    color: var(--secondary-color);
     text-decoration: underline;
+}
+
+.protected-section.hidden {
+    display: none;
 }
 
 /* Hero Buttons */

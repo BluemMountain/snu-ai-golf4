@@ -52,9 +52,87 @@ document.addEventListener('DOMContentLoaded', () => {
         renderTable(parseCSV(CSV_DATA_STRING.trim()), scoreContainer, false);
     }
 
+    // Login Check & Section Toggle
+    checkLogin();
+
     // RSVP Logic
     initRSVP();
 });
+
+function checkLogin() {
+    const isLoggedIn = localStorage.getItem('snu_golf_logged_in') === 'true';
+    const protectedSections = document.querySelectorAll('.protected-section');
+    const loginLink = document.getElementById('login-link');
+
+    if (isLoggedIn) {
+        protectedSections.forEach(el => el.classList.remove('hidden'));
+        if (loginLink) {
+            loginLink.textContent = '로그아웃';
+            loginLink.href = '#';
+            loginLink.onclick = (e) => {
+                e.preventDefault();
+                localStorage.removeItem('snu_golf_logged_in');
+                window.location.reload();
+            };
+        }
+    } else {
+        protectedSections.forEach(el => el.classList.add('hidden'));
+        if (loginLink) {
+            loginLink.textContent = '로그인';
+            loginLink.href = 'login.html';
+            loginLink.onclick = null;
+        }
+    }
+
+    // Hero Buttons Logic for Public/Protected
+    const heroRsvpBtn = document.getElementById('hero-rsvp-btn');
+    const heroScoresBtn = document.getElementById('hero-scores-btn');
+
+    if (heroScoresBtn) {
+        heroScoresBtn.onclick = (e) => {
+            if (!isLoggedIn) {
+                e.preventDefault();
+                if (confirm('회원 전용 메뉴입니다. 로그인 하시겠습니까?')) {
+                    window.location.href = 'login.html?next=index.html#scores';
+                }
+            }
+        };
+    }
+
+    if (heroRsvpBtn) {
+        heroRsvpBtn.onclick = (e) => {
+            e.preventDefault();
+            if (!isLoggedIn) {
+                if (confirm('회원 전용 메뉴입니다. 로그인 하시겠습니까?')) {
+                    window.location.href = 'login.html?next=index.html#schedule';
+                }
+            } else {
+                // Original logic for RSVP toggle
+                const firstCard = document.querySelector('.schedule-card:not(.break)');
+                if (firstCard) {
+                    firstCard.click();
+                } else {
+                    alert("신청 가능한 일정이 없습니다.");
+                }
+            }
+        };
+    }
+
+    // Schedule Cards click listener
+    const cards = document.querySelectorAll('.schedule-card:not(.break)');
+    cards.forEach(card => {
+        const oldHandler = card.onclick;
+        card.onclick = (e) => {
+            if (!isLoggedIn) {
+                if (confirm('회원 전용 메뉴입니다. 로그인 하시겠습니까?')) {
+                    window.location.href = 'login.html?next=index.html#schedule';
+                }
+                return;
+            }
+            // if logged in, let initRSVP handle it or call it here
+        };
+    });
+}
 
 function initRSVP() {
     const modal = document.getElementById('rsvp-modal');
@@ -92,20 +170,9 @@ function initRSVP() {
         });
     });
 
-    // Handle Hero RSVP Button
-    const heroRsvpBtn = document.getElementById('hero-rsvp-btn');
-    if (heroRsvpBtn) {
-        heroRsvpBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            // Trigger click on the first valid schedule card (March)
-            const firstCard = document.querySelector('.schedule-card:not(.break)');
-            if (firstCard) {
-                firstCard.click();
-            } else {
-                alert("신청 가능한 일정이 없습니다.");
-            }
-        });
-    }
+    // RSVP Logic handled by card click in checkLogin once it's set up
+    // However, initRSVP sets up the modal behavior. 
+    // Let's modify initRSVP to not conflict.
 
     // Close Modal
     closeBtn.onclick = () => {
@@ -224,8 +291,8 @@ function initRSVP() {
     if (adminLink) {
         adminLink.onclick = (e) => {
             e.preventDefault();
-            const password = prompt("관리자 비밀번호를 입력하세요 (데모: 1234)");
-            if (password === "1234") {
+            const password = prompt("관리자 비밀번호를 입력하세요");
+            if (password === "aiceo4thgolf-admin") {
                 loadAdminData();
                 loadAdminMembers();
                 adminModal.style.display = 'block';
