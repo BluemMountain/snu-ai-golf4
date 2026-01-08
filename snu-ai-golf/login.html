@@ -106,21 +106,33 @@
     </div>
 
     <script>
-        document.getElementById('login-form').addEventListener('submit', function (e) {
+        document.getElementById('login-form').addEventListener('submit', async function (e) {
             e.preventDefault();
             const password = document.getElementById('password').value;
             const errorMsg = document.getElementById('error-msg');
 
-            // 간단한 비밀번호 체크
-            if (password === 'aiceo4thgolf') {
-                localStorage.setItem('snu_golf_logged_in', 'true');
+            try {
+                const response = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password })
+                });
 
-                // redirect 처리
-                const urlParams = new URLSearchParams(window.location.search);
-                const next = urlParams.get('next') || 'index.html';
-                window.location.href = next;
-            } else {
+                if (response.ok) {
+                    localStorage.setItem('snu_golf_logged_in', 'true');
+
+                    // redirect 처리
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const next = urlParams.get('next') || 'index.html';
+                    window.location.href = next;
+                } else {
+                    errorMsg.style.display = 'block';
+                    errorMsg.textContent = '비밀번호가 올바르지 않습니다.';
+                }
+            } catch (err) {
+                console.error('Login error:', err);
                 errorMsg.style.display = 'block';
+                errorMsg.textContent = '서버 통신 오류가 발생했습니다.';
             }
         });
     </script>

@@ -289,15 +289,28 @@ function initRSVP() {
 
     // Admin Modal Open Logic Update - Load Members too
     if (adminLink) {
-        adminLink.onclick = (e) => {
+        adminLink.onclick = async (e) => {
             e.preventDefault();
             const password = prompt("관리자 비밀번호를 입력하세요");
-            if (password === "aiceo4thgolf-admin") {
-                loadAdminData();
-                loadAdminMembers();
-                adminModal.style.display = 'block';
-            } else if (password !== null) {
-                alert("비밀번호가 틀렸습니다.");
+            if (!password) return;
+
+            try {
+                const response = await fetch('/api/admin-login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password })
+                });
+
+                if (response.ok) {
+                    loadAdminData();
+                    loadAdminMembers();
+                    adminModal.style.display = 'block';
+                } else {
+                    alert("비밀번호가 틀렸습니다.");
+                }
+            } catch (err) {
+                console.error('Admin login error:', err);
+                alert("서버 통신 오류가 발생했습니다.");
             }
         };
     }

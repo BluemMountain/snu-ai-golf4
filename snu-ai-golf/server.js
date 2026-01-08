@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
@@ -10,7 +11,31 @@ const DATA_FILE = path.join(__dirname, 'rsvps.json');
 
 app.use(cors());
 app.use(bodyParser.json());
-app.use(express.static(__dirname)); // Serve static files from current directory
+app.use(express.static(__dirname));
+
+// Auth API: Member Login
+app.post('/api/login', (req, res) => {
+    const { password } = req.body;
+    const memberPassword = process.env.MEMBER_PASSWORD || 'aiceo4thgolf';
+
+    if (password === memberPassword) {
+        res.json({ success: true });
+    } else {
+        res.status(401).json({ success: false, message: 'Invalid password' });
+    }
+});
+
+// Auth API: Admin Login
+app.post('/api/admin-login', (req, res) => {
+    const { password } = req.body;
+    const adminPassword = process.env.ADMIN_PASSWORD || 'aiceo4thgolf-admin';
+
+    if (password === adminPassword) {
+        res.json({ success: true });
+    } else {
+        res.status(401).json({ success: false, message: 'Invalid admin password' });
+    }
+});
 
 // Load RSVPs
 function loadRSVPs() {
