@@ -1,0 +1,441 @@
+{
+    "members": [
+        {
+            "name": "강순대",
+            "type": "ilban"
+        },
+        {
+            "name": "곽노준",
+            "type": "ilban"
+        },
+        {
+            "name": "권민오",
+            "type": "ilban"
+        },
+        {
+            "name": "김기록",
+            "type": "ilban"
+        },
+        {
+            "name": "김대욱",
+            "type": "executive",
+            "role": "회장"
+        },
+        {
+            "name": "김태일",
+            "type": "ilban"
+        },
+        {
+            "name": "남서우",
+            "type": "ilban"
+        },
+        {
+            "name": "문성욱",
+            "type": "ilban"
+        },
+        {
+            "name": "박상길",
+            "type": "ilban"
+        },
+        {
+            "name": "박철호",
+            "type": "executive",
+            "role": "부회장"
+        },
+        {
+            "name": "박청산",
+            "type": "ilban"
+        },
+        {
+            "name": "박희석",
+            "type": "ilban"
+        },
+        {
+            "name": "송원득",
+            "type": "ilban"
+        },
+        {
+            "name": "신소우",
+            "type": "ilban"
+        },
+        {
+            "name": "심민선",
+            "type": "ilban"
+        },
+        {
+            "name": "안삼근",
+            "type": "ilban"
+        },
+        {
+            "name": "안원익",
+            "type": "ilban"
+        },
+        {
+            "name": "이교구",
+            "type": "ilban"
+        },
+        {
+            "name": "이대식",
+            "type": "ilban"
+        },
+        {
+            "name": "이문형",
+            "type": "ilban"
+        },
+        {
+            "name": "이상열",
+            "type": "ilban"
+        },
+        {
+            "name": "이석환",
+            "type": "ilban"
+        },
+        {
+            "name": "이용환",
+            "type": "ilban"
+        },
+        {
+            "name": "정대규",
+            "type": "ilban"
+        },
+        {
+            "name": "정민호",
+            "type": "executive",
+            "role": "부회장"
+        },
+        {
+            "name": "정지환",
+            "type": "ilban"
+        },
+        {
+            "name": "조중규",
+            "type": "ilban"
+        },
+        {
+            "name": "현성호",
+            "type": "ilban"
+        },
+        {
+            "name": "박지선",
+            "type": "ilban"
+        },
+        {
+            "name": "신수희",
+            "type": "ilban"
+        },
+        {
+            "name": "김윤석",
+            "type": "ilban"
+        },
+        {
+            "name": "이진우",
+            "type": "ilban"
+        },
+        {
+            "name": "장병탁",
+            "type": "ilban"
+        },
+        {
+            "name": "이성원",
+            "type": "ilban"
+        },
+        {
+            "name": "전은미",
+            "type": "ilban"
+        },
+        {
+            "name": "최정훈",
+            "type": "ilban"
+        },
+        {
+            "name": "김종세",
+            "type": "ilban"
+        },
+        {
+            "name": "배태근",
+            "type": "ilban"
+        },
+        {
+            "name": "권혁찬",
+            "type": "ilban"
+        },
+        {
+            "name": "한예성",
+            "type": "ilban"
+        },
+        {
+            "name": "최철호",
+            "type": "ilban"
+        },
+        {
+            "name": "이재욱",
+            "type": "ilban"
+        },
+        {
+            "name": "이준기",
+            "type": "ilban"
+        },
+        {
+            "name": "이주민",
+            "type": "ilban"
+        },
+        {
+            "name": "김은현",
+            "type": "ilban"
+        },
+        {
+            "name": "채성희",
+            "type": "ilban"
+        },
+        {
+            "name": "김도열",
+            "type": "ilban"
+        },
+        {
+            "name": "이영규",
+            "type": "ilban"
+        }
+    ],
+    "rsvps": [
+        {
+            "name": "김대욱",
+            "phone": "",
+            "status": "attend",
+            "sponsor": "",
+            "month": "3월",
+            "date": "3.25",
+            "isWaiting": false,
+            "submittedAt": "2026-01-08T00:00:00.000Z"
+        },
+        {
+            "name": "박철호",
+            "phone": "",
+            "status": "attend",
+            "sponsor": "",
+            "month": "3월",
+            "date": "3.25",
+            "isWaiting": false,
+            "submittedAt": "2026-01-08T00:00:01.000Z"
+        },
+        {
+            "name": "정민호",
+            "phone": "",
+            "status": "attend",
+            "sponsor": "",
+            "month": "3월",
+            "date": "3.25",
+            "isWaiting": false,
+            "submittedAt": "2026-01-08T00:00:02.000Z"
+        },
+        {
+            "name": "김대욱",
+            "phone": "",
+            "status": "attend",
+            "sponsor": "",
+            "month": "4월",
+            "date": "4.22",
+            "isWaiting": false,
+            "submittedAt": "2026-01-08T00:00:03.000Z"
+        },
+        {
+            "name": "박철호",
+            "phone": "",
+            "status": "attend",
+            "sponsor": "",
+            "month": "4월",
+            "date": "4.22",
+            "isWaiting": false,
+            "submittedAt": "2026-01-08T00:00:04.000Z"
+        },
+        {
+            "name": "정민호",
+            "phone": "",
+            "status": "attend",
+            "sponsor": "",
+            "month": "4월",
+            "date": "4.22",
+            "isWaiting": false,
+            "submittedAt": "2026-01-08T00:00:05.000Z"
+        },
+        {
+            "name": "김대욱",
+            "phone": "",
+            "status": "attend",
+            "sponsor": "",
+            "month": "5월",
+            "date": "5.27",
+            "isWaiting": false,
+            "submittedAt": "2026-01-08T00:00:06.000Z"
+        },
+        {
+            "name": "박철호",
+            "phone": "",
+            "status": "attend",
+            "sponsor": "",
+            "month": "5월",
+            "date": "5.27",
+            "isWaiting": false,
+            "submittedAt": "2026-01-08T00:00:07.000Z"
+        },
+        {
+            "name": "정민호",
+            "phone": "",
+            "status": "attend",
+            "sponsor": "",
+            "month": "5월",
+            "date": "5.27",
+            "isWaiting": false,
+            "submittedAt": "2026-01-08T00:00:08.000Z"
+        },
+        {
+            "name": "김대욱",
+            "phone": "",
+            "status": "attend",
+            "sponsor": "",
+            "month": "6월",
+            "date": "6.24",
+            "isWaiting": false,
+            "submittedAt": "2026-01-08T00:00:09.000Z"
+        },
+        {
+            "name": "박철호",
+            "phone": "",
+            "status": "attend",
+            "sponsor": "",
+            "month": "6월",
+            "date": "6.24",
+            "isWaiting": false,
+            "submittedAt": "2026-01-08T00:00:10.000Z"
+        },
+        {
+            "name": "정민호",
+            "phone": "",
+            "status": "attend",
+            "sponsor": "",
+            "month": "6월",
+            "date": "6.24",
+            "isWaiting": false,
+            "submittedAt": "2026-01-08T00:00:11.000Z"
+        },
+        {
+            "name": "김대욱",
+            "phone": "",
+            "status": "attend",
+            "sponsor": "",
+            "month": "7월",
+            "date": "7.22",
+            "isWaiting": false,
+            "submittedAt": "2026-01-08T00:00:12.000Z"
+        },
+        {
+            "name": "박철호",
+            "phone": "",
+            "status": "attend",
+            "sponsor": "",
+            "month": "7월",
+            "date": "7.22",
+            "isWaiting": false,
+            "submittedAt": "2026-01-08T00:00:13.000Z"
+        },
+        {
+            "name": "정민호",
+            "phone": "",
+            "status": "attend",
+            "sponsor": "",
+            "month": "7월",
+            "date": "7.22",
+            "isWaiting": false,
+            "submittedAt": "2026-01-08T00:00:14.000Z"
+        },
+        {
+            "name": "김대욱",
+            "phone": "",
+            "status": "attend",
+            "sponsor": "",
+            "month": "9월",
+            "date": "9.30",
+            "isWaiting": false,
+            "submittedAt": "2026-01-08T00:00:15.000Z"
+        },
+        {
+            "name": "박철호",
+            "phone": "",
+            "status": "attend",
+            "sponsor": "",
+            "month": "9월",
+            "date": "9.30",
+            "isWaiting": false,
+            "submittedAt": "2026-01-08T00:00:16.000Z"
+        },
+        {
+            "name": "정민호",
+            "phone": "",
+            "status": "attend",
+            "sponsor": "",
+            "month": "9월",
+            "date": "9.30",
+            "isWaiting": false,
+            "submittedAt": "2026-01-08T00:00:17.000Z"
+        },
+        {
+            "name": "김대욱",
+            "phone": "",
+            "status": "attend",
+            "sponsor": "",
+            "month": "10월",
+            "date": "10.28",
+            "isWaiting": false,
+            "submittedAt": "2026-01-08T00:00:18.000Z"
+        },
+        {
+            "name": "박철호",
+            "phone": "",
+            "status": "attend",
+            "sponsor": "",
+            "month": "10월",
+            "date": "10.28",
+            "isWaiting": false,
+            "submittedAt": "2026-01-08T00:00:19.000Z"
+        },
+        {
+            "name": "정민호",
+            "phone": "",
+            "status": "attend",
+            "sponsor": "",
+            "month": "10월",
+            "date": "10.28",
+            "isWaiting": false,
+            "submittedAt": "2026-01-08T00:00:20.000Z"
+        },
+        {
+            "name": "김대욱",
+            "phone": "",
+            "status": "attend",
+            "sponsor": "",
+            "month": "11월",
+            "date": "11.25",
+            "isWaiting": false,
+            "submittedAt": "2026-01-08T00:00:21.000Z"
+        },
+        {
+            "name": "박철호",
+            "phone": "",
+            "status": "attend",
+            "sponsor": "",
+            "month": "11월",
+            "date": "11.25",
+            "isWaiting": false,
+            "submittedAt": "2026-01-08T00:00:22.000Z"
+        },
+        {
+            "name": "정민호",
+            "phone": "",
+            "status": "attend",
+            "sponsor": "",
+            "month": "11월",
+            "date": "11.25",
+            "isWaiting": false,
+            "submittedAt": "2026-01-08T00:00:23.000Z"
+        }
+    ]
+}
