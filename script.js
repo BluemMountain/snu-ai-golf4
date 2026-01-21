@@ -872,10 +872,7 @@ function renderTable(data, container, isAdmin = false) {
     headerRowData.forEach((cell, index) => {
         const th = document.createElement('th');
         th.textContent = cell.trim();
-        if (!isAdmin && index < 3) {
-            // 메인 페이지에서 앞의 공백/카운트/날짜 열 숨기기 (선택적)
-            // 일단 요청대로 가나다 순 회원명과 핸디캡만 강조
-        }
+        if (index < 3) th.classList.add('sticky-col');
         headerRow.appendChild(th);
     });
     thead.appendChild(headerRow);
@@ -906,18 +903,6 @@ function renderTable(data, container, isAdmin = false) {
                 td.textContent = cell.trim();
                 if (index < 3) {
                     td.classList.add('sticky-col');
-                    if (index === 0) {
-                        td.style.left = '0px';
-                        td.style.zIndex = '21';
-                    } else if (index === 1) {
-                        td.style.left = '40px';
-                        td.style.zIndex = '21';
-                    } else if (index === 2) {
-                        td.style.left = '100px';
-                        td.style.zIndex = '21';
-                    }
-                    td.style.position = 'sticky';
-                    td.style.backgroundColor = '#fff';
                 }
                 tr.appendChild(td);
             });

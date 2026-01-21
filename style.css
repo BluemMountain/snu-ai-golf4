@@ -425,6 +425,7 @@ h3 {
 #admin-score-table td:nth-child(1) {
     width: 40px;
     min-width: 40px;
+    left: 0;
 }
 
 #score-table th:nth-child(2),
@@ -433,6 +434,7 @@ h3 {
 #admin-score-table td:nth-child(2) {
     width: 80px;
     min-width: 80px;
+    left: 40px;
 }
 
 #score-table th:nth-child(3),
@@ -442,6 +444,7 @@ h3 {
     width: 120px;
     min-width: 120px;
     text-align: left;
+    left: 120px;
 }
 
 /* Vertical Separator Line after CC/HD column */
