@@ -1,3 +1,4 @@
+// SNU Golf Application v2.4
 // Supabase Configuration
 const SUPABASE_URL = 'https://qfzmwlyqezmkkxtpscik.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_mYejtROOg-2JN7z6_RlWdg_PXYSYgFi'; // Anon Key
@@ -854,14 +855,41 @@ function renderTable(data, container, isAdmin = false) {
     const table = document.createElement('table');
     table.id = isAdmin ? 'admin-score-table' : 'score-table';
 
+
     let headerRowData = data[0];
-    let subHeaderRowData = data[1];
     let bodyRowsData = data.slice(2);
+
+    // Calculate Handicap Rows (Total, 2025, 2026)
+    const totalHDRow = ['Total', 'Handicap', 'Avg'];
+    const h25HDRow = ['2025', 'Handicap', 'CC/HD'];
+    const h26HDRow = ['2026', 'Handicap', 'Avg'];
+
+    const originalH25 = data[1];
+
+    for (let j = 3; j < headerRowData.length; j++) {
+        let tSum = 0, tCount = 0;
+        let s26Sum = 0, s26Count = 0;
+
+        bodyRowsData.forEach(row => {
+            const val = parseFloat(row[j]);
+            if (!isNaN(val) && val > 0) {
+                tSum += val;
+                tCount++;
+                if (row[1] && row[1].trim().startsWith('26')) {
+                    s26Sum += val;
+                    s26Count++;
+                }
+            }
+        });
+        totalHDRow.push(tCount > 0 ? (tSum / tCount).toFixed(1) : '-');
+        h26HDRow.push(s26Count > 0 ? (s26Sum / s26Count).toFixed(1) : '-');
+        h25HDRow.push(originalH25[j] || '-');
+    }
+
+    const handicapRows = [totalHDRow, h25HDRow, h26HDRow];
 
     // 메인 페이지(Public)인 경우 '25년 핸디' 행만 남기고 나머지 세부 스코어 행 삭제
     if (!isAdmin) {
-        // subHeaderRowData (index 1) 가 'CC/HD' 및 핸디캡 행임
-        // bodyRowsData를 비워버리면 세부 스코어 안 보임
         bodyRowsData = [];
     }
 
@@ -880,15 +908,20 @@ function renderTable(data, container, isAdmin = false) {
 
     const tbody = document.createElement('tbody');
 
-    const subHeaderRow = document.createElement('tr');
-    subHeaderRow.className = 'score-sub-header-row';
-    subHeaderRowData.forEach((cell, index) => {
-        const td = document.createElement('td');
-        td.textContent = cell.trim();
-        if (index < 3) td.classList.add('sticky-col');
-        subHeaderRow.appendChild(td);
+    handicapRows.forEach((row, rowIndex) => {
+        const hRow = document.createElement('tr');
+        hRow.className = 'score-sub-header-row';
+        if (rowIndex === 0) hRow.classList.add('total-hd-row');
+        if (rowIndex === 2) hRow.classList.add('y26-hd-row');
+
+        row.forEach((cell, index) => {
+            const td = document.createElement('td');
+            td.textContent = cell.trim();
+            if (index < 3) td.classList.add('sticky-col');
+            hRow.appendChild(td);
+        });
+        tbody.appendChild(hRow);
     });
-    tbody.appendChild(subHeaderRow);
 
     if (isAdmin) {
         bodyRowsData.forEach(rowData => {

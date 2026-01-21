@@ -488,6 +488,18 @@ h3 {
     color: #444;
 }
 
+.total-hd-row td {
+    background-color: #e3f2fd !important;
+    /* Light Blue */
+    color: #0d47a1;
+}
+
+.y26-hd-row td {
+    background-color: #f1f8e9 !important;
+    /* Light Green */
+    color: #33691e;
+}
+
 .cancel-row td {
     color: #aaa;
     /* font-style: italic; */
