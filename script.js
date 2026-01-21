@@ -929,24 +929,9 @@ function renderTable(data, container, isAdmin = false) {
     container.innerHTML = '';
     container.appendChild(table);
 
-    // 관리자 상세 스코어 테이블용 추가 스타일 (JS로 직접 주입)
+    // Style refinements can now be handled via CSS Classes in style.css
     if (isAdmin) {
-        table.style.fontSize = '0.85rem';
-        table.querySelectorAll('th, td').forEach(cell => {
-            cell.style.border = '1px solid #ddd';
-        });
-        // 상세 스코어 테이블의 헤더를 위쪽에도 고정
-        const headerCells = table.querySelectorAll('.score-header-row th');
-        headerCells.forEach(th => {
-            th.style.position = 'sticky';
-            th.style.top = '0';
-            th.style.zIndex = '40';
-        });
-        // 구석(첫 3개 열의 헤더)은 더 높은 우선순위
-        for (let i = 0; i < 3; i++) {
-            const th = headerCells[i];
-            if (th) th.style.zIndex = '50';
-        }
+        table.classList.add('admin-score-table-styled');
     }
 }
 
