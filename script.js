@@ -300,9 +300,15 @@ function initRSVP() {
     // Load initial members for public view
     loadMembers(); // Render
 
-    // Admin Modal Open Logic Update - Load Members too
-    if (adminLink) {
-        // Helper for hashing
+    // Load initial members for public view
+    loadMembers(); // Render
+
+    // Admin Link Logic - Just let navigation happen if on index
+    // Admin functions will be triggered by admin.html's inline script
+    if (adminLink && !adminModal) {
+        // standalone page link, do nothing special
+    } else if (adminLink && adminModal) {
+        // Modal case (if still used somewhere)
         const sha256 = async (message) => {
             const msgBuffer = new TextEncoder().encode(message);
             const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
@@ -314,9 +320,7 @@ function initRSVP() {
             e.preventDefault();
             const password = prompt("관리자 비밀번호를 입력하세요");
             if (!password) return;
-
             const targetHash = '07e47f77d22e2fc388c2d12f73b8b8b7e9928630d39a4964a9daabbc27a060f4';
-
             try {
                 const inputHash = await sha256(password);
                 if (inputHash === targetHash) {
@@ -328,37 +332,33 @@ function initRSVP() {
                 }
             } catch (err) {
                 console.error('Admin hash error:', err);
-                alert("오류가 발생했습니다.");
             }
         };
-    }
 
-    if (adminCloseBtn) {
-        adminCloseBtn.onclick = () => {
-            adminModal.style.display = 'none';
-        };
-    }
-
-    // Also handle window click for admin modal
-    const originalWindowOnClick = window.onclick;
-    window.onclick = (event) => {
-        if (originalWindowOnClick) originalWindowOnClick(event);
-        if (event.target == adminModal) {
-            adminModal.style.display = 'none';
+        if (adminCloseBtn) {
+            adminCloseBtn.onclick = () => { adminModal.style.display = 'none'; };
         }
-    };
+    }
 
     if (adminRefreshBtn) {
         adminRefreshBtn.onclick = loadAdminData;
     }
 
     if (adminClearBtn) {
-        adminClearBtn.onclick = () => {
-            if (confirm("정말로 모든 신청 데이터를 삭제하시겠습니까?")) {
-                localStorage.removeItem('snu_golf_rsvps');
-                loadAdminData();
-                renderPublicRSVPs();
-                alert("초기화되었습니다.");
+        adminClearBtn.onclick = async () => {
+            if (confirm("정말로 모든 신청 데이터를 삭제하시겠습니까? (Supabase 데이터가 모두 삭제됩니다)")) {
+                const { error } = await supabaseClient
+                    .from('rsvps')
+                    .delete()
+                    .neq('id', 0); // Delete all
+
+                if (error) {
+                    alert("삭제 실패: " + error.message);
+                } else {
+                    loadAdminData();
+                    renderPublicRSVPs();
+                    alert("초기화되었습니다.");
+                }
             }
         };
     }

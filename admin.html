@@ -4,142 +4,306 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>골프회 참석 신청 관리</title>
+    <title>관리자 모드 - 2026 SNU AI CEO 4기 골프회</title>
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap"
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700&family=Noto+Sans+KR:wght@300;400;500;700&display=swap"
         rel="stylesheet">
+    <!-- CSS -->
+    <link rel="stylesheet" href="style.css">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body {
-            font-family: 'Noto Sans KR', sans-serif;
-            padding: 20px;
-            background-color: #f9f9f9;
+            background-color: #f5f5f5;
+            padding-top: 40px;
+            padding-bottom: 80px;
         }
 
-        .container {
-            max-width: 1000px;
+        .admin-page-container {
+            max-width: 1200px;
             margin: 0 auto;
             background: #fff;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
         }
 
-        h1 {
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #577b2d;
+            padding-bottom: 20px;
+        }
+
+        .admin-header h1 {
             color: #1e3a2b;
-            border-bottom: 2px solid #c5a059;
-            padding-bottom: 10px;
+            margin: 0;
+            font-size: 2rem;
         }
 
-        table {
+        .back-home {
+            text-decoration: none;
+            color: #666;
+            font-weight: 500;
+            font-size: 0.9rem;
+            transition: color 0.3s;
+        }
+
+        .back-home:hover {
+            color: #577b2d;
+        }
+
+        /* Re-style tabs for the page */
+        .admin-tabs {
+            margin-bottom: 30px;
+        }
+
+        .table-container-wrapper {
+            box-shadow: none;
+            border: 1px solid #eee;
+            padding: 0;
+        }
+
+        #admin-table th,
+        #admin-member-table th {
+            white-space: nowrap;
+        }
+
+        /* Auth Overlay if not logged in */
+        #admin-auth-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
             width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-
-        th,
-        td {
-            border: 1px solid #ddd;
-            padding: 12px;
-            text-align: left;
-        }
-
-        th {
-            background-color: #f4f4f4;
-            color: #333;
-        }
-
-        tr:nth-child(even) {
-            background-color: #f9f9f9;
-        }
-
-        .attend {
-            color: green;
-            font-weight: bold;
-        }
-
-        .absent {
-            color: red;
-        }
-
-        .refresh-btn {
-            background-color: #1e3a2b;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 4px;
-            cursor: pointer;
-            float: right;
-        }
-
-        .refresh-btn:hover {
-            background-color: #14281d;
+            height: 100%;
+            background: #fff;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
         }
     </style>
 </head>
 
 <body>
-    <div class="container">
-        <button class="refresh-btn" onclick="loadRSVPs()">새로고침</button>
-        <h1>참석 신청 현황</h1>
-
-        <table id="rsvp-table">
-            <thead>
-                <tr>
-                    <th>일시</th>
-                    <th>이름</th>
-                    <th>연락처</th>
-                    <th>상태</th>
-                    <th>신청 시각</th>
-                </tr>
-            </thead>
-            <tbody>
-                <!-- Data will be loaded here -->
-            </tbody>
-        </table>
+    <!-- Simple Auth Overlay -->
+    <div id="admin-auth-overlay">
+        <h2 style="font-family: 'Noto Serif KR', serif; color: #1e3a2b; margin-bottom: 20px;">관리자 인증이 필요합니다</h2>
+        <button onclick="requestAdminAuth()" class="cta-button">관리자 비밀번호 입력</button>
+        <a href="index.html" class="back-home" style="margin-top: 20px; display: block;">← 메인 페이지로 돌아가기</a>
     </div>
 
+    <div class="container">
+        <div class="admin-page-container">
+            <div class="admin-header">
+                <div>
+                    <a href="index.html" class="back-home">← 메인 페이지로 돌아가기</a>
+                    <h1>관리자 모드</h1>
+                </div>
+                <div id="admin-global-buttons" style="display: flex; gap: 8px; flex-wrap: wrap;">
+                    <button id="admin-refresh-btn" class="cta-button"
+                        style="padding: 8px 15px; font-size: 0.85rem;">새로고침</button>
+                    <button id="admin-download-btn" class="cta-button"
+                        style="padding: 8px 15px; font-size: 0.85rem; background-color: #2980b9;">스코어 다운</button>
+                    <button id="admin-clear-btn" class="cta-button"
+                        style="padding: 8px 15px; font-size: 0.85rem; background-color: #e74c3c;">초기화</button>
+                    <button id="admin-export-btn" class="cta-button"
+                        style="padding: 8px 15px; font-size: 0.85rem; background-color: #27ae60;">백업</button>
+                    <button id="admin-import-trigger" class="cta-button"
+                        style="padding: 8px 15px; font-size: 0.85rem; background-color: #f39c12;">복원</button>
+                    <button id="bulk-exec-btn" class="cta-button"
+                        style="padding: 8px 15px; font-size: 0.85rem; background-color: #3498db;">임원진 등록</button>
+                    <input type="file" id="import-file" style="display: none;">
+                </div>
+            </div>
+
+            <div class="admin-tabs">
+                <button class="tab-btn active" data-tab="tab-rsvps">참석 현황</button>
+                <button class="tab-btn" data-tab="tab-members">회원 관리</button>
+                <button class="tab-btn" data-tab="tab-groups">조편성</button>
+            </div>
+
+            <!-- Tab 1: RSVPs -->
+            <div id="tab-rsvps" class="tab-content active">
+                <div class="table-container-wrapper">
+                    <div style="overflow-x: auto;">
+                        <table id="admin-table" style="width: 100%; border-collapse: collapse; font-size: 0.85rem;">
+                            <thead>
+                                <tr style="background-color: #f4f4f4;">
+                                    <th style="padding: 12px; border: 1px solid #ddd; text-align: left;">일시</th>
+                                    <th style="padding: 12px; border: 1px solid #ddd; text-align: left;">성함</th>
+                                    <th style="padding: 12px; border: 1px solid #ddd; text-align: left;">연락처</th>
+                                    <th style="padding: 12px; border: 1px solid #ddd; text-align: left;">상태</th>
+                                    <th style="padding: 12px; border: 1px solid #ddd; text-align: left;">스폰</th>
+                                    <th style="padding: 12px; border: 1px solid #ddd; text-align: left;">스코어</th>
+                                    <th style="padding: 12px; border: 1px solid #ddd; text-align: left;">수상</th>
+                                    <th style="padding: 12px; border: 1px solid #ddd; text-align: left;">25년 핸디</th>
+                                    <th style="padding: 12px; border: 1px solid #ddd; text-align: left;">전월 스코어</th>
+                                    <th style="padding: 12px; border: 1px solid #ddd; text-align: left;">26년 핸디 (평균)
+                                    </th>
+                                    <th style="padding: 12px; border: 1px solid #ddd; text-align: left;">신청 시각</th>
+                                    <th style="padding: 12px; border: 1px solid #ddd; text-align: left;">관리</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Data loaded via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div style="margin-top: 50px; border-top: 2px solid #577b2d; padding-top: 30px; text-align: center;">
+                    <h4 style="margin-top: 0; color: #1e3a2b; font-size: 1.2rem;">📊 상세 스코어 기록 관리</h4>
+                    <p style="color: #666; margin-bottom: 20px;">과거 라운드의 상세 기록 확인 및 신규 라운드 결과입력 전용 페이지입니다.</p>
+                    <a href="admin_records.html" class="cta-button"
+                        style="padding: 12px 30px; font-size: 1rem; background-color: #577b2d; text-decoration: none; color: #fff;">상세
+                        스코어 관리 페이지 이동 →</a>
+                </div>
+            </div>
+
+            <!-- Tab 2: Members -->
+            <div id="tab-members" class="tab-content">
+                <div class="add-member-form"
+                    style="background: #f9f9f9; padding: 25px; border-radius: 8px; margin-bottom: 30px; border: 1px solid #eee;">
+                    <h4 style="margin-top: 0; color: #1e3a2b;">➕ 회원 추가</h4>
+                    <div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-top: 15px;">
+                        <input type="text" id="new-member-name" placeholder="이름 (예: 홍길동)"
+                            style="padding: 10px; border: 1px solid #ddd; border-radius: 4px; flex: 1; min-width: 150px;">
+                        <select id="new-member-type"
+                            style="padding: 10px; border: 1px solid #ddd; border-radius: 4px; min-width: 120px;">
+                            <option value="jeong">정회원</option>
+                            <option value="jun">준회원</option>
+                            <option value="ilban">일반회원</option>
+                            <option value="special">특별회원</option>
+                            <option value="executive">임원</option>
+                        </select>
+                        <input type="text" id="new-member-role" placeholder="직책 (예: 회장)"
+                            style="padding: 10px; border: 1px solid #ddd; border-radius: 4px; display: none; flex: 1; min-width: 150px;">
+                        <button id="add-member-btn" class="cta-button" style="padding: 10px 25px;">추가하기</button>
+                    </div>
+                </div>
+
+                <div class="table-container-wrapper">
+                    <div style="overflow-x: auto;">
+                        <table id="admin-member-table"
+                            style="width: 100%; border-collapse: collapse; font-size: 0.95rem;">
+                            <thead>
+                                <tr style="background-color: #f4f4f4;">
+                                    <th style="padding: 15px; border: 1px solid #ddd; text-align: left;">이름</th>
+                                    <th style="padding: 15px; border: 1px solid #ddd; text-align: left;">구분</th>
+                                    <th style="padding: 15px; border: 1px solid #ddd; text-align: left;">수상 내역</th>
+                                    <th style="padding: 15px; border: 1px solid #ddd; text-align: center;">관리</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Member list loaded via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 3: Group Assignment -->
+            <div id="tab-groups" class="tab-content">
+                <div class="action-bar"
+                    style="background: #fdfaf4; padding: 25px; border-radius: 8px; margin-bottom: 30px; border: 1px solid #f0e6d2;">
+                    <h4 style="margin-top: 0; color: #1e3a2b;">🎲 자동 조편성 시스템</h4>
+                    <p style="font-size: 0.9rem; color: #666; margin-bottom: 20px;">전체 회원 목록 또는 현재 라운드 신청자를 대상으로 랜덤 조편성을
+                        수행합니다.</p>
+                    <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                        <button class="cta-button" onclick="assignGroups('sample')"
+                            style="background-color: #577b2d; padding: 10px 20px;">전체 회원 샘플 조편성</button>
+                        <button class="cta-button" onclick="assignGroups('rsvp')"
+                            style="background-color: #2980b9; padding: 10px 20px;">현재 신청자 기반 조편성</button>
+                        <button class="cta-button" id="copy-groups-btn"
+                            style="background-color: #888; padding: 10px 20px;">결과 복사하기</button>
+                    </div>
+                </div>
+                <div id="group-assignment-result"
+                    style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;">
+                    <div
+                        style="grid-column: 1/-1; text-align: center; color: #aaa; padding: 60px; border: 2px dashed #eee; border-radius: 12px;">
+                        <i class="fa-solid fa-users-viewfinder"
+                            style="font-size: 3rem; margin-bottom: 20px; color: #eee;"></i>
+                        <p>상단의 버튼을 클릭하여 조편성을 시작하세요.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Aggressive Cache Clearing & SW Deregistration (Same as index) -->
     <script>
-        async function loadRSVPs() {
+        async function clearAllCaches() {
             try {
-                // Local Storage Demo
-                const data = JSON.parse(localStorage.getItem('snu_golf_rsvps') || '[]');
-                renderTable(data);
+                if ('serviceWorker' in navigator) {
+                    const registrations = await navigator.serviceWorker.getRegistrations();
+                    for (let registration of registrations) { await registration.unregister(); }
+                }
+                if ('caches' in window) {
+                    const cacheNames = await caches.keys();
+                    for (let name of cacheNames) { await caches.delete(name); }
+                }
+            } catch (err) { console.error('Cache clearing failed:', err); }
+        }
+        clearAllCaches();
+    </script>
 
-                // Old Server Code
-                // const response = await fetch('/api/rsvps');
-                // const data = await response.json();
-                // renderTable(data);
-            } catch (error) {
-                console.error('Error loading RSVPs:', error);
-                alert('데이터를 불러오는데 실패했습니다.');
+    <!-- Supabase JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="script.js?v=1.5"></script>
+
+    <script>
+        // Inline Auth Logic for Admin Page
+        function requestAdminAuth() {
+            const password = prompt("관리자 비밀번호를 입력하세요");
+            if (!password) return;
+
+            // Same hash as in script.js
+            const targetHash = '07e47f77d22e2fc388c2d12f73b8b8b7e9928630d39a4964a9daabbc27a060f4';
+
+            async function check() {
+                const msgBuffer = new TextEncoder().encode(password);
+                const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+                const hashArray = Array.from(new Uint8Array(hashBuffer));
+                const inputHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+
+                if (inputHash === targetHash) {
+                    sessionStorage.setItem('snu_golf_admin_logged_in', 'true');
+                    document.getElementById('admin-auth-overlay').style.display = 'none';
+                    // Trigger data load
+                    if (typeof loadAdminData === 'function') loadAdminData();
+                    if (typeof loadAdminMembers === 'function') loadAdminMembers();
+                } else {
+                    alert("비밀번호가 틀렸습니다.");
+                }
             }
+            check();
         }
 
-        function renderTable(data) {
-            const tbody = document.querySelector('#rsvp-table tbody');
-            tbody.innerHTML = '';
+        // Check auth on load
+        window.addEventListener('DOMContentLoaded', () => {
+            if (sessionStorage.getItem('snu_golf_admin_logged_in') === 'true') {
+                document.getElementById('admin-auth-overlay').style.display = 'none';
+                // Wait for script.js to load functions
+                setTimeout(() => {
+                    if (typeof loadAdminData === 'function') loadAdminData();
+                    if (typeof loadAdminMembers === 'function') loadAdminMembers();
+                }, 500);
+            }
+        });
 
-            // Sort by Date (newest first)? Or event date? 
-            // Let's sort by submission time desc
-            data.sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt));
-
-            data.forEach(item => {
-                const tr = document.createElement('tr');
-                const date = new Date(item.submittedAt).toLocaleString('ko-KR');
-
-                tr.innerHTML = `
-                    <td>${item.month} ${item.date}</td>
-                    <td>${item.name}</td>
-                    <td>${item.phone || '-'}</td>
-                    <td class="${item.status}">${item.status === 'attend' ? '참석' : '불참'}</td>
-                    <td>${date}</td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
-
-        // Initial Load
-        loadRSVPs();
+        // Setup triggers for global buttons (since script.js looks for them)
+        document.getElementById('admin-export-btn').onclick = () => { if (typeof exportData === 'function') exportData(); };
+        document.getElementById('admin-import-trigger').onclick = () => { document.getElementById('import-file').click(); };
+        document.getElementById('import-file').onchange = (e) => { if (typeof importData === 'function') importData(e); };
     </script>
 </body>
 

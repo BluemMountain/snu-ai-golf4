@@ -57,7 +57,7 @@
         <div class="overlay"></div>
         <div class="header-links">
             <a href="login.html" id="login-link" class="header-link">로그인</a>
-            <a href="#" id="admin-link" class="header-link">관리자 모드</a>
+            <a href="admin.html" id="admin-link" class="header-link">관리자 모드</a>
         </div>
         <div class="hero-content fade-in-up">
             <p class="subtitle">서울대 AI CEO 과정 4기</p>
@@ -356,143 +356,11 @@
         </div>
     </div>
 
-    <!-- Admin Modal -->
-    <div id="admin-modal" class="modal">
-        <div class="modal-content" style="max-width: 800px;">
-            <span class="close-btn admin-close">&times;</span>
-            <div
-                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
-                <h3 style="margin: 0;">관리자 모드</h3>
-                <div id="admin-global-buttons" style="display: flex; gap: 8px; flex-wrap: wrap;">
-                    <button id="admin-refresh-btn" class="cta-button"
-                        style="padding: 5px 12px; font-size: 0.85rem;">새로고침</button>
-                    <button id="admin-download-btn" class="cta-button"
-                        style="padding: 5px 12px; font-size: 0.85rem; background-color: #2980b9;">스코어 다운</button>
-                    <button id="admin-clear-btn" class="cta-button"
-                        style="padding: 5px 12px; font-size: 0.85rem; background-color: #e74c3c;">초기화</button>
-                    <button onclick="exportData()" class="cta-button"
-                        style="padding: 5px 12px; font-size: 0.85rem; background-color: #27ae60;">백업</button>
-                    <button onclick="document.getElementById('import-file').click()" class="cta-button"
-                        style="padding: 5px 12px; font-size: 0.85rem; background-color: #f39c12;">복원</button>
-                    <button id="bulk-exec-btn" onclick="bulkRegisterExecutives()" class="cta-button"
-                        style="padding: 5px 12px; font-size: 0.85rem; background-color: #3498db;">임원진 등록</button>
-                    <input type="file" id="import-file" style="display: none;" onchange="importData(event)">
-                </div>
-            </div>
-
-            <div class="admin-tabs">
-                <button class="tab-btn active" data-tab="tab-rsvps">참석 현황</button>
-                <button class="tab-btn" data-tab="tab-members">회원 관리</button>
-                <button class="tab-btn" data-tab="tab-groups">조편성</button>
-            </div>
-
-            <!-- Tab 1: RSVPs -->
-            <div id="tab-rsvps" class="tab-content active">
-                <div style="overflow-x: auto;">
-                    <table id="admin-table"
-                        style="width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.9rem;">
-                        <thead>
-                            <tr style="background-color: #f4f4f4;">
-                                <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">일시</th>
-                                <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">성함</th>
-                                <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">연락처</th>
-                                <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">상태</th>
-                                <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">스폰</th>
-                                <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">스코어</th>
-                                <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">수상</th>
-                                <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">25년 핸디</th>
-                                <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">전월 스코어</th>
-                                <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">26년 핸디 (평균)
-                                </th>
-                                <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">신청 시각</th>
-                                <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">관리</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <!-- Data loaded via JS -->
-                        </tbody>
-                    </table>
-                </div>
-                <div style="margin-top: 30px; border-top: 2px solid #577b2d; padding-top: 20px; text-align: center;">
-                    <h4 style="margin-top: 0; color: #1e3a2b;">상세 스코어 기록 관리</h4>
-                    <p style="font-size: 0.9rem; color: #666; margin-bottom: 15px;">상세 스코어 조회 및 새로운 라운드 기록 추가는 아래 전용
-                        페이지에서 가능합니다.</p>
-                    <a href="admin_records.html" class="cta-button"
-                        style="padding: 10px 25px; font-size: 1rem; background-color: #577b2d; text-decoration: none; color: #fff;">상세
-                        스코어 관리 페이지 열기</a>
-                </div>
-            </div>
-
-            <!-- Tab 2: Members -->
-            <div id="tab-members" class="tab-content">
-                <div class="add-member-form"
-                    style="background: #f9f9f9; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
-                    <h4 style="margin-top: 0;">회원 추가</h4>
-                    <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
-                        <input type="text" id="new-member-name" placeholder="이름"
-                            style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
-                        <select id="new-member-type" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
-                            <option value="jeong">정회원</option>
-                            <option value="jun">준회원</option>
-                            <option value="ilban">일반회원</option>
-                            <option value="special">특별회원</option>
-                            <option value="executive">임원</option>
-                        </select>
-                        <input type="text" id="new-member-role" placeholder="직책 (예: 회장)"
-                            style="padding: 8px; border: 1px solid #ddd; border-radius: 4px; display: none;">
-                        <button id="add-member-btn" class="cta-button"
-                            style="padding: 5px 15px; font-size: 0.9rem;">추가</button>
-                    </div>
-                </div>
-
-                <div style="overflow-x: auto;">
-                    <table id="admin-member-table" style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
-                        <thead>
-                            <tr style="background-color: #f4f4f4;">
-                                <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">이름</th>
-                                <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">구분</th>
-                                <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">수상 내역</th>
-                                <th style="padding: 10px; border: 1px solid #ddd; text-align: center;">관리</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <!-- Member list loaded via JS -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Tab 3: Group Assignment -->
-            <div id="tab-groups" class="tab-content">
-                <div class="action-bar"
-                    style="background: #f9f9f9; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
-                    <h4 style="margin-top: 0; color: #1e3a2b;">자동 조편성</h4>
-                    <p style="font-size: 0.85rem; color: #666; margin-bottom: 15px;">전체 회원 또는 현재 신청자를 기반으로 무작위 조편성을
-                        수행합니다.</p>
-                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                        <button class="cta-button" onclick="assignGroups('sample')"
-                            style="padding: 8px 15px; font-size: 0.9rem; background-color: #577b2d;">전체 회원 샘플
-                            조편성</button>
-                        <button class="cta-button" onclick="assignGroups('rsvp')"
-                            style="padding: 8px 15px; font-size: 0.9rem; background-color: #2980b9;">현재 신청자 기반
-                            조편성</button>
-                        <button class="cta-button" id="copy-groups-btn"
-                            style="padding: 8px 15px; font-size: 0.9rem; background-color: #888;">결과 복사하기</button>
-                    </div>
-                </div>
-                <div id="group-assignment-result"
-                    style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px;">
-                    <p style="grid-column: 1/-1; text-align: center; color: #888; padding: 40px;">위에 버튼을 눌러 조편성을
-                        시작하세요.
-                    </p>
-                </div>
-            </div>
-        </div>
     </div>
 
     <!-- Supabase JS -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="script.js?v=1.4"></script>
+    <script src="script.js?v=1.5"></script>
 </body>
 
 </html>
