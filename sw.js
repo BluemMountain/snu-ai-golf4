@@ -1,12 +1,15 @@
-const CACHE_NAME = 'snu-ai-golf-v1.3'; // Incremented version
+const CACHE_NAME = 'snu-ai-golf-v2.4';
 const ASSETS_TO_CACHE = [
-    '/',
-    '/index.html',
-    '/style.css',
-    '/script.js',
-    '/manifest.json',
-    '/icons/icon-192.png',
-    '/icons/icon-512.png'
+    './',
+    './index.html',
+    './admin.html',
+    './admin_records.html',
+    './login.html',
+    './style.css',
+    './script.js',
+    './manifest.json',
+    './icons/icon-192.png',
+    './icons/icon-512.png'
 ];
 
 self.addEventListener('install', (event) => {
