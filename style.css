@@ -365,7 +365,8 @@ h3 {
     text-align: center;
     position: sticky;
     top: 0;
-    z-index: 30;
+    z-index: 40;
+    /* Base height for all headers */
 }
 
 #score-table td,
@@ -395,7 +396,8 @@ h3 {
 .sticky-col {
     position: sticky;
     background-color: #fff !important;
-    z-index: 25;
+    z-index: 30;
+    /* Lower than header, higher than normal cells */
 }
 
 /* Specific Width for Name Columns (Header cells with names) */
@@ -423,9 +425,10 @@ h3 {
 #admin-score-table th:nth-child(1),
 #score-table td:nth-child(1),
 #admin-score-table td:nth-child(1) {
-    width: 40px;
-    min-width: 40px;
+    width: 60px;
+    min-width: 60px;
     left: 0;
+    z-index: 31;
 }
 
 #score-table th:nth-child(2),
@@ -434,17 +437,26 @@ h3 {
 #admin-score-table td:nth-child(2) {
     width: 80px;
     min-width: 80px;
-    left: 40px;
+    left: 60px;
+    z-index: 31;
 }
 
 #score-table th:nth-child(3),
 #admin-score-table th:nth-child(3),
 #score-table td:nth-child(3),
 #admin-score-table td:nth-child(3) {
-    width: 120px;
-    min-width: 120px;
+    width: 140px;
+    min-width: 140px;
     text-align: left;
-    left: 120px;
+    left: 140px;
+    z-index: 31;
+}
+
+/* Corner cells (Sticky Header AND Sticky Column) must be higher z-index */
+#score-table th:nth-child(-n+3),
+#admin-score-table th:nth-child(-n+3) {
+    z-index: 50;
+    background-color: var(--primary-color) !important;
 }
 
 /* Vertical Separator Line after CC/HD column */
