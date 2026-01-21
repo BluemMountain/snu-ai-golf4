@@ -395,8 +395,8 @@ async function loadMembers() {
 
     if (execList) execList.innerHTML = '';
 
-    // Filter for executives and special members for the public view
-    const executives = members.filter(m => m.type === 'executive' || m.type === 'special');
+    // Filter for executives for the public view (Removed 'special' at user request)
+    const executives = members.filter(m => m.type === 'executive');
 
     if (executives.length === 0) {
         if (execList) execList.innerHTML = '<p style="color:#888; text-align:center; width:100%;">등록된 임원진이 없습니다.</p>';
