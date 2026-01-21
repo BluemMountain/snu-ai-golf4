@@ -125,7 +125,7 @@
                 const inputHash = await sha256(password);
 
                 if (inputHash === targetHash) {
-                    localStorage.setItem('snu_golf_logged_in', 'true');
+                    sessionStorage.setItem('snu_golf_logged_in', 'true');
 
                     // redirect 처리
                     const urlParams = new URLSearchParams(window.location.search);

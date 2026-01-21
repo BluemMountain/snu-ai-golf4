@@ -37,49 +37,34 @@ app.post('/api/admin-login', (req, res) => {
     }
 });
 
-// Load RSVPs
-function loadRSVPs() {
-    if (!fs.existsSync(DATA_FILE)) {
-        return [];
-    }
-    const data = fs.readFileSync(DATA_FILE);
-    return JSON.parse(data);
-}
-
-// Save RSVPs
-function saveRSVPs(data) {
-    fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2));
-}
+const supabase = require('./supabaseClient');
 
 // API: Get all RSVPs (for Admin)
-app.get('/api/rsvps', (req, res) => {
-    const rsvps = loadRSVPs();
-    res.json(rsvps);
+app.get('/api/rsvps', async (req, res) => {
+    const { data, error } = await supabase.from('rsvps').select('*');
+    if (error) return res.status(500).json({ error: error.message });
+    res.json(data);
 });
 
 // API: Submit RSVP
-app.post('/api/rsvp', (req, res) => {
-    const { name, phone, month, status, date } = req.body;
+app.post('/api/rsvp', async (req, res) => {
+    const { name, phone, month, status, date, iswaiting } = req.body;
 
     if (!name || !month || !status) {
         return res.status(400).json({ error: 'Missing required fields' });
     }
 
-    const rsvps = loadRSVPs();
-    const newRSVP = {
-        id: Date.now(),
-        submittedAt: new Date().toISOString(),
+    const { data, error } = await supabase.from('rsvps').insert([{
         name,
         phone,
         month,
-        date, // Event date e.g. "3.25"
-        status // 'attend' or 'absent'
-    };
+        date,
+        status,
+        iswaiting: iswaiting || false
+    }]);
 
-    rsvps.push(newRSVP);
-    saveRSVPs(rsvps);
-
-    res.json({ success: true, message: 'RSVP saved successfully' });
+    if (error) return res.status(500).json({ error: error.message });
+    res.json({ success: true, message: 'RSVP saved to Supabase' });
 });
 
 app.listen(PORT, () => {

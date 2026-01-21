@@ -15,15 +15,37 @@
     <link rel="stylesheet" href="style.css">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#007bff">
-    <!-- PWA Service Worker Registration -->
+    <!-- Aggressive Cache Clearing & SW Deregistration -->
     <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js')
-                    .then(reg => console.log('Service Worker registered', reg))
-                    .catch(err => console.log('Service Worker registration failed', err));
-            });
+        // Use a version key to only run this once if needed
+        async function clearAllCaches() {
+            try {
+                // 1. Unregister all service workers
+                if ('serviceWorker' in navigator) {
+                    const registrations = await navigator.serviceWorker.getRegistrations();
+                    for (let registration of registrations) {
+                        await registration.unregister();
+                        console.log('Service Worker unregistered');
+                    }
+                }
+                // 2. Clear all named caches
+                if ('caches' in window) {
+                    const cacheNames = await caches.keys();
+                    for (let name of cacheNames) {
+                        await caches.delete(name);
+                        console.log('Cache deleted:', name);
+                    }
+                }
+                // 3. Clear sessions if transition is still stuck
+                if (!sessionStorage.getItem('cache_cleared_v1.3')) {
+                    sessionStorage.setItem('cache_cleared_v1.3', 'true');
+                    window.location.reload(true); // Force reload from server
+                }
+            } catch (err) {
+                console.error('Cache clearing failed:', err);
+            }
         }
+        clearAllCaches();
     </script>
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -413,6 +435,7 @@
                             <option value="jeong">정회원</option>
                             <option value="jun">준회원</option>
                             <option value="ilban">일반회원</option>
+                            <option value="special">특별회원</option>
                             <option value="executive">임원</option>
                         </select>
                         <input type="text" id="new-member-role" placeholder="직책 (예: 회장)"
@@ -467,7 +490,9 @@
         </div>
     </div>
 
-    <script src="script.js"></script>
+    <!-- Supabase JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="script.js?v=1.4"></script>
 </body>
 
 </html>

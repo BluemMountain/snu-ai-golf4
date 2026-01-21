@@ -1,3 +1,17 @@
+// Supabase Configuration
+const SUPABASE_URL = 'https://qfzmwlyqezmkkxtpscik.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_mYejtROOg-2JN7z6_RlWdg_PXYSYgFi'; // Anon Key
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// Force cleanup of legacy local login state to ensure sessionStorage takes over
+if (localStorage.getItem('snu_golf_logged_in')) {
+    const wasLoggedIn = localStorage.getItem('snu_golf_logged_in');
+    if (wasLoggedIn === 'true') {
+        sessionStorage.setItem('snu_golf_logged_in', 'true');
+    }
+    localStorage.removeItem('snu_golf_logged_in');
+}
+
 // Global CSV Data for Stats lookup (Sorted Alphabetically)
 const CSV_DATA_STRING = `
 , ,Name,강순대,곽노준,권민오,김기록,김대욱,김태일,남서우,문성욱,박상길,박철호,박청산,박희석,송원득,신소우,심민선,안삼근,안원익,이교구,이대식,이문형,이상열,이석환,이용환,정대규,정민호,정지환,조중규,현성호,박지선,신수희,김윤석,이진우,장병탁,이성원,전은미,최정훈,김종세,배태근,권혁찬,한예성,최철호,이재욱,이준기,이주민,김은현,채성희,김도열,이영규
@@ -60,7 +74,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function checkLogin() {
-    const isLoggedIn = localStorage.getItem('snu_golf_logged_in') === 'true';
+    const isLoggedIn = sessionStorage.getItem('snu_golf_logged_in') === 'true';
     const protectedSections = document.querySelectorAll('.protected-section');
     const loginLink = document.getElementById('login-link');
 
@@ -71,7 +85,7 @@ function checkLogin() {
             loginLink.href = '#';
             loginLink.onclick = (e) => {
                 e.preventDefault();
-                localStorage.removeItem('snu_golf_logged_in');
+                sessionStorage.removeItem('snu_golf_logged_in');
                 window.location.reload();
             };
         }
@@ -199,17 +213,17 @@ function initRSVP() {
             sponsor: document.getElementById('sponsor').value,
             month: rsvpMonthInput.value,
             date: rsvpDateInput.value,
-            isWaiting: (availability.status === 'waiting')
+            iswaiting: (availability.status === 'waiting')
         };
 
         try {
-            // Local Storage Demo
-            const existing = JSON.parse(localStorage.getItem('snu_golf_rsvps') || '[]');
-            formData.submittedAt = new Date().toISOString(); // Ensure timestamp
-            existing.push(formData);
-            localStorage.setItem('snu_golf_rsvps', JSON.stringify(existing));
+            const { error } = await supabaseClient
+                .from('rsvps')
+                .insert([formData]);
 
-            alert('참석 신청이 완료되었습니다. (데이터는 브라우저에 저장됩니다)');
+            if (error) throw error;
+
+            alert('참석 신청이 완료되었습니다.');
             modal.style.display = 'none';
             form.reset();
 
@@ -218,7 +232,7 @@ function initRSVP() {
             loadAdminData();
         } catch (error) {
             console.error('Error submitting RSVP:', error);
-            alert('저장 실패');
+            alert('저장 실패: ' + error.message);
         }
     });
 
@@ -256,8 +270,9 @@ function initRSVP() {
 
     if (newMemberTypeSelect) {
         newMemberTypeSelect.addEventListener('change', () => {
-            if (newMemberTypeSelect.value === 'executive') {
+            if (newMemberTypeSelect.value === 'executive' || newMemberTypeSelect.value === 'special') {
                 newMemberRoleInput.style.display = 'block';
+                newMemberRoleInput.placeholder = newMemberTypeSelect.value === 'executive' ? '직책 (예: 회장)' : '설명/직책';
             } else {
                 newMemberRoleInput.style.display = 'none';
             }
@@ -283,8 +298,6 @@ function initRSVP() {
     }
 
     // Load initial members for public view
-    // Pre-populate if empty
-    initMembers();
     loadMembers(); // Render
 
     // Admin Modal Open Logic Update - Load Members too
@@ -358,51 +371,24 @@ function initRSVP() {
 
 /* --- Member Management Functions --- */
 
-function initMembers() {
-    const stored = localStorage.getItem('snu_golf_members');
-    if (!stored || JSON.parse(stored).length === 0) {
-        const initialNames = ["강순대", "곽노준", "권민오", "김기록", "김대욱", "김태일", "남서우", "문성욱", "박상길", "박철호", "박청산", "박희석", "송원득", "신소우", "심민선", "안삼근", "안원익", "이교구", "이대식", "이문형", "이상열", "이석환", "이용환", "정대규", "정민호", "정지환", "조중규", "현성호", "박지선", "신수희", "김윤석", "이진우", "장병탁", "이성원", "전은미", "최정훈", "김종세", "배태근", "권혁찬", "한예성", "최철호", "이재욱", "이준기", "이주민", "김은현", "채성희", "김도열", "이영규"];
+// initMembers() function removed as data is now managed by Supabase
 
-        const members = initialNames.map(name => {
-            let type = 'ilban';
-            let role = '';
+async function loadMembers() {
+    const { data: members, error } = await supabase
+        .from('members')
+        .select('*');
 
-            if (name === '김대욱') {
-                type = 'executive';
-                role = '회장';
-            } else if (name === '박철호' || name === '정민호') {
-                type = 'executive';
-                role = '부회장';
-            }
-
-            const obj = { name, type };
-            if (role) obj.role = role;
-            return obj;
-        });
-
-        localStorage.setItem('snu_golf_members', JSON.stringify(members));
-    } else {
-        // 기존 데이터가 있는 경우의 업데이트 로직 (필요시)
-        const members = JSON.parse(stored);
-
-        // 송원득님은 명단 초기화 시에도 일반회원으로 설정 (사용자 요청: 문의하기에서 제외)
-        const targetIdx = members.findIndex(m => m.name === '송원득');
-        if (targetIdx !== -1 && members[targetIdx].type === 'executive') {
-            members[targetIdx].type = 'ilban';
-            delete members[targetIdx].role;
-            localStorage.setItem('snu_golf_members', JSON.stringify(members));
-        }
+    if (error) {
+        console.error('Error loading members:', error);
+        return;
     }
-}
 
-function loadMembers() {
-    const members = JSON.parse(localStorage.getItem('snu_golf_members') || '[]');
     const execList = document.getElementById('member-list-executive');
 
     if (execList) execList.innerHTML = '';
 
-    // Filter for executives only for the public view
-    const executives = members.filter(m => m.type === 'executive');
+    // Filter for executives and special members for the public view
+    const executives = members.filter(m => m.type === 'executive' || m.type === 'special');
 
     if (executives.length === 0) {
         if (execList) execList.innerHTML = '<p style="color:#888; text-align:center; width:100%;">등록된 임원진이 없습니다.</p>';
@@ -432,108 +418,130 @@ function loadMembers() {
             execList.appendChild(div);
         }
     });
+
+    // Also populate admin view if open
+    loadAdminMembers(members);
 }
 
-function addMember(name, type, role) {
-    const members = JSON.parse(localStorage.getItem('snu_golf_members') || '[]');
+async function addMember(name, type, role) {
+    const { error } = await supabase
+        .from('members')
+        .insert([{ name, type, role }]);
 
-    members.push({ name, type, role });
-    localStorage.setItem('snu_golf_members', JSON.stringify(members));
-
-    // Refresh Views
-    loadMembers();
-    loadAdminMembers();
-}
-
-function deleteMember(index) {
-    if (!confirm("정말 삭제하시겠습니까?")) return;
-
-    const members = JSON.parse(localStorage.getItem('snu_golf_members') || '[]');
-    members.splice(index, 1);
-    localStorage.setItem('snu_golf_members', JSON.stringify(members));
-
-    // Refresh Views
-    loadMembers();
-    loadAdminMembers();
-}
-
-function updateMemberType(index, newType) {
-    const members = JSON.parse(localStorage.getItem('snu_golf_members') || '[]');
-    const member = members[index];
-
-    member.type = newType;
-
-    if (newType === 'executive') {
-        const role = prompt(`${member.name}님의 직책을 입력해주세요 (예: 회장, 총무):`, member.role || '');
-        if (role !== null) {
-            member.role = role;
-        } else {
-            member.role = '';
-        }
-    } else {
-        delete member.role;
+    if (error) {
+        console.error('Error adding member:', error);
+        alert('회원 추가 실패: ' + error.message);
+        return;
     }
 
-    localStorage.setItem('snu_golf_members', JSON.stringify(members));
-    loadMembers();
-    loadAdminMembers();
+    loadMembers(); // Refresh both views
 }
 
-function loadAdminMembers() {
+async function deleteMember(name) {
+    if (!confirm(`${name}님을 정말 삭제하시겠습니까?`)) return;
+
+    const { error } = await supabase
+        .from('members')
+        .delete()
+        .eq('name', name);
+
+    if (error) {
+        console.error('Error deleting member:', error);
+        alert('삭제 실패');
+        return;
+    }
+
+    loadMembers();
+}
+
+async function updateMemberType(name, newType) {
+    let role = '';
+    if (newType === 'executive' || newType === 'special') {
+        role = prompt(`${name}님의 직책/설명을 입력해주세요:`, '');
+        if (role === null) return; // User cancelled prompt
+    }
+
+    const { error } = await supabase
+        .from('members')
+        .update({ type: newType, role: role })
+        .eq('name', name);
+
+    if (error) {
+        console.error('Error updating member type:', error);
+        alert('업데이트 실패');
+        return;
+    }
+
+    loadMembers();
+}
+
+async function loadAdminMembers(prefetchedMembers = null) {
     const tbody = document.querySelector('#admin-member-table tbody');
     if (!tbody) return;
     tbody.innerHTML = '';
 
-    const members = JSON.parse(localStorage.getItem('snu_golf_members') || '[]');
-    const memberItems = members.map((m, i) => ({ ...m, originalIndex: i }));
+    let members = prefetchedMembers;
+    if (!members) {
+        const { data, error } = await supabase.from('members').select('*');
+        if (error) {
+            console.error('Error loading admin members:', error);
+            return;
+        }
+        members = data;
+    }
 
-    const typeOrder = { 'executive': 1, 'jeong': 2, 'jun': 3, 'ilban': 4 };
-    memberItems.sort((a, b) => {
+    const typeOrder = { 'executive': 1, 'special': 2, 'jeong': 3, 'jun': 4, 'ilban': 5 };
+    members.sort((a, b) => {
         if (typeOrder[a.type] !== typeOrder[b.type]) {
             return typeOrder[a.type] - typeOrder[b.type];
         }
         return a.name.localeCompare(b.name, 'ko');
     });
 
-    memberItems.forEach((item) => {
+    members.forEach((item) => {
         const tr = document.createElement('tr');
         const isExecutive = item.type === 'executive';
 
         tr.innerHTML = `
             <td style="padding: 10px; border: 1px solid #ddd;">${item.name}</td>
             <td style="padding: 10px; border: 1px solid #ddd;">
-                <select onchange="updateMemberType(${item.originalIndex}, this.value)" style="padding: 4px; border-radius: 4px; border: 1px solid #ddd; width: 100%;">
+                <select onchange="updateMemberType('${item.name}', this.value)" style="padding: 4px; border-radius: 4px; border: 1px solid #ddd; width: 100%;">
                     <option value="ilban" ${item.type === 'ilban' ? 'selected' : ''}>일반회원</option>
                     <option value="jeong" ${item.type === 'jeong' ? 'selected' : ''}>정회원</option>
                     <option value="jun" ${item.type === 'jun' ? 'selected' : ''}>준회원</option>
+                    <option value="special" ${item.type === 'special' ? 'selected' : ''}>특별회원</option>
                     <option value="executive" ${item.type === 'executive' ? 'selected' : ''}>임원</option>
                 </select>
-                ${isExecutive ? `<div style="font-size: 0.75rem; color: #577b2d; margin-top: 4px; font-weight: bold;">직책: ${item.role || '보직없음'}</div>` : ''}
+                ${(isExecutive || item.type === 'special') ? `<div style="font-size: 0.75rem; color: #577b2d; margin-top: 4px; font-weight: bold;">직책/설명: ${item.role || '보직없음'}</div>` : ''}
             </td>
             <td style="padding: 10px; border: 1px solid #ddd;">
-                <input type="text" value="${item.awardHistory || ''}" onchange="updateMemberAward(${item.originalIndex}, this.value)" placeholder="수상 이력 입력" style="width: 100%; padding: 4px; border: 1px solid #ddd;">
+                <input type="text" value="${item.awardhistory || ''}" onchange="updateMemberAward('${item.name}', this.value)" placeholder="수상 이력 입력" style="width: 100%; padding: 4px; border: 1px solid #ddd;">
             </td>
             <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">
-                <button class="cta-button" onclick="deleteMember(${item.originalIndex})" style="padding: 2px 8px; font-size: 0.8rem; background-color: #e74c3c; min-width: auto;">삭제</button>
+                <button class="cta-button" onclick="deleteMember('${item.name}')" style="padding: 2px 8px; font-size: 0.8rem; background-color: #e74c3c; min-width: auto;">삭제</button>
             </td>
         `;
         tbody.appendChild(tr);
     });
 }
 
-function updateRSVPField(index, field, value) {
-    const data = JSON.parse(localStorage.getItem('snu_golf_rsvps') || '[]');
-    if (data[index]) {
-        data[index][field] = value;
-        localStorage.setItem('snu_golf_rsvps', JSON.stringify(data));
-    }
+async function updateMemberAward(name, value) {
+    const { error } = await supabase
+        .from('members')
+        .update({ awardhistory: value })
+        .eq('name', name);
+
+    if (error) console.error('Error updating award history:', error);
 }
 
-function updateMemberAward(index, value) {
-    const members = JSON.parse(localStorage.getItem('snu_golf_members') || '[]');
-    if (members[index]) {
-        members[index].awardHistory = value;
-        localStorage.setItem('snu_golf_members', JSON.stringify(members));
+async function updateRSVPField(id, field, value) {
+    const { error } = await supabaseClient
+        .from('rsvps')
+        .update({ [field.toLowerCase()]: value })
+        .eq('id', id);
+
+    if (error) {
+        console.error('Error updating RSVP field:', error);
     }
 }
 
@@ -575,15 +583,25 @@ function getMemberStats(name) {
     return { h25, last, h26 };
 }
 
-function loadAdminData() {
+async function loadAdminData() {
     // 1. RSVP Table Update
     const rsvpTbody = document.querySelector('#admin-table tbody');
     if (rsvpTbody) {
-        rsvpTbody.innerHTML = '';
-        const data = JSON.parse(localStorage.getItem('snu_golf_rsvps') || '[]');
+        rsvpTbody.innerHTML = '<tr><td colspan="12" style="text-align:center; padding: 20px;">불러오는 중...</td></tr>';
 
+        const { data, error } = await supabaseClient
+            .from('rsvps')
+            .select('*');
+
+        if (error) {
+            console.error('Error loading RSVPs:', error);
+            rsvpTbody.innerHTML = '<tr><td colspan="12" style="text-align:center; padding: 20px; color: red;">실패: ' + error.message + '</td></tr>';
+            return;
+        }
+
+        rsvpTbody.innerHTML = '';
         if (data.length === 0) {
-            rsvpTbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding: 20px;">신청 내역이 없습니다.</td></tr>';
+            rsvpTbody.innerHTML = '<tr><td colspan="12" style="text-align:center; padding: 20px;">신청 내역이 없습니다.</td></tr>';
         } else {
             // Group by Month/Date
             const groupedData = data.reduce((acc, item) => {
@@ -614,36 +632,33 @@ function loadAdminData() {
                 `;
                 rsvpTbody.appendChild(headerRow);
 
-                items.sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt));
-                items.forEach((item, itemIdx) => {
+                items.sort((a, b) => new Date(b.submittedat) - new Date(a.submittedat));
+                items.forEach((item) => {
                     const tr = document.createElement('tr');
                     const stats = getMemberStats(item.name);
 
-                    // find unique index for updating
-                    const realIndex = data.findIndex(d => d.submittedAt === item.submittedAt && d.name === item.name);
-
                     tr.innerHTML = `
                         <td style="padding: 10px; border: 1px solid #ddd;">${item.month} ${item.date}</td>
-                        <td style="padding: 10px; border: 1px solid #ddd;">${item.name}${item.isWaiting ? ' <span style="color:#d35400; font-size:0.8rem;">(대기)</span>' : ''}</td>
+                        <td style="padding: 10px; border: 1px solid #ddd;">${item.name}${item.iswaiting ? ' <span style="color:#d35400; font-size:0.8rem;">(대기)</span>' : ''}</td>
                         <td style="padding: 10px; border: 1px solid #ddd;">${item.phone || '-'}</td>
                         <td style="padding: 10px; border: 1px solid #ddd; color: ${item.status === 'attend' ? 'green' : 'red'}; font-weight: bold;">
-                            ${item.status === 'attend' ? (item.isWaiting ? '참석(대기)' : '참석') : '불참'}
+                            ${item.status === 'attend' ? (item.iswaiting ? '참석(대기)' : '참석') : '불참'}
                         </td>
                         <td style="padding: 5px; border: 1px solid #ddd;">
-                            <input type="text" value="${item.sponsor || ''}" onchange="updateRSVPField(${realIndex}, 'sponsor', this.value)" placeholder="스폰 내용" style="width: 100%; min-width: 80px; padding: 4px; border: 1px solid #ddd;">
+                            <input type="text" value="${item.sponsor || ''}" onchange="updateRSVPField(${item.id}, 'sponsor', this.value)" placeholder="스폰 내용" style="width: 100%; min-width: 80px; padding: 4px; border: 1px solid #ddd;">
                         </td>
                         <td style="padding: 5px; border: 1px solid #ddd; text-align: center;">
-                            ${item.status === 'attend' ? `<input type="text" value="${item.roundScore || ''}" onchange="updateRSVPField(${realIndex}, 'roundScore', this.value)" style="width: 50px; padding: 4px; text-align: center; border: 1px solid #ddd;">` : '-'}
+                            ${item.status === 'attend' ? `<input type="text" value="${item.roundscore || ''}" onchange="updateRSVPField(${item.id}, 'roundscore', this.value)" style="width: 50px; padding: 4px; text-align: center; border: 1px solid #ddd;">` : '-'}
                         </td>
                         <td style="padding: 5px; border: 1px solid #ddd; text-align: center;">
-                            ${item.status === 'attend' ? `<input type="text" value="${item.roundAward || ''}" onchange="updateRSVPField(${realIndex}, 'roundAward', this.value)" placeholder="우승 등" style="width: 80px; padding: 4px; border: 1px solid #ddd;">` : '-'}
+                            ${item.status === 'attend' ? `<input type="text" value="${item.roundaward || ''}" onchange="updateRSVPField(${item.id}, 'roundaward', this.value)" placeholder="우승 등" style="width: 80px; padding: 4px; border: 1px solid #ddd;">` : '-'}
                         </td>
                         <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">${stats.h25}</td>
                         <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">${stats.last}</td>
                         <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">${stats.h26}</td>
-                        <td style="padding: 10px; border: 1px solid #ddd;">${item.submittedAt ? new Date(item.submittedAt).toLocaleString('ko-KR') : '-'}</td>
+                        <td style="padding: 10px; border: 1px solid #ddd;">${item.submittedat ? new Date(item.submittedat).toLocaleString('ko-KR') : '-'}</td>
                         <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">
-                            <button onclick="deleteRSVP(${realIndex})" style="background: #e74c3c; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">삭제</button>
+                            <button onclick="deleteRSVP(${item.id})" style="background: #e74c3c; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">삭제</button>
                         </td>
                     `;
                     rsvpTbody.appendChild(tr);
@@ -659,11 +674,19 @@ function loadAdminData() {
     }
 }
 
-function renderPublicRSVPs() {
+async function renderPublicRSVPs() {
     const container = document.getElementById('public-rsvp-container');
     if (!container) return;
 
-    const data = JSON.parse(localStorage.getItem('snu_golf_rsvps') || '[]');
+    const { data, error } = await supabaseClient
+        .from('rsvps')
+        .select('*');
+
+    if (error) {
+        console.error('Error rendering public RSVPs:', error);
+        return;
+    }
+
     if (data.length === 0) {
         container.innerHTML = '<div style="text-align:center; padding: 40px; color:#888;">아직 신청 내역이 없습니다.</div>';
         return;
@@ -714,7 +737,7 @@ function renderPublicRSVPs() {
 
             card.innerHTML = `
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                    <span style="font-weight: bold; font-size: 1.1rem; color: #333;">${item.name}${item.isWaiting ? ' <span style="font-size: 0.8rem; color: #d35400;">(대기)</span>' : ''}</span>
+                    <span style="font-weight: bold; font-size: 1.1rem; color: #333;">${item.name}${item.iswaiting ? ' <span style="font-size: 0.8rem; color: #d35400;">(대기)</span>' : ''}</span>
                     <span style="padding: 2px 8px; border-radius: 20px; font-size: 0.8rem; font-weight: bold; background: ${item.status === 'attend' ? '#e8f5e9' : '#ffebee'}; color: ${item.status === 'attend' ? '#2e7d32' : '#c62828'};">
                         ${item.status === 'attend' ? '참석' : '불참'}
                     </span>
@@ -940,18 +963,23 @@ function shuffleArray(array) {
     return newArr;
 }
 
-function assignGroups(mode) {
+async function assignGroups(mode) {
     let participants = [];
 
     if (mode === 'sample') {
         // 전체 회원 기반 (샘플)
-        const members = JSON.parse(localStorage.getItem('snu_golf_members') || '[]');
+        const { data: members, error } = await supabaseClient.from('members').select('name');
+        if (error) return;
         participants = members.map(m => m.name);
     } else {
         // 현재 신청자(참석) 기반
-        const rsvps = JSON.parse(localStorage.getItem('snu_golf_rsvps') || '[]');
+        const { data: rsvps, error } = await supabaseClient
+            .from('rsvps')
+            .select('name')
+            .eq('status', 'attend');
+        if (error) return;
         // 참석(attend) 상태인 사람들만 중복 제거하여 추출
-        participants = [...new Set(rsvps.filter(r => r.status === 'attend').map(r => r.name))];
+        participants = [...new Set(rsvps.map(r => r.name))];
     }
 
     if (participants.length === 0) {
@@ -1027,11 +1055,18 @@ function renderGroups(groups) {
 
 /* --- Automatic Award Calculation --- */
 
-function autoCalculateAwards(groupKey) {
-    const data = JSON.parse(localStorage.getItem('snu_golf_rsvps') || '[]');
+async function autoCalculateAwards(groupKey) {
+    const { data: rsvps, error } = await supabaseClient
+        .from('rsvps')
+        .select('*');
+
+    if (error) {
+        console.error('Error fetching RSVPs for award calculation:', error);
+        return;
+    }
 
     // 해당 날짜의 참석자 중 점수가 입력된 사람만 추출
-    const participants = data.filter(d => `${d.month} ${d.date}` === groupKey && d.status === 'attend' && d.roundScore);
+    const participants = rsvps.filter(d => `${d.month} ${d.date}` === groupKey && d.status === 'attend' && d.roundscore);
 
     if (participants.length === 0) {
         alert("점수가 입력된 참석자가 없습니다. 먼저 점수를 입력해주세요.");
@@ -1041,7 +1076,7 @@ function autoCalculateAwards(groupKey) {
     // 분석을 위한 데이터 구조 생성
     const analyzed = participants.map(p => {
         const stats = getMemberStats(p.name);
-        const gross = parseFloat(p.roundScore);
+        const gross = parseFloat(p.roundscore);
 
         // 핸디캡 결정 (26년 3월 예외 처리)
         let handicap = 0;
@@ -1059,47 +1094,39 @@ function autoCalculateAwards(groupKey) {
         };
     });
 
-    // 1. 메달리스트 (최저 타수)
-    const medalistObj = [...analyzed].sort((a, b) => a.gross - b.gross)[0];
-
-    // 2. 우승 (핸디캡 대비 최저 타수)
-    // 3. 준우승 (핸디캡 대비 2위)
+    // Award calculation logic same as before...
     const netSorted = [...analyzed].sort((a, b) => a.net - b.net);
+    const grossSorted = [...analyzed].sort((a, b) => a.gross - b.gross);
+    const grossSortedDesc = [...analyzed].sort((a, b) => b.gross - a.gross);
+
+    const medalistObj = grossSorted[0];
     const winnerObj = netSorted[0];
     const runnerUpObj = netSorted.length > 1 ? netSorted[1] : null;
-
-    // 4. 꼴찌 (최고 타수)
-    // 5. 행운상 (뒤에서 2등)
-    const grossSortedDesc = [...analyzed].sort((a, b) => b.gross - a.gross);
     const lastOneObj = grossSortedDesc[0];
     const luckyOneObj = grossSortedDesc.length > 1 ? grossSortedDesc[1] : null;
 
-    // 수상 내용 초기화 후 다시 할당 (원본 객체에 직접 할당)
-    participants.forEach(p => p.roundAward = '');
+    // Build update objects
+    const updates = participants.map(p => {
+        let award = '';
+        const obj = analyzed.find(a => a.original.id === p.id);
+        const rank = netSorted.findIndex(a => a.original.id === p.id) + 1;
 
-    if (medalistObj) medalistObj.original.roundAward = '메달리스트';
-    if (winnerObj) {
-        winnerObj.original.roundAward = winnerObj.original.roundAward ? winnerObj.original.roundAward + ', 우승' : '우승';
-    }
-    if (runnerUpObj) {
-        runnerUpObj.original.roundAward = runnerUpObj.original.roundAward ? runnerUpObj.original.roundAward + ', 준우승' : '준우승';
-    }
-    if (luckyOneObj) {
-        luckyOneObj.original.roundAward = luckyOneObj.original.roundAward ? luckyOneObj.original.roundAward + ', 행운상' : '행운상';
-    }
-    if (lastOneObj) {
-        lastOneObj.original.roundAward = lastOneObj.original.roundAward ? lastOneObj.original.roundAward + ', 꼴찌' : '꼴찌';
-    }
+        if (p.id === medalistObj.original.id) award += '메달리스트';
+        if (p.id === winnerObj.original.id) award += (award ? ', 우승' : '우승');
+        if (runnerUpObj && p.id === runnerUpObj.original.id) award += (award ? ', 준우승' : '준우승');
+        if (luckyOneObj && p.id === luckyOneObj.original.id) award += (award ? ', 행운상' : '행운상');
+        if (p.id === lastOneObj.original.id) award += (award ? ', 꼴찌' : '꼴찌');
 
-    // 전체 등수 추가 (Net Score 기준)
-    netSorted.forEach((obj, idx) => {
-        const rank = idx + 1;
-        const currentAward = obj.original.roundAward;
-        obj.original.roundAward = `[${rank}위]${currentAward ? ' ' + currentAward : ''}`;
+        return {
+            id: p.id,
+            roundaward: `[${rank}위]${award ? ' ' + award : ''}`
+        };
     });
 
-    // 로컬 스토리지 업데이트
-    localStorage.setItem('snu_golf_rsvps', JSON.stringify(data));
+    // Update Supabase
+    for (const update of updates) {
+        await supabaseClient.from('rsvps').update({ roundaward: update.roundaward }).eq('id', update.id);
+    }
 
     alert(`${groupKey} 수상 계산이 완료되었습니다.`);
     loadAdminData(); // 화면 갱신
@@ -1137,33 +1164,39 @@ const GOLF_SCHEDULE = [
     { month: '11월', date: '11.25' }
 ];
 
-function bulkRegisterExecutives() {
-    const members = JSON.parse(localStorage.getItem('snu_golf_members') || '[]');
-    const executives = members.filter(m => m.type === 'executive');
+async function bulkRegisterExecutives() {
+    const { data: members, error: memberError } = await supabaseClient
+        .from('members')
+        .select('name')
+        .eq('type', 'executive');
+
+    if (memberError) return;
+    const executives = members;
 
     if (executives.length === 0) {
         alert("등록된 임원진이 없습니다. 먼저 임원을 등록해주세요.");
         return;
     }
 
-    const rsvps = JSON.parse(localStorage.getItem('snu_golf_rsvps') || '[]');
+    const { data: existingRSVPs, error: rsvpError } = await supabaseClient.from('rsvps').select('name, month, date');
+    if (rsvpError) return;
+
     let addCount = 0;
+    const newRSVPs = [];
 
     GOLF_SCHEDULE.forEach(round => {
         executives.forEach(exec => {
-            // Check if already registered for this specific round
-            const isExists = rsvps.some(r => r.name === exec.name && r.month === round.month && r.date === round.date);
+            const isExists = existingRSVPs.some(r => r.name === exec.name && r.month === round.month && r.date === round.date);
 
             if (!isExists) {
-                rsvps.push({
+                newRSVPs.push({
                     name: exec.name,
                     phone: '',
                     status: 'attend',
                     sponsor: '',
                     month: round.month,
                     date: round.date,
-                    isWaiting: false,
-                    submittedAt: new Date().toISOString()
+                    iswaiting: false
                 });
                 addCount++;
             }
@@ -1171,10 +1204,14 @@ function bulkRegisterExecutives() {
     });
 
     if (addCount > 0) {
-        localStorage.setItem('snu_golf_rsvps', JSON.stringify(rsvps));
-        alert(`총 ${addCount}건의 임원진 참석 신청이 완료되었습니다.`);
-        loadAdminData();
-        renderPublicRSVPs();
+        const { error: insertError } = await supabaseClient.from('rsvps').insert(newRSVPs);
+        if (insertError) {
+            alert("일괄 등록 실패: " + insertError.message);
+        } else {
+            alert(`총 ${addCount}건의 임원진 참석 신청이 완료되었습니다.`);
+            loadAdminData();
+            renderPublicRSVPs();
+        }
     } else {
         alert("이미 모든 임원진이 등록되어 있습니다.");
     }
@@ -1220,12 +1257,19 @@ function importData(event) {
     reader.readAsText(file);
 }
 /* --- Attendance Management --- */
-function deleteRSVP(index) {
+async function deleteRSVP(id) {
     if (!confirm("정말 이 신청 내역을 삭제하시겠습니까? (불참 처리와 동일)")) return;
 
-    const data = JSON.parse(localStorage.getItem('snu_golf_rsvps') || '[]');
-    data.splice(index, 1);
-    localStorage.setItem('snu_golf_rsvps', JSON.stringify(data));
+    const { error } = await supabaseClient
+        .from('rsvps')
+        .delete()
+        .eq('id', id);
+
+    if (error) {
+        console.error('Error deleting RSVP:', error);
+        alert('삭제 실패');
+        return;
+    }
 
     loadAdminData();
     renderPublicRSVPs();
