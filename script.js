@@ -769,7 +769,7 @@ async function renderPublicRSVPs() {
                         <div style="font-weight: bold; color: #577b2d;">${stats.h25}</div>
                     </div>
                     <div style="text-align: center; border-left: 1px solid #f5f5f5; border-right: 1px solid #f5f5f5;">
-                        <div style="font-size: 0.7rem; color: #888;">전월 스코어</div>
+                        <div style="font-size: 0.7rem; color: #888;">이전 스코어</div>
                         <div style="font-weight: bold; color: #d35400;">${stats.last}</div>
                     </div>
                     <div style="text-align: center;">
