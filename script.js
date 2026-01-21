@@ -71,6 +71,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // RSVP Logic
     initRSVP();
+
+    // Global UI components & Data Loading
+    loadMembers();
+    renderPublicRSVPs();
+    initAdminTabs();
+    initAdminMemberManagement();
+    initAdminButtons();
+
+    // Admin Modal setup (for index.html)
+    const adminLink = document.getElementById('admin-link');
+    const adminModal = document.getElementById('admin-modal');
+    const adminCloseBtn = document.querySelector('.admin-close');
+    if (adminLink && adminModal) {
+        setupAdminModal(adminLink, adminModal, adminCloseBtn);
+    }
 });
 
 function checkLogin() {
@@ -236,34 +251,26 @@ function initRSVP() {
         }
     });
 
-    // Load initial public RSVPs
-    renderPublicRSVPs();
+}
 
-    // Admin Modal Logic (Demo)
-    const adminLink = document.getElementById('admin-link');
-    const adminModal = document.getElementById('admin-modal');
-    const adminCloseBtn = document.querySelector('.admin-close');
-    const adminRefreshBtn = document.getElementById('admin-refresh-btn');
-    const adminClearBtn = document.getElementById('admin-clear-btn');
-
-    // Admin Tabs Logic
+function initAdminTabs() {
     const tabBtns = document.querySelectorAll('.tab-btn');
     const tabContents = document.querySelectorAll('.tab-content');
 
     tabBtns.forEach(btn => {
         btn.addEventListener('click', () => {
-            // Remove active class from all
             tabBtns.forEach(b => b.classList.remove('active'));
             tabContents.forEach(c => c.classList.remove('active'));
 
-            // Add active to current
             btn.classList.add('active');
             const tabId = btn.getAttribute('data-tab');
-            document.getElementById(tabId).classList.add('active');
+            const targetContent = document.getElementById(tabId);
+            if (targetContent) targetContent.classList.add('active');
         });
     });
+}
 
-    // Handle Admin Member Add
+function initAdminMemberManagement() {
     const addMemberBtn = document.getElementById('add-member-btn');
     const newMemberTypeSelect = document.getElementById('new-member-type');
     const newMemberRoleInput = document.getElementById('new-member-role');
@@ -283,7 +290,7 @@ function initRSVP() {
         addMemberBtn.addEventListener('click', () => {
             const nameInput = document.getElementById('new-member-name');
             const type = newMemberTypeSelect.value;
-            const role = newMemberRoleInput.value.trim();
+            const role = newMemberRoleInput ? newMemberRoleInput.value.trim() : '';
             const name = nameInput.value.trim();
 
             if (!name) {
@@ -293,52 +300,15 @@ function initRSVP() {
 
             addMember(name, type, role);
             nameInput.value = '';
-            newMemberRoleInput.value = '';
+            if (newMemberRoleInput) newMemberRoleInput.value = '';
         });
     }
+}
 
-    // Load initial members for public view
-    loadMembers(); // Render
-
-    // Load initial members for public view
-    loadMembers(); // Render
-
-    // Admin Link Logic - Just let navigation happen if on index
-    // Admin functions will be triggered by admin.html's inline script
-    if (adminLink && !adminModal) {
-        // standalone page link, do nothing special
-    } else if (adminLink && adminModal) {
-        // Modal case (if still used somewhere)
-        const sha256 = async (message) => {
-            const msgBuffer = new TextEncoder().encode(message);
-            const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
-            const hashArray = Array.from(new Uint8Array(hashBuffer));
-            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-        };
-
-        adminLink.onclick = async (e) => {
-            e.preventDefault();
-            const password = prompt("관리자 비밀번호를 입력하세요");
-            if (!password) return;
-            const targetHash = '07e47f77d22e2fc388c2d12f73b8b8b7e9928630d39a4964a9daabbc27a060f4';
-            try {
-                const inputHash = await sha256(password);
-                if (inputHash === targetHash) {
-                    loadAdminData();
-                    loadAdminMembers();
-                    adminModal.style.display = 'block';
-                } else {
-                    alert("비밀번호가 틀렸습니다.");
-                }
-            } catch (err) {
-                console.error('Admin hash error:', err);
-            }
-        };
-
-        if (adminCloseBtn) {
-            adminCloseBtn.onclick = () => { adminModal.style.display = 'none'; };
-        }
-    }
+function initAdminButtons() {
+    const adminRefreshBtn = document.getElementById('admin-refresh-btn');
+    const adminClearBtn = document.getElementById('admin-clear-btn');
+    const adminDownloadBtn = document.getElementById('admin-download-btn');
 
     if (adminRefreshBtn) {
         adminRefreshBtn.onclick = loadAdminData;
@@ -350,7 +320,7 @@ function initRSVP() {
                 const { error } = await supabaseClient
                     .from('rsvps')
                     .delete()
-                    .neq('id', 0); // Delete all
+                    .neq('id', 0);
 
                 if (error) {
                     alert("삭제 실패: " + error.message);
@@ -363,10 +333,48 @@ function initRSVP() {
         };
     }
 
-    const adminDownloadBtn = document.getElementById('admin-download-btn');
     if (adminDownloadBtn) {
         adminDownloadBtn.onclick = downloadScorecard;
     }
+}
+
+function setupAdminModal(adminLink, adminModal, adminCloseBtn) {
+    const sha256 = async (message) => {
+        const msgBuffer = new TextEncoder().encode(message);
+        const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    };
+
+    adminLink.onclick = async (e) => {
+        e.preventDefault();
+        const password = prompt("관리자 비밀번호를 입력하세요");
+        if (!password) return;
+        const targetHash = '07e47f77d22e2fc388c2d12f73b8b8b7e9928630d39a4964a9daabbc27a060f4';
+        try {
+            const inputHash = await sha256(password);
+            if (inputHash === targetHash) {
+                loadAdminData();
+                loadAdminMembers();
+                adminModal.style.display = 'block';
+            } else {
+                alert("비밀번호가 틀렸습니다.");
+            }
+        } catch (err) {
+            console.error('Admin hash error:', err);
+        }
+    };
+
+    if (adminCloseBtn) {
+        adminCloseBtn.onclick = () => { adminModal.style.display = 'none'; };
+    }
+
+    // Modal background click
+    window.addEventListener('click', (event) => {
+        if (event.target == adminModal) {
+            adminModal.style.display = 'none';
+        }
+    });
 }
 
 /* --- Member Management Functions --- */
