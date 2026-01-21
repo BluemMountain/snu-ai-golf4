@@ -336,6 +336,19 @@ function initAdminButtons() {
     if (adminDownloadBtn) {
         adminDownloadBtn.onclick = downloadScorecard;
     }
+
+    const bulkExecBtn = document.getElementById('bulk-exec-btn');
+    if (bulkExecBtn) bulkExecBtn.onclick = bulkRegisterExecutives;
+
+    const exportBtn = document.getElementById('admin-export-btn');
+    if (exportBtn) exportBtn.onclick = exportData;
+
+    const importTrigger = document.getElementById('admin-import-trigger');
+    const importFile = document.getElementById('import-file');
+    if (importTrigger && importFile) {
+        importTrigger.onclick = () => importFile.click();
+        importFile.onchange = (e) => importData(e);
+    }
 }
 
 function setupAdminModal(adminLink, adminModal, adminCloseBtn) {
