@@ -382,7 +382,7 @@ function setupAdminModal(adminLink, adminModal, adminCloseBtn) {
 // initMembers() function removed as data is now managed by Supabase
 
 async function loadMembers() {
-    const { data: members, error } = await supabase
+    const { data: members, error } = await supabaseClient
         .from('members')
         .select('*');
 
@@ -432,7 +432,7 @@ async function loadMembers() {
 }
 
 async function addMember(name, type, role) {
-    const { error } = await supabase
+    const { error } = await supabaseClient
         .from('members')
         .insert([{ name, type, role }]);
 
@@ -448,7 +448,7 @@ async function addMember(name, type, role) {
 async function deleteMember(name) {
     if (!confirm(`${name}님을 정말 삭제하시겠습니까?`)) return;
 
-    const { error } = await supabase
+    const { error } = await supabaseClient
         .from('members')
         .delete()
         .eq('name', name);
@@ -469,7 +469,7 @@ async function updateMemberType(name, newType) {
         if (role === null) return; // User cancelled prompt
     }
 
-    const { error } = await supabase
+    const { error } = await supabaseClient
         .from('members')
         .update({ type: newType, role: role })
         .eq('name', name);
@@ -490,7 +490,7 @@ async function loadAdminMembers(prefetchedMembers = null) {
 
     let members = prefetchedMembers;
     if (!members) {
-        const { data, error } = await supabase.from('members').select('*');
+        const { data, error } = await supabaseClient.from('members').select('*');
         if (error) {
             console.error('Error loading admin members:', error);
             return;
@@ -534,7 +534,7 @@ async function loadAdminMembers(prefetchedMembers = null) {
 }
 
 async function updateMemberAward(name, value) {
-    const { error } = await supabase
+    const { error } = await supabaseClient
         .from('members')
         .update({ awardhistory: value })
         .eq('name', name);
