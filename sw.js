@@ -1,4 +1,4 @@
-const CACHE_NAME = 'snu-ai-golf-v3.2';
+const CACHE_NAME = 'snu-ai-golf-v3.3';
 const ASSETS_TO_CACHE = [
     './',
     './index.html',
@@ -11,7 +11,8 @@ const ASSETS_TO_CACHE = [
     './gallery_logic.js',
     './manifest.json',
     './icons/icon-192.png',
-    './icons/icon-512.png'
+    './icons/icon-512.png',
+    './images/hero_ball.png'
 ];
 
 self.addEventListener('install', (event) => {
