@@ -93,14 +93,16 @@ h3 {
 
 /* Hero Section */
 #hero {
-    height: 100vh;
+    min-height: 100vh;
     background: url('https://images.unsplash.com/photo-1587174486073-ae5e5cff23aa?q=80&w=1920&auto=format&fit=crop') no-repeat center center/cover;
     position: relative;
     display: flex;
-    justify-content: center;
+    flex-direction: column;
+    justify-content: flex-start;
     align-items: center;
     text-align: center;
     color: var(--white);
+    padding-top: 15vh;
 }
 
 .overlay {
@@ -640,7 +642,44 @@ footer {
     display: flex;
     gap: 15px;
     justify-content: center;
-    margin-top: 30px;
+    flex-wrap: wrap;
+}
+
+.hero-greeting-container {
+    margin-top: auto;
+    margin-bottom: 5vh;
+    width: 90%;
+    max-width: 800px;
+    z-index: 2;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 20px;
+    padding: 30px;
+    color: white;
+}
+
+.hero-greeting-container h2 {
+    font-family: 'Noto Serif KR', serif;
+    font-size: 1.5rem;
+    margin-bottom: 15px;
+    color: var(--secondary-color);
+}
+
+.hero-greeting-container .divider {
+    background-color: var(--secondary-color);
+    margin: 10px auto 20px;
+}
+
+.greeting-text-mini {
+    font-size: 1rem;
+    line-height: 1.6;
+    font-weight: 300;
+}
+
+.greeting-text-mini p {
+    margin-bottom: 10px;
 }
 
 /* Secondary Button */

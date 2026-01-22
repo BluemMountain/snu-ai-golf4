@@ -760,11 +760,19 @@ async function renderPublicRSVPs() {
         return acc;
     }, {});
 
+    const now = new Date();
+    const currentMonth = now.getMonth() + 1; // 1-12
+
     const sortedKeys = Object.keys(groupedData).sort((a, b) => {
         const monthA = parseInt(a);
         const monthB = parseInt(b);
         return monthA - monthB;
-    });
+    }).filter(key => {
+        const month = parseInt(key);
+        // Only show current or future months
+        return month >= currentMonth;
+    }).slice(0, 2); // Only take the nearest 2
+
     container.innerHTML = '';
 
     sortedKeys.forEach(key => {
