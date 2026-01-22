@@ -778,7 +778,7 @@ footer {
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
 }
 
-/* Member List Styles */
+/* Member List Styles (Existing) */
 .members-grid-container {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -796,6 +796,147 @@ footer {
     .members-grid-container {
         grid-template-columns: 1fr;
     }
+}
+
+/* Gallery & Lounge Styles */
+.gallery-section {
+    background-color: #f0f2f5;
+    min-height: 100vh;
+}
+
+.gallery-grid {
+    column-count: 3;
+    column-gap: 20px;
+    width: 100%;
+}
+
+@media (max-width: 992px) {
+    .gallery-grid {
+        column-count: 2;
+    }
+}
+
+@media (max-width: 576px) {
+    .gallery-grid {
+        column-count: 1;
+    }
+}
+
+.gallery-item {
+    display: inline-block;
+    width: 100%;
+    margin-bottom: 20px;
+    background: var(--white);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    cursor: pointer;
+}
+
+.gallery-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+.gallery-item img {
+    width: 100%;
+    display: block;
+    object-fit: cover;
+}
+
+.gallery-item-content {
+    padding: 15px;
+}
+
+.gallery-item-user {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.user-avatar {
+    width: 32px;
+    height: 32px;
+    background-color: var(--secondary-color);
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    font-size: 0.8rem;
+    font-weight: bold;
+}
+
+.user-name {
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+.gallery-item-caption {
+    font-size: 0.9rem;
+    color: #555;
+    margin-bottom: 15px;
+}
+
+.gallery-item-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 10px;
+    border-top: 1px solid #eee;
+    font-size: 0.8rem;
+    color: #888;
+}
+
+.lounge-nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(10px);
+    padding: 15px 0;
+    border-bottom: 1px solid #ddd;
+    margin-bottom: 30px;
+}
+
+.lounge-nav-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.upload-btn-fixed {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    width: 60px;
+    height: 60px;
+    background-color: var(--primary-color);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    border: none;
+    cursor: pointer;
+    z-index: 101;
+    font-size: 1.5rem;
+    transition: transform 0.3s ease;
+}
+
+.upload-btn-fixed:hover {
+    transform: scale(1.1) rotate(90deg);
+}
+
+/* Glassmorphism for Modals */
+.glass-panel {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 16px;
 }
 
 .member-group h3 {

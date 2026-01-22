@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gallery & Lounge | SNU AI Golf</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Noto+Serif+KR:wght@400;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body class="gallery-section">
+    <nav class="lounge-nav">
+        <div class="container lounge-nav-content">
+            <a href="index.html" class="back-link"><i class="fas fa-arrow-left"></i> 홈으로</a>
+            <h1 style="font-size: 1.2rem; margin: 0;">라운딩 갤러리 & 라운지</h1>
+            <div></div> <!-- Spacer -->
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="section-header">
+            <h2>3월 라운딩의 추억</h2>
+            <div class="divider"></div>
+            <p style="margin-top: 15px; color: #666;">원우분들과 함께한 소중한 순간들을 공유합니다.</p>
+        </div>
+
+        <div class="gallery-grid">
+            <!-- Mock Item 1 -->
+            <div class="gallery-item fade-in-on-scroll visible">
+                <img src="https://images.unsplash.com/photo-1587174486073-ae5e5cff23aa?q=80&w=800&auto=format&fit=crop"
+                    alt="골프장 전경">
+                <div class="gallery-item-content">
+                    <div class="gallery-item-user">
+                        <div class="user-avatar">KD</div>
+                        <span class="user-name">김대욱 회장님</span>
+                    </div>
+                    <p class="gallery-item-caption">오늘 날씨가 정말 환상적이네요! 다들 즐거운 라운딩 되세요.</p>
+                    <div class="gallery-item-footer">
+                        <span><i class="far fa-heart"></i> 12</span>
+                        <span><i class="far fa-comment"></i> 4</span>
+                        <span>2시간 전</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mock Item 2 (Generated Image 1) -->
+            <div class="gallery-item fade-in-on-scroll visible">
+                <img src="https://images.unsplash.com/photo-1535131749006-b7f58c99034b?q=80&w=800&auto=format&fit=crop"
+                    alt="라운딩 샷">
+                <div class="gallery-item-content">
+                    <div class="gallery-item-user">
+                        <div class="user-avatar">PC</div>
+                        <span class="user-name">박철호 부회장님</span>
+                    </div>
+                    <p class="gallery-item-caption">멋진 샷 하나 건졌습니다. 3월 라운딩 기대되네요!</p>
+                    <div class="gallery-item-footer">
+                        <span><i class="far fa-heart"></i> 8</span>
+                        <span><i class="far fa-comment"></i> 2</span>
+                        <span>4시간 전</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mock Item 3 (Generated Image 2) -->
+            <div class="gallery-item fade-in-on-scroll visible">
+                <img src="https://images.unsplash.com/photo-1593111774240-d529f12cf4bb?q=80&w=800&auto=format&fit=crop"
+                    alt="골프공 클로즈업">
+                <div class="gallery-item-content">
+                    <div class="gallery-item-user">
+                        <div class="user-avatar">JM</div>
+                        <span class="user-name">정민호 부회장님</span>
+                    </div>
+                    <p class="gallery-item-caption">집중의 시간. 필드 위에서의 여유가 그립습니다.</p>
+                    <div class="gallery-item-footer">
+                        <span><i class="far fa-heart"></i> 15</span>
+                        <span><i class="far fa-comment"></i> 6</span>
+                        <span>어제</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mock Item 4 (Generated Image 3) -->
+            <div class="gallery-item fade-in-on-scroll visible">
+                <img src="https://images.unsplash.com/photo-1623151474815-56220d3cedfc?q=80&w=800&auto=format&fit=crop"
+                    alt="원우회 모임">
+                <div class="gallery-item-content">
+                    <div class="gallery-item-user">
+                        <div class="user-avatar">SN</div>
+                        <span class="user-name">SNU 원우님</span>
+                    </div>
+                    <p class="gallery-item-caption">동기분들과 즐거운 시간! 역시 골프는 함께할 때 더 즐겁네요.</p>
+                    <div class="gallery-item-footer">
+                        <span><i class="far fa-heart"></i> 20</span>
+                        <span><i class="far fa-comment"></i> 8</span>
+                        <span>어제</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <button class="upload-btn-fixed" title="사진 올리기">
+        <i class="fas fa-camera"></i>
+    </button>
+
+    <footer style="margin-top: 50px;">
+        <div class="container">
+            <p>&copy; 2026 SNU AI Golf Club. All Rights Reserved.</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="script.js"></script>
+    <script src="gallery_logic.js"></script>
+</body>
+
+</html>

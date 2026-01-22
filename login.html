@@ -8,6 +8,7 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700&family=Noto+Sans+KR:wght@300;400;500;700&display=swap"
         rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
             --primary-color: #1e3a2b;
@@ -121,11 +122,30 @@
             // Hashed version of 'aiceo4thgolf'
             const targetHash = 'e8b4f6ec0fc711b46eabf2891dc653f6b04e8e2bb9cefb8319c02fc6155b3264';
 
+            // Supabase Config (Matching script.js)
+            const SUPABASE_URL = 'https://qfzmwlyqezmkkxtpscik.supabase.co';
+            const SUPABASE_KEY = 'sb_publishable_mYejtROOg-2JN7z6_RlWdg_PXYSYgFi'; // Anon Key
+            const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
             try {
                 const inputHash = await sha256(password);
 
                 if (inputHash === targetHash) {
+                    // 1. Set simple session state
                     sessionStorage.setItem('snu_golf_logged_in', 'true');
+
+                    // 2. Perform background Supabase Auth login for RLS
+                    // Note: This account must be created in Supabase Auth first
+                    const { error: authError } = await supabaseClient.auth.signInWithPassword({
+                        email: 'member@snugolf.com',
+                        password: 'aiceo4thgolfPassword123!'
+                    });
+
+                    if (authError) {
+                        console.warn('Background Auth failed (Account might not exist yet):', authError.message);
+                        // We still proceed since the local session is enough for UI visibility, 
+                        // but RLS-protected uploads will fail until the account is created.
+                    }
 
                     // redirect 처리
                     const urlParams = new URLSearchParams(window.location.search);
