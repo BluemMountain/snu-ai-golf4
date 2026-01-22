@@ -10,9 +10,27 @@ let currentUser = {
     avatar: 'SN'
 };
 
-document.addEventListener('DOMContentLoaded', () => {
-    loadGalleryPosts();
-    initGalleryUI();
+// Supabase Fallback Config (in case script.js global is missing)
+const SUPABASE_CONFIG = {
+    url: 'https://qfzmwlyqezmkkxtpscik.supabase.co',
+    key: 'sb_publishable_mYejtROOg-2JN7z6_RlWdg_PXYSYgFi'
+};
+
+let db = window.supabaseClient;
+
+document.addEventListener('DOMContentLoaded', async () => {
+    // If global client not ready, initialize local one
+    if (!db && window.supabase) {
+        db = window.supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.key);
+    }
+
+    if (db) {
+        loadGalleryPosts();
+        initGalleryUI();
+    } else {
+        console.error('Supabase client failed to initialize.');
+        alert('데이터베이스 연결에 실패했습니다. 페이지를 새로고침해 주세요.');
+    }
 });
 
 async function loadGalleryPosts() {
@@ -23,20 +41,21 @@ async function loadGalleryPosts() {
     galleryGrid.innerHTML = '<div class="loading-spinner">갤러리를 불러오는 중입니다...</div>';
 
     try {
-        const { data, error } = await supabaseClient
+        const { data, error } = await db
             .from('gallery_posts')
             .select('*')
             .order('created_at', { ascending: false });
 
         if (error) throw error;
 
+        galleryGrid.innerHTML = '';
+
         if (!data || data.length === 0) {
-            // Show placeholders if no data
-            renderPlaceholders(galleryGrid);
+            galleryGrid.innerHTML = '<div style="text-align:center; padding: 40px; color:#666; width:100%;">아직 등록된 사진이 없습니다. 첫 주인공이 되어보세요!</div>';
+            renderPlaceholders(galleryGrid); // Fallback to mocks for design
             return;
         }
 
-        galleryGrid.innerHTML = '';
         data.forEach(post => {
             const postElement = createPostElement(post);
             galleryGrid.appendChild(postElement);
@@ -132,7 +151,7 @@ function initGalleryUI() {
         try {
             // 1. Upload to Supabase Storage
             const fileName = `${Date.now()}_${file.name}`;
-            const { data: uploadData, error: uploadError } = await supabaseClient
+            const { data: uploadData, error: uploadError } = await db
                 .storage
                 .from('gallery_images')
                 .upload(fileName, file);
@@ -140,7 +159,7 @@ function initGalleryUI() {
             if (uploadError) throw uploadError;
 
             // 2. Get Public URL
-            const { data: urlData } = supabaseClient
+            const { data: urlData } = db
                 .storage
                 .from('gallery_images')
                 .getPublicUrl(fileName);
@@ -148,10 +167,10 @@ function initGalleryUI() {
             const imageUrl = urlData.publicUrl;
 
             // 3. Save to Database
-            const { error: dbError } = await supabaseClient
+            const { error: dbError } = await db
                 .from('gallery_posts')
                 .insert([{
-                    user_name: userName, // In a real app, get from session or prompt
+                    user_name: userName,
                     image_url: imageUrl,
                     caption: caption || '',
                     user_avatar: userName.substring(0, 1) // First character as avatar
@@ -160,7 +179,7 @@ function initGalleryUI() {
             if (dbError) throw dbError;
 
             alert('사진이 성공적으로 업로드되었습니다!');
-            location.reload(); // Refresh to show new post
+            location.reload();
 
         } catch (err) {
             console.error('Upload failed:', err);
