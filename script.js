@@ -289,9 +289,6 @@ function initRSVP() {
             console.error('Error submitting RSVP:', error);
             alert('저장 실패: ' + error.message);
         }
-        if (tabId === 'tab-groups') {
-            loadGroupSessions();
-        }
     });
 
 }
@@ -386,6 +383,11 @@ function initAdminTabs() {
             const tabId = btn.getAttribute('data-tab');
             const targetContent = document.getElementById(tabId);
             if (targetContent) targetContent.classList.add('active');
+
+            // 조편성 탭 선택 시 데이터 로딩
+            if (tabId === 'tab-groups') {
+                loadGroupSessions();
+            }
         });
     });
 }
