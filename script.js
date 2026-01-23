@@ -289,8 +289,51 @@ function initRSVP() {
             console.error('Error submitting RSVP:', error);
             alert('저장 실패: ' + error.message);
         }
+        if (tabId === 'tab-groups') {
+            loadGroupSessions();
+        }
     });
 
+}
+
+async function loadGroupSessions() {
+    const select = document.getElementById('group-session-select');
+    if (!select) return;
+
+    try {
+        const { data, error } = await supabaseClient
+            .from('rsvps')
+            .select('month, date')
+            .not('month', 'is', null);
+
+        if (error) throw error;
+
+        // 중복 제거 및 정렬
+        const sessionMap = new Map();
+        data.forEach(item => {
+            const key = `${item.month}|${item.date}`;
+            sessionMap.set(key, `${item.month} ${item.date}`);
+        });
+
+        // 3월 -> 11월 순서로 대략 정렬 (문자열 비교 방식)
+        const sortedKeys = Array.from(sessionMap.keys()).sort((a, b) => {
+            const m1 = parseInt(a.match(/\d+/)) || 0;
+            const m2 = parseInt(b.match(/\d+/)) || 0;
+            return m1 - m2;
+        });
+
+        select.innerHTML = sortedKeys.map(key =>
+            `<option value="${key}">${sessionMap.get(key)}</option>`
+        ).join('');
+
+        if (sortedKeys.length === 0) {
+            select.innerHTML = '<option value="">신청 데이터 없음</option>';
+        }
+
+    } catch (err) {
+        console.error('Error loading group sessions:', err);
+        select.innerHTML = '<option value="">로딩 실패</option>';
+    }
 }
 
 async function addManualRSVP() {
@@ -1107,6 +1150,8 @@ function shuffleArray(array) {
 async function assignGroups(mode) {
     let participants = [];
 
+    const sessionVal = document.getElementById('group-session-select').value;
+
     if (mode === 'sample') {
         // 전체 회원 기반 (샘플)
         const { data: members, error } = await supabaseClient.from('members').select('name');
@@ -1114,12 +1159,20 @@ async function assignGroups(mode) {
         participants = members.map(m => m.name);
     } else {
         // 현재 신청자(참석) 기반
+        if (!sessionVal) {
+            alert("조편성할 일시를 먼저 선택해주세요.");
+            return;
+        }
+
+        const [month, date] = sessionVal.split('|');
         const { data: rsvps, error } = await supabaseClient
             .from('rsvps')
             .select('name')
+            .eq('month', month)
+            .eq('date', date)
             .eq('status', 'attend');
         if (error) return;
-        // 참석(attend) 상태인 사람들만 중복 제거하여 추출
+
         participants = [...new Set(rsvps.map(r => r.name))];
     }
 
@@ -1131,14 +1184,63 @@ async function assignGroups(mode) {
     // 무작위 섞기
     const shuffled = shuffleArray(participants);
 
-    // 4명씩 조 나누기
-    const groupSize = 4;
-    const groups = [];
-    for (let i = 0; i < shuffled.length; i += groupSize) {
-        groups.push(shuffled.slice(i, i + groupSize));
-    }
+    // 지능형 조 나누기 (3~4인 기반)
+    const groups = splitIntoOptimalGroups(shuffled);
 
     renderGroups(groups);
+}
+
+/**
+ * 3-4인 기반 지능형 그룹 분할 알고리즘
+ */
+function splitIntoOptimalGroups(shuffled) {
+    const total = shuffled.length;
+    const groups = [];
+
+    // 예외 처리: 인원이 너무 적은 경우
+    if (total <= 4) {
+        return [shuffled];
+    }
+
+    // 4인 조 개수를 최대한 확보하면서, 나머지가 3명 이상이 되도록 조정
+    // 수학적 원리: 4x + 3y = total 을 만족하는 정수 x, y 찾기 (x는 최대화)
+    let num4 = Math.floor(total / 4);
+    let remainder = total % 4;
+
+    if (remainder === 1) {
+        // 4*n + 1 => 4*(n-2) + 3*3 (3인조 3개 생성)
+        if (num4 >= 2) {
+            num4 -= 2;
+        } else {
+            // 인원이 5명인 경우 등 특수 케이스 (3+2 로 나뉘는 대신 5명 한 조 또는 3+2 알림)
+            return [shuffled];
+        }
+    } else if (remainder === 2) {
+        // 4*n + 2 => 4*(n-1) + 3*2 (3인조 2개 생성)
+        if (num4 >= 1) {
+            num4 -= 1;
+        } else {
+            // 인원이 6명인 경우 (3+3)
+            num4 = 0;
+        }
+    } else if (remainder === 3) {
+        // 4*n + 3 => 4*n + 3*1 (3인조 1개 생성)
+        // num4 유지
+    }
+
+    let currentIndex = 0;
+    // 4인조 배치
+    for (let i = 0; i < num4; i++) {
+        groups.push(shuffled.slice(currentIndex, currentIndex + 4));
+        currentIndex += 4;
+    }
+    // 남은 인원을 3인조로 배치
+    while (currentIndex < total) {
+        groups.push(shuffled.slice(currentIndex, currentIndex + 3));
+        currentIndex += 3;
+    }
+
+    return groups;
 }
 
 function renderGroups(groups) {
