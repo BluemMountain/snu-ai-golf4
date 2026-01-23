@@ -23,16 +23,56 @@
         </div>
     </nav>
 
-    <div class="container">
-        <div class="section-header">
-            <h2>3월 라운딩의 추억</h2>
-            <div class="divider"></div>
-            <p style="margin-top: 15px; color: #666;">원우분들과 함께한 소중한 순간들을 공유합니다.</p>
-        </div>
+    <div class="gallery-tabs">
+        <button class="tab-btn active" data-category="round">라운드 사진</button>
+        <button class="tab-btn" data-category="general">자유 게시판</button>
+    </div>
 
-        <div class="gallery-grid">
-            <!-- Content will be dynamically loaded via gallery_logic.js -->
-            <div class="loading-spinner">갤러리를 불러오는 중입니다...</div>
+    <div class="gallery-grid">
+        <!-- Content will be dynamically loaded via gallery_logic.js -->
+        <div class="loading-spinner">갤러리를 불러오는 중입니다...</div>
+    </div>
+    </div>
+
+    <!-- Upload Modal -->
+    <div id="upload-modal" class="modal">
+        <div class="modal-content glass-panel">
+            <span class="close-btn upload-close">&times;</span>
+            <h3>사진 올리기</h3>
+            <p style="font-size: 0.9rem; color: #666; margin-bottom: 20px;">원우분들과 소중한 순간을 공유해 주세요.</p>
+
+            <form id="upload-form">
+                <div class="form-group">
+                    <label>카테고리</label>
+                    <div class="radio-group">
+                        <label><input type="radio" name="upload-category" value="round" checked> 라운드 사진</label>
+                        <label><input type="radio" name="upload-category" value="general"> 자유 게시판</label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="upload-name">성함</label>
+                    <input type="text" id="upload-name" name="name" required placeholder="성함을 입력하세요">
+                </div>
+
+                <div class="form-group">
+                    <label for="upload-caption">설명 (선택)</label>
+                    <input type="text" id="upload-caption" name="caption" placeholder="사진에 대한 짧은 설명을 남겨주세요">
+                </div>
+
+                <div class="form-group">
+                    <label for="upload-file">사진 선택</label>
+                    <div class="file-input-wrapper" style="margin-top: 10px;">
+                        <input type="file" id="upload-file" accept="image/*" required>
+                        <p class="file-hint" style="font-size: 0.8rem; color: #888; margin-top: 5px;">* 이미지 파일만 업로드
+                            가능합니다.</p>
+                    </div>
+                </div>
+
+                <button type="submit" class="cta-button full-width" id="submit-upload">
+                    <i class="fas fa-cloud-upload-alt"></i> 업로드 하기
+                </button>
+            </form>
         </div>
     </div>
 

@@ -1,49 +1,56 @@
 /**
- * Gallery & Lounge Logic
- * Handles photo listing, uploads, and real-time comments using Supabase.
+ * Gallery & Lounge Logic (Cloudinary version)
+ * Handles photo listing, Cloudinary uploads, and Supabase metadata.
  */
 
-// Placeholder for user session (In a real app, this would come from Supabase Auth)
-let currentUser = {
-    id: 'guest-id', // Placeholder
-    name: '익명 원우님',
-    avatar: 'SN'
-};
-
-// Supabase Fallback Config (in case script.js global is missing)
-const SUPABASE_CONFIG = {
-    url: 'https://qfzmwlyqezmkkxtpscik.supabase.co',
-    key: 'sb_publishable_mYejtROOg-2JN7z6_RlWdg_PXYSYgFi'
+// Cloudinary Config (User values should be replaced here)
+const CLOUDINARY_CONFIG = {
+    cloudName: 'dbbz6xmot', // 사용자가 제공한 실제 값 적용
+    uploadPreset: 'kghs-89f-golf_preset' // 사용자가 제공한 실제 값 적용 (unsigned)
 };
 
 let db = window.supabaseClient;
+let currentTab = 'round';
 
 document.addEventListener('DOMContentLoaded', async () => {
-    // If global client not ready, initialize local one
-    if (!db && window.supabase) {
+    // If global client not ready, initialize local one (matching script.js logic)
+    if (!db && window.supabase && typeof SUPABASE_CONFIG !== 'undefined') {
         db = window.supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.key);
     }
 
     if (db) {
-        loadGalleryPosts();
-        initGalleryUI();
+        initGalleryTabs();
+        loadGalleryPosts(currentTab);
+        initUploadUI();
     } else {
         console.error('Supabase client failed to initialize.');
         alert('데이터베이스 연결에 실패했습니다. 페이지를 새로고침해 주세요.');
     }
 });
 
-async function loadGalleryPosts() {
+function initGalleryTabs() {
+    const tabs = document.querySelectorAll('.gallery-tabs .tab-btn');
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            tabs.forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            currentTab = tab.dataset.category;
+            loadGalleryPosts(currentTab);
+        });
+    });
+}
+
+async function loadGalleryPosts(category) {
     const galleryGrid = document.querySelector('.gallery-grid');
     if (!galleryGrid) return;
 
-    // Show loading state
     galleryGrid.innerHTML = '<div class="loading-spinner">갤러리를 불러오는 중입니다...</div>';
 
     try {
         const { data, error } = await db
             .from('gallery_posts')
             .select('*')
+            .eq('category', category)
             .order('created_at', { ascending: false });
 
         if (error) throw error;
@@ -51,8 +58,10 @@ async function loadGalleryPosts() {
         galleryGrid.innerHTML = '';
 
         if (!data || data.length === 0) {
-            galleryGrid.innerHTML = '<div style="text-align:center; padding: 40px; color:#666; width:100%;">아직 등록된 사진이 없습니다. 첫 주인공이 되어보세요!</div>';
-            renderPlaceholders(galleryGrid); // Fallback to mocks for design
+            galleryGrid.innerHTML = `<div style="text-align:center; padding: 40px; color:#666; width:100%;">
+                ${category === 'round' ? '아직 등록된 라운드 사진이 없습니다.' : '아직 등록된 게시글이 없습니다.'}<br>
+                첫 주인공이 되어보세요!
+            </div>`;
             return;
         }
 
@@ -64,15 +73,13 @@ async function loadGalleryPosts() {
     } catch (err) {
         console.error('Error loading gallery posts:', err);
         galleryGrid.innerHTML = '<div class="error-msg">갤러리를 불러오지 못했습니다.</div>';
-        renderPlaceholders(galleryGrid); // Fallback to placeholders
     }
 }
 
 function createPostElement(post) {
     const item = document.createElement('div');
-    item.className = 'gallery-item fade-in-on-scroll visible';
+    item.className = 'gallery-item fade-in-up visible';
 
-    // Simple date formatting
     const dateStr = new Date(post.created_at).toLocaleDateString('ko-KR');
 
     item.innerHTML = `
@@ -85,114 +92,105 @@ function createPostElement(post) {
             <p class="gallery-item-caption">${post.caption || ''}</p>
             <div class="gallery-item-footer">
                 <span><i class="far fa-heart"></i> ${post.likes_count || 0}</span>
-                <span><i class="far fa-comment"></i> 0</span>
                 <span>${dateStr}</span>
             </div>
         </div>
     `;
 
-    item.addEventListener('click', () => openPostDetail(post));
+    item.addEventListener('click', () => {
+        // Post detail logic if needed
+    });
     return item;
 }
 
-function renderPlaceholders(container) {
-    // Re-use the mockup design if no real data yet
-    container.innerHTML = `
-        <div class="gallery-item visible">
-            <img src="https://images.unsplash.com/photo-1587174486073-ae5e5cff23aa?q=80&w=800&auto=format&fit=crop" alt="Mockup">
-            <div class="gallery-item-content">
-                <div class="gallery-item-user"><div class="user-avatar">KD</div><span class="user-name">김대욱 회장님</span></div>
-                <p class="gallery-item-caption">아직 등록된 사진이 없습니다. 첫 주인공이 되어보세요!</p>
-            </div>
-        </div>
-    `;
-}
-
-function initGalleryUI() {
+function initUploadUI() {
     const uploadBtn = document.querySelector('.upload-btn-fixed');
-    if (!uploadBtn) return;
+    const modal = document.getElementById('upload-modal');
+    const closeBtn = document.querySelector('.upload-close');
+    const form = document.getElementById('upload-form');
 
-    // Check login status
+    if (!uploadBtn || !modal) return;
+
+    // Check login status (Consistent with original logic)
     const isLoggedIn = sessionStorage.getItem('snu_golf_logged_in') === 'true';
-
-    // Hide button if not logged in
     if (!isLoggedIn) {
         uploadBtn.style.display = 'none';
         return;
-    } else {
-        uploadBtn.style.display = 'flex';
     }
 
-    // Create a hidden file input
-    const fileInput = document.createElement('input');
-    fileInput.type = 'file';
-    fileInput.accept = 'image/*';
-    fileInput.style.display = 'none';
-    document.body.appendChild(fileInput);
+    uploadBtn.onclick = () => {
+        modal.style.display = 'block';
+        // Set default category to current tab
+        const categoryRadio = form.querySelector(`input[name="upload-category"][value="${currentTab}"]`);
+        if (categoryRadio) categoryRadio.checked = true;
+    };
 
-    uploadBtn.onclick = () => fileInput.click();
+    closeBtn.onclick = () => modal.style.display = 'none';
+    window.onclick = (event) => { if (event.target == modal) modal.style.display = 'none'; };
 
-    fileInput.onchange = async (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
+    form.onsubmit = async (e) => {
+        e.preventDefault();
 
-        const userName = prompt('원우님의 성함을 입력해주세요:', '');
-        if (!userName) {
-            alert('성함을 입력해 주셔야 사진을 올릴 수 있습니다.');
-            return;
-        }
+        const submitBtn = document.getElementById('submit-upload');
+        const fileInput = document.getElementById('upload-file');
+        const file = fileInput.files[0];
+        const name = document.getElementById('upload-name').value;
+        const caption = document.getElementById('upload-caption').value;
+        const category = form.querySelector('input[name="upload-category"]:checked').value;
 
-        const caption = prompt('사진에 대한 설명을 입력해주세요 (선택사항):');
+        if (!file) return alert('사진을 선택해주세요.');
 
-        // Disable button while uploading
-        uploadBtn.disabled = true;
-        uploadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 업로드 중...';
 
         try {
-            // 1. Upload to Supabase Storage
-            const fileName = `${Date.now()}_${file.name}`;
-            const { data: uploadData, error: uploadError } = await db
-                .storage
-                .from('gallery_images')
-                .upload(fileName, file);
+            // 1. Upload to Cloudinary
+            const imageUrl = await uploadToCloudinary(file);
 
-            if (uploadError) throw uploadError;
-
-            // 2. Get Public URL
-            const { data: urlData } = db
-                .storage
-                .from('gallery_images')
-                .getPublicUrl(fileName);
-
-            const imageUrl = urlData.publicUrl;
-
-            // 3. Save to Database
+            // 2. Save Metadata to Supabase
             const { error: dbError } = await db
                 .from('gallery_posts')
                 .insert([{
-                    user_name: userName,
+                    user_name: name,
                     image_url: imageUrl,
                     caption: caption || '',
-                    user_avatar: userName.substring(0, 1) // First character as avatar
+                    category: category,
+                    user_avatar: name.substring(0, 1)
                 }]);
 
             if (dbError) throw dbError;
 
             alert('사진이 성공적으로 업로드되었습니다!');
-            location.reload();
+            modal.style.display = 'none';
+            form.reset();
+            loadGalleryPosts(currentTab);
 
         } catch (err) {
             console.error('Upload failed:', err);
             alert('업로드 실패: ' + (err.message || '알 수 없는 오류'));
         } finally {
-            uploadBtn.disabled = false;
-            uploadBtn.innerHTML = '<i class="fas fa-camera"></i>';
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> 업로드 하기';
         }
     };
 }
 
-function openPostDetail(post) {
-    // Expand view & comment logic
-    console.log('Post Detail:', post);
-    alert(`${post.user_name}님의 상호작용 기능이 곧 업데이트됩니다.`);
+async function uploadToCloudinary(file) {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('upload_preset', CLOUDINARY_CONFIG.uploadPreset);
+
+    const response = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CONFIG.cloudName}/image/upload`, {
+        method: 'POST',
+        body: formData
+    });
+
+    if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error.message || 'Cloudinary 업로드 실패');
+    }
+
+    const data = await response.json();
+    return data.secure_url;
 }
+
