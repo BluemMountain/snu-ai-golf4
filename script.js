@@ -798,10 +798,21 @@ async function loadAdminData() {
                 const headerRow = document.createElement('tr');
                 headerRow.style.backgroundColor = "#e8f5e9";
                 const attendCount = items.filter(i => i.status === 'attend').length;
+
+                // 3월~11월 정규 라운드는 5팀(20명) 예약으로 정원 고정
+                let totalDisplay = items.length;
+                const monthMatch = key.match(/^(\d+)월/);
+                if (monthMatch) {
+                    const monthNum = parseInt(monthMatch[1]);
+                    if (monthNum >= 3 && monthNum <= 11) {
+                        totalDisplay = 20;
+                    }
+                }
+
                 headerRow.innerHTML = `
                     <td colspan="12" style="padding: 10px; border: 1px solid #ddd; font-weight: bold; color: #1e3a2b;">
                         <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <span>${key} (총 ${items.length}명 / 참석 ${attendCount}명)</span>
+                            <span>${key} (총 ${totalDisplay}명 / 참석 ${attendCount}명)</span>
                             <button onclick="autoCalculateAwards('${key}')" class="edit-control" style="background: #c5a059; color: white; border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">자동 수상 계산</button>
                         </div>
                     </td>
