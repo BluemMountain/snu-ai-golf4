@@ -1,0 +1,468 @@
+﻿<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2026 SNU AI CEO 4湲?怨⑦봽??/title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700&family=Noto+Sans+KR:wght@300;400;500;700&display=swap"
+        rel="stylesheet">
+    <!-- CSS -->
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#007bff">
+    <!-- PWA Service Worker Registration -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => console.log('Service Worker registered', reg))
+                    .catch(err => console.log('Service Worker registration failed', err));
+            });
+        }
+    </script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+
+    <header id="hero">
+        <div class="overlay"></div>
+        <a href="#" id="admin-link" class="admin-link-top">愿由ъ옄 紐⑤뱶</a>
+        <div class="hero-content fade-in-up">
+            <p class="subtitle">?쒖슱? AI CEO 怨쇱젙 4湲?/p>
+            <h1 class="title">2026??怨⑦봽???뺢린 ?쇱슫???덈궡</h1>
+            <p class="description">?덇꺽 ?덈뒗 由щ뜑?ㅼ쓽 ?밸퀎??留뚮궓, 2026?꾩뿉???댁뼱吏묐땲??</p>
+            <div class="hero-buttons">
+                <a href="#schedule" class="cta-button">?쇱젙 ?뺤씤?섍린</a>
+                <a href="#scores" class="cta-button secondary">?뚯썝 ?몃뵒罹?/a>
+                <button id="hero-rsvp-btn" class="cta-button secondary">?ㅼ쓬 ?쇱슫???좎껌</button>
+            </div>
+        </div>
+    </header>
+
+    <section id="greeting" class="section-padding">
+        <div class="container fade-in-on-scroll">
+            <div class="section-header">
+                <h2>珥덈???湲</h2>
+                <div class="divider"></div>
+            </div>
+            <div class="greeting-content">
+                <p>?덈뀞?섏떗?덇퉴, SNU AI CEO 4湲??먯슦 ?щ윭遺?</p>
+                <p>2026??怨⑦봽???쇱젙???뚮젮 ?쒕┰?덈떎.<br>
+                    留ㅼ썡 李몄꽍?섏떆?? 醫뗭? 怨⑦봽?μ뿉???먯슦?섎뱾怨??④퍡 利먭굅???쒓컙 ?섎늻?쒓만 諛붾엻?덈떎.</p>
+                <p>留ㅼ썡 ?ㅻ쾲吏??섏슂?? 紐낅Ц <strong>?좎썝CC</strong>?먯꽌<br>
+                    嫄닿컯怨?移쒕ぉ???ㅼ????산퉲? ?먮━瑜?留덈젴?덉뒿?덈떎.</p>
+                <p>留롮? 愿?ш낵 李몄뿬 遺?곷뱶由쎈땲??</p>
+                <p class="signature">26?꾨룄 怨⑦봽???꾩썝 ?쇰룞 ?щ┝</p>
+            </div>
+        </div>
+    </section>
+
+    <section id="info" class="section-padding bg-light">
+        <div class="container fade-in-on-scroll">
+            <div class="grid-3">
+                <div class="info-card">
+                    <div class="icon-box"><i class="fa-solid fa-calendar-check"></i></div>
+                    <h3>?쇱떆</h3>
+                    <p>留ㅼ썡 ?ㅻ쾲吏??섏슂??/p>
+                    <p class="sub-text">(* 8???뱀꽌湲??댁옣)</p>
+                </div>
+                <div class="info-card">
+                    <div class="icon-box"><i class="fa-solid fa-clock"></i></div>
+                    <h3>?쒓컙 / 洹쒕え</h3>
+                    <p>12:00 ~ 13:00</p>
+                    <p class="sub-text">留ㅼ썡 5? 遺???꾨즺</p>
+                </div>
+                <div class="info-card">
+                    <div class="icon-box"><i class="fa-solid fa-map-location-dot"></i></div>
+                    <h3>?μ냼</h3>
+                    <p>?좎썝CC</p>
+                    <p class="sub-text">寃쎄린 ?⑹씤??泥섏씤援??대룞??/p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="schedule" class="section-padding">
+        <div class="container fade-in-on-scroll">
+            <div class="section-header">
+                <h2>2026???곌컙 ?쇱젙</h2>
+                <div class="divider"></div>
+                <p>?쇱젙??誘몃━ ?뺤씤?섏떆???ㅼ?以?愿由ъ뿉 李멸퀬?섏떆湲?諛붾엻?덈떎.</p>
+            </div>
+
+            <div class="schedule-grid">
+                <!-- 3??-->
+                <div class="schedule-card">
+                    <div class="month">3??/div>
+                    <div class="date">3.25</div>
+                    <div class="day">?섏슂??/div>
+                </div>
+                <!-- 4??-->
+                <div class="schedule-card">
+                    <div class="month">4??/div>
+                    <div class="date">4.22</div>
+                    <div class="day">?섏슂??/div>
+                </div>
+                <!-- 5??-->
+                <div class="schedule-card">
+                    <div class="month">5??/div>
+                    <div class="date">5.27</div>
+                    <div class="day">?섏슂??/div>
+                    <div class="event-label">?먯슦?뚯옣 諛?怨⑦봽???/div>
+                </div>
+                <!-- 6??-->
+                <div class="schedule-card">
+                    <div class="month">6??/div>
+                    <div class="date">6.24</div>
+                    <div class="day">?섏슂??/div>
+                </div>
+                <!-- 7??-->
+                <div class="schedule-card">
+                    <div class="month">7??/div>
+                    <div class="date">7.22</div>
+                    <div class="day">?섏슂??/div>
+                </div>
+                <!-- 8??-->
+                <div class="schedule-card break">
+                    <div class="month">8??/div>
+                    <div class="date">?댁옣</div>
+                    <div class="day">?뱀꽌湲?/div>
+                </div>
+                <!-- 9??-->
+                <div class="schedule-card">
+                    <div class="month">9??/div>
+                    <div class="date">9.30</div>
+                    <div class="day">?섏슂??/div>
+                    <div class="event-label">異붿꽍 ?고쑕濡??명빐 1二??곌린???좎쭨</div>
+                </div>
+                <!-- 10??-->
+                <div class="schedule-card">
+                    <div class="month">10??/div>
+                    <div class="date">10.28</div>
+                    <div class="day">?섏슂??/div>
+                </div>
+                <!-- 11??-->
+                <div class="schedule-card">
+                    <div class="month">11??/div>
+                    <div class="date">11.25</div>
+                    <div class="day">?섏슂??/div>
+                    <div class="event-label">怨⑦봽?뚯옣 諛?怨⑦봽???寃??⑺쉶??/div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- RSVP Status Section (Public) -->
+    <section id="rsvp-status" class="section-padding bg-light">
+        <div class="container fade-in-on-scroll">
+            <div class="section-header">
+                <h2>?좎껌 ?꾪솴</h2>
+                <div class="divider"></div>
+                <p>媛??붾퀎 ?쇱슫???좎껌 ?꾪솴 諛?李멸????뺣낫?낅땲??</p>
+            </div>
+            <div id="public-rsvp-container" class="rsvp-status-container">
+                <!-- Content generated via JS -->
+                <div class="loading-spinner">?좎껌 ?댁뿭??遺덈윭?ㅺ퀬 ?덉뒿?덈떎...</div>
+            </div>
+        </div>
+    </section>
+
+    <section id="contact" class="section-padding bg-light">
+        <div class="container fade-in-on-scroll">
+            <div class="section-header">
+                <h2>臾몄쓽?섍린</h2>
+                <div class="divider"></div>
+                <p>怨⑦봽???댁쁺 諛?李몄꽍 愿??臾몄쓽?ы빆? ?꾨옒 ?꾩썝吏꾩뿉寃??곕씫 遺?곷뱶由쎈땲??</p>
+            </div>
+
+            <div id="executives-container" class="members-grid-container"
+                style="grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));">
+                <div class="member-group" style="grid-column: 1 / -1;">
+                    <div class="member-list" id="member-list-executive"
+                        style="display: flex; flex-wrap: wrap; gap: 20px; justify-content: center;"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="scores" class="section-padding bg-light">
+        <div class="container fade-in-on-scroll">
+            <div class="section-header">
+                <h2>?뚯썝 ?몃뵒罹?/h2>
+                <div class="divider"></div>
+                <p>2025???뚯썝蹂??몃뵒罹?/p>
+            </div>
+            <div class="table-container-wrapper">
+                <div id="score-table-container" class="score-table-container">
+                    <!-- Table will be populated by script.js -->
+                    <div class="loading-spinner">?곗씠?곕? 遺덈윭?ㅻ뒗 以묒엯?덈떎...</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="honors" class="section-padding" style="background-color: #fdfdfd;">
+        <div class="container fade-in-on-scroll">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 40px;">
+                <!-- Hall of Fame -->
+                <div class="honor-block">
+                    <div class="section-header" style="text-align: left; margin-bottom: 25px;">
+                        <h2 style="font-size: 1.8rem; color: #1e3a2b;">?룇 紐낆삁???꾨떦</h2>
+                        <div class="divider" style="margin: 10px 0; width: 60px;"></div>
+                    </div>
+                    <div class="honor-card"
+                        style="background: #fff; padding: 25px; border-radius: 15px; border: 1px solid #e0c58a; box-shadow: 0 4px 15px rgba(197, 160, 89, 0.1);">
+                        <div style="font-size: 0.9rem; color: #c5a059; font-weight: bold; margin-bottom: 5px;">2025???쒖쫵
+                        </div>
+                        <div style="font-size: 1.2rem; font-weight: bold; color: #333;">?곌컙 ?곗듅: <span
+                                style="color: #577b2d;">?좎냼??/span> ?먯슦??/div>
+                        <div style="font-size: 0.95rem; color: #666; margin-top: 5px;">理쒖쥌 ?깆쟻: -3.3 (?몃뵒罹??鍮?</div>
+                    </div>
+                </div>
+
+                <!-- Yearly Board -->
+                <div class="board-block">
+                    <div class="section-header" style="text-align: left; margin-bottom: 25px;">
+                        <h2 style="font-size: 1.8rem; color: #1e3a2b;">?뫁 ?꾨룄蹂??뚯옣??/h2>
+                        <div class="divider" style="margin: 10px 0; width: 60px;"></div>
+                    </div>
+                    <div class="board-card"
+                        style="background: #f8fcf9; padding: 25px; border-radius: 15px; border: 1px solid #d1e7dd; margin-bottom: 20px;">
+                        <div
+                            style="font-size: 1.1rem; font-weight: bold; color: #1e3a2b; margin-bottom: 12px; border-bottom: 1px solid #d1e7dd; padding-bottom: 8px;">
+                            2026?꾨룄</div>
+                        <div style="display: flex; flex-direction: column; gap: 8px;">
+                            <div><span style="font-weight: bold; color: #577b2d; margin-right: 10px;">?뚯옣</span> 源???                            </div>
+                            <div><span style="font-weight: bold; color: #577b2d; margin-right: 10px;">遺?뚯옣</span> 諛뺤쿋??
+                                ?뺣???/div>
+                        </div>
+                    </div>
+                    <div class="board-card"
+                        style="background: #f8fcf9; padding: 25px; border-radius: 15px; border: 1px solid #d1e7dd;">
+                        <div
+                            style="font-size: 1.1rem; font-weight: bold; color: #1e3a2b; margin-bottom: 12px; border-bottom: 1px solid #d1e7dd; padding-bottom: 8px;">
+                            2025?꾨룄</div>
+                        <div style="display: flex; flex-direction: column; gap: 8px;">
+                            <div><span style="font-weight: bold; color: #577b2d; margin-right: 10px;">?뚯옣</span> ?≪썝??                            </div>
+                            <div><span style="font-weight: bold; color: #577b2d; margin-right: 10px;">遺?뚯옣</span> 源???
+                                諛뺤쿋??/div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="location" class="section-padding bg-dark text-white">
+        <div class="container fade-in-on-scroll">
+            <div class="section-header text-white">
+                <h2>?ㅼ떆??湲?/h2>
+                <div class="divider white-divider"></div>
+            </div>
+            <div class="location-content">
+                <h3>?좎썝 而⑦듃由ы겢??/h3>
+                <p>寃쎄린???⑹씤??泥섏씤援??대룞???댁썝濡?225</p>
+                <div class="map-link-container">
+                    <a href="https://map.naver.com/v5/search/?좎썝cc" target="_blank" class="map-btn">?ㅼ씠踰?吏??蹂닿린</a>
+                    <a href="https://map.kakao.com/link/search/?좎썝cc" target="_blank" class="map-btn kakao">移댁뭅?ㅻ㏊ 蹂닿린</a>
+                    <a href="tmap://search?name=?좎썝cc" class="map-btn tmap">T map 蹂닿린 (??</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2026 SNU AI CEO 4湲? All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- RSVP Modal -->
+    <div id="rsvp-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn rsvp-close">&times;</span>
+            <h3 id="modal-title">李몄꽍 ?좎껌</h3>
+            <p id="modal-subtitle">?좎쭨: </p>
+
+            <form id="rsvp-form">
+                <input type="hidden" id="rsvp-month" name="month">
+                <input type="hidden" id="rsvp-date" name="date">
+
+                <div class="form-group">
+                    <label for="name">?깊븿</label>
+                    <input type="text" id="name" name="name" required placeholder="?띻만??>
+                </div>
+
+                <div class="form-group">
+                    <label for="phone">?곕씫泥?(?좏깮)</label>
+                    <input type="tel" id="phone" name="phone" placeholder="010-1234-5678">
+                </div>
+
+                <div class="form-group">
+                    <label>李몄꽍 ?щ?</label>
+                    <div class="radio-group">
+                        <label>
+                            <input type="radio" name="status" value="attend" checked>
+                            李몄꽍
+                        </label>
+                        <label>
+                            <input type="radio" name="status" value="absent">
+                            遺덉갭
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-group" id="sponsor-input-group">
+                    <label for="sponsor">?ㅽ룿 臾쇳뭹/?댁슜 (?좏깮)</label>
+                    <input type="text" id="sponsor" name="sponsor" placeholder="?? 怨⑦봽怨?1?붿쫵, ???2蹂???>
+                </div>
+
+                <button type="submit" class="cta-button full-width">?쒖텧?섍린</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Admin Modal -->
+    <div id="admin-modal" class="modal">
+        <div class="modal-content" style="max-width: 800px;">
+            <span class="close-btn admin-close">&times;</span>
+            <div
+                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
+                <h3 style="margin: 0;">愿由ъ옄 紐⑤뱶</h3>
+                <div id="admin-global-buttons" style="display: flex; gap: 8px; flex-wrap: wrap;">
+                    <button id="admin-refresh-btn" class="cta-button"
+                        style="padding: 5px 12px; font-size: 0.85rem;">?덈줈怨좎묠</button>
+                    <button id="admin-download-btn" class="cta-button"
+                        style="padding: 5px 12px; font-size: 0.85rem; background-color: #2980b9;">?ㅼ퐫???ㅼ슫</button>
+                    <button id="admin-clear-btn" class="cta-button"
+                        style="padding: 5px 12px; font-size: 0.85rem; background-color: #e74c3c;">珥덇린??/button>
+                    <button onclick="exportData()" class="cta-button"
+                        style="padding: 5px 12px; font-size: 0.85rem; background-color: #27ae60;">諛깆뾽</button>
+                    <button onclick="document.getElementById('import-file').click()" class="cta-button"
+                        style="padding: 5px 12px; font-size: 0.85rem; background-color: #f39c12;">蹂듭썝</button>
+                    <button id="bulk-exec-btn" onclick="bulkRegisterExecutives()" class="cta-button"
+                        style="padding: 5px 12px; font-size: 0.85rem; background-color: #3498db;">?꾩썝吏??깅줉</button>
+                    <input type="file" id="import-file" style="display: none;" onchange="importData(event)">
+                </div>
+            </div>
+
+            <div class="admin-tabs">
+                <button class="tab-btn active" data-tab="tab-rsvps">李몄꽍 ?꾪솴</button>
+                <button class="tab-btn" data-tab="tab-members">?뚯썝 愿由?/button>
+                <button class="tab-btn" data-tab="tab-groups">議고렪??/button>
+            </div>
+
+            <!-- Tab 1: RSVPs -->
+            <div id="tab-rsvps" class="tab-content active">
+                <div style="overflow-x: auto;">
+                    <table id="admin-table"
+                        style="width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.9rem;">
+                        <thead>
+                            <tr style="background-color: #f4f4f4;">
+                                <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">?쇱떆</th>
+                                <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">?깊븿</th>
+                                <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">?곕씫泥?/th>
+                                <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">?곹깭</th>
+                                <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">?ㅽ룿</th>
+                                <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">?ㅼ퐫??/th>
+                                <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">?섏긽</th>
+                                <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">25???몃뵒</th>
+                                <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">?꾩썡 ?ㅼ퐫??/th>
+                                <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">26???몃뵒 (?됯퇏)
+                                </th>
+                                <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">?좎껌 ?쒓컖</th>
+                                <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">愿由?/th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Data loaded via JS -->
+                        </tbody>
+                    </table>
+                </div>
+                <div style="margin-top: 30px; border-top: 2px solid #577b2d; padding-top: 20px; text-align: center;">
+                    <h4 style="margin-top: 0; color: #1e3a2b;">?곸꽭 ?ㅼ퐫??湲곕줉 愿由?/h4>
+                    <p style="font-size: 0.9rem; color: #666; margin-bottom: 15px;">?곸꽭 ?ㅼ퐫??議고쉶 諛??덈줈???쇱슫??湲곕줉 異붽????꾨옒 ?꾩슜
+                        ?섏씠吏?먯꽌 媛?ν빀?덈떎.</p>
+                    <a href="admin_records.html" class="cta-button"
+                        style="padding: 10px 25px; font-size: 1rem; background-color: #577b2d; text-decoration: none; color: #fff;">?곸꽭
+                        ?ㅼ퐫??愿由??섏씠吏 ?닿린</a>
+                </div>
+            </div>
+
+            <!-- Tab 2: Members -->
+            <div id="tab-members" class="tab-content">
+                <div class="add-member-form"
+                    style="background: #f9f9f9; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                    <h4 style="margin-top: 0;">?뚯썝 異붽?</h4>
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+                        <input type="text" id="new-member-name" placeholder="?대쫫"
+                            style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                        <select id="new-member-type" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                            <option value="jeong">?뺥쉶??/option>
+                            <option value="jun">以?뚯썝</option>
+                            <option value="ilban">?쇰컲?뚯썝</option>
+                            <option value="executive">?꾩썝</option>
+                        </select>
+                        <input type="text" id="new-member-role" placeholder="吏곸콉 (?? ?뚯옣)"
+                            style="padding: 8px; border: 1px solid #ddd; border-radius: 4px; display: none;">
+                        <button id="add-member-btn" class="cta-button"
+                            style="padding: 5px 15px; font-size: 0.9rem;">異붽?</button>
+                    </div>
+                </div>
+
+                <div style="overflow-x: auto;">
+                    <table id="admin-member-table" style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+                        <thead>
+                            <tr style="background-color: #f4f4f4;">
+                                <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">?대쫫</th>
+                                <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">援щ텇</th>
+                                <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">?섏긽 ?댁뿭</th>
+                                <th style="padding: 10px; border: 1px solid #ddd; text-align: center;">愿由?/th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Member list loaded via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Tab 3: Group Assignment -->
+            <div id="tab-groups" class="tab-content">
+                <div class="action-bar"
+                    style="background: #f9f9f9; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                    <h4 style="margin-top: 0; color: #1e3a2b;">?먮룞 議고렪??/h4>
+                    <p style="font-size: 0.85rem; color: #666; margin-bottom: 15px;">?꾩껜 ?뚯썝 ?먮뒗 ?꾩옱 ?좎껌?먮? 湲곕컲?쇰줈 臾댁옉??議고렪?깆쓣
+                        ?섑뻾?⑸땲??</p>
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                        <button class="cta-button" onclick="assignGroups('sample')"
+                            style="padding: 8px 15px; font-size: 0.9rem; background-color: #577b2d;">?꾩껜 ?뚯썝 ?섑뵆
+                            議고렪??/button>
+                        <button class="cta-button" onclick="assignGroups('rsvp')"
+                            style="padding: 8px 15px; font-size: 0.9rem; background-color: #2980b9;">?꾩옱 ?좎껌??湲곕컲
+                            議고렪??/button>
+                        <button class="cta-button" id="copy-groups-btn"
+                            style="padding: 8px 15px; font-size: 0.9rem; background-color: #888;">寃곌낵 蹂듭궗?섍린</button>
+                    </div>
+                </div>
+                <div id="group-assignment-result"
+                    style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px;">
+                    <p style="grid-column: 1/-1; text-align: center; color: #888; padding: 40px;">?꾩뿉 踰꾪듉???뚮윭 議고렪?깆쓣
+                        ?쒖옉?섏꽭??
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>

@@ -351,7 +351,10 @@ function initAdminButtons() {
     const adminDownloadBtn = document.getElementById('admin-download-btn');
 
     if (adminRefreshBtn) {
-        adminRefreshBtn.onclick = loadAdminData;
+        adminRefreshBtn.onclick = () => {
+            loadAdminData();
+            loadAdminMembers();
+        };
     }
 
     if (adminClearBtn) {
@@ -401,17 +404,32 @@ function setupAdminModal(adminLink, adminModal, adminCloseBtn) {
 
     adminLink.onclick = async (e) => {
         e.preventDefault();
-        const password = prompt("관리자 비밀번호를 입력하세요");
+        const password = prompt("관리자 비밀번호를 입력하세요")?.trim().toLowerCase();
         if (!password) return;
-        const targetHash = '07e47f77d22e2fc388c2d12f73b8b8b7e9928630d39a4964a9daabbc27a060f4';
+
+        const readOnlyHash = '07e47f77d22e2fc388c2d12f73b8b8b7e9928630d39a4964a9daabbc27a060f4';
+        const superHash = '216af8f8d1513e343fd4533a21148ad1355d6f01e42a8d91de3c598690d0a1e2';
+
         try {
             const inputHash = await sha256(password);
-            if (inputHash === targetHash) {
+            if (inputHash === superHash) {
+                sessionStorage.setItem('snu_golf_admin_logged_in', 'true');
+                sessionStorage.setItem('userRole', 'super');
                 loadAdminData();
                 loadAdminMembers();
+                if (typeof applyRoleRestrictions === 'function') applyRoleRestrictions();
                 adminModal.style.display = 'block';
+                alert("최고 관리자 권한으로 로그인되었습니다.");
+            } else if (inputHash === readOnlyHash) {
+                sessionStorage.setItem('snu_golf_admin_logged_in', 'true');
+                sessionStorage.setItem('userRole', 'readonly');
+                loadAdminData();
+                loadAdminMembers();
+                if (typeof applyRoleRestrictions === 'function') applyRoleRestrictions();
+                adminModal.style.display = 'block';
+                alert("임원진(읽기 전용) 권한으로 로그인되었습니다.");
             } else {
-                alert("비밀번호가 틀렸습니다.");
+                alert(`비밀번호가 틀렸습니다. (입력된 길이: ${password.length}자)`);
             }
         } catch (err) {
             console.error('Admin hash error:', err);
@@ -496,6 +514,9 @@ async function addMember(name, type, role) {
     }
 
     loadMembers(); // Refresh both views
+    if (typeof window.updateMemberSummary === 'function') {
+        window.updateMemberSummary();
+    }
 }
 
 async function deleteMember(name) {
@@ -513,6 +534,9 @@ async function deleteMember(name) {
     }
 
     loadMembers();
+    if (typeof window.updateMemberSummary === 'function') {
+        window.updateMemberSummary();
+    }
 }
 
 async function updateMemberType(name, newType) {
@@ -534,21 +558,30 @@ async function updateMemberType(name, newType) {
     }
 
     loadMembers();
+    if (typeof window.updateMemberSummary === 'function') {
+        window.updateMemberSummary();
+    }
 }
 
 async function loadAdminMembers(prefetchedMembers = null) {
     const tbody = document.querySelector('#admin-member-table tbody');
-    if (!tbody) return;
-    tbody.innerHTML = '';
+    if (tbody) tbody.innerHTML = '';
+
+    // Update summary bar separately
+    if (typeof window.updateMemberSummary === 'function') {
+        window.updateMemberSummary();
+    }
 
     let members = prefetchedMembers;
     if (!members) {
-        const { data, error } = await supabaseClient.from('members').select('*');
-        if (error) {
-            console.error('Error loading admin members:', error);
+        try {
+            const { data, error } = await supabaseClient.from('members').select('*');
+            if (error) throw error;
+            members = data;
+        } catch (err) {
+            console.error('Error loading admin members:', err);
             return;
         }
-        members = data;
     }
 
     const typeOrder = { 'executive': 1, 'special': 2, 'jeong': 3, 'jun': 4, 'ilban': 5 };
@@ -579,7 +612,7 @@ async function loadAdminMembers(prefetchedMembers = null) {
                 <input type="text" value="${item.awardhistory || ''}" onchange="updateMemberAward('${item.name}', this.value)" placeholder="수상 이력 입력" style="width: 100%; padding: 4px; border: 1px solid #ddd;">
             </td>
             <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">
-                <button class="cta-button" onclick="deleteMember('${item.name}')" style="padding: 2px 8px; font-size: 0.8rem; background-color: #e74c3c; min-width: auto;">삭제</button>
+                <button class="cta-button edit-control" onclick="deleteMember('${item.name}')" style="padding: 2px 8px; font-size: 0.8rem; background-color: #e74c3c; min-width: auto;">삭제</button>
             </td>
         `;
         tbody.appendChild(tr);
@@ -687,7 +720,7 @@ async function loadAdminData() {
                     <td colspan="12" style="padding: 10px; border: 1px solid #ddd; font-weight: bold; color: #1e3a2b;">
                         <div style="display: flex; justify-content: space-between; align-items: center;">
                             <span>${key} (총 ${items.length}명 / 참석 ${attendCount}명)</span>
-                            <button onclick="autoCalculateAwards('${key}')" style="background: #c5a059; color: white; border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">자동 수상 계산</button>
+                            <button onclick="autoCalculateAwards('${key}')" class="edit-control" style="background: #c5a059; color: white; border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">자동 수상 계산</button>
                         </div>
                     </td>
                 `;
@@ -719,7 +752,7 @@ async function loadAdminData() {
                         <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">${stats.h26}</td>
                         <td style="padding: 10px; border: 1px solid #ddd;">${item.submittedat ? new Date(item.submittedat).toLocaleString('ko-KR') : '-'}</td>
                         <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">
-                            <button onclick="deleteRSVP(${item.id})" style="background: #e74c3c; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">삭제</button>
+                            <button onclick="deleteRSVP(${item.id})" class="edit-control" style="background: #e74c3c; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">삭제</button>
                         </td>
                     `;
                     rsvpTbody.appendChild(tr);

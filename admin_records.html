@@ -129,6 +129,15 @@
             background: #fff;
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
         }
+
+        /* 권한 제어용 스타일 */
+        .super-only {
+            display: none !important;
+        }
+
+        body.is-super .super-only {
+            display: inline-block !important;
+        }
     </style>
 </head>
 
@@ -141,10 +150,10 @@
         </div>
 
         <div class="action-bar">
-            <span>새로운 라운드 정보를 추가하시겠습니까?</span>
-            <button class="add-round-btn" onclick="openAddModal()">+ 라운드 스코어 추가</button>
+            <span>현재 등록된 라운드 정보를 확인하고 CSV로 내보낼 수 있습니다.</span>
+            <button class="add-round-btn super-only" onclick="openAddModal()">+ 라운드 스코어 추가</button>
             <button class="save-all-btn" onclick="exportToCSV()">현재 데이터 CSV로 내보내기</button>
-            <button
+            <button class="super-only"
                 style="background: #e74c3c; color: white; border: none; padding: 10px 15px; border-radius: 4px; cursor:pointer;"
                 onclick="clearAddedRounds()">추가 기록 전체 삭제</button>
         </div>
@@ -214,6 +223,20 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="script.js?v=2.5"></script>
     <script>
+        // Role check
+        function checkAuth() {
+            if (sessionStorage.getItem('snu_golf_admin_logged_in') !== 'true') {
+                alert('관리자 로그인이 필요합니다.');
+                window.location.href = 'admin.html';
+                return;
+            }
+            const role = sessionStorage.getItem('userRole');
+            if (role === 'super') {
+                document.body.classList.add('is-super');
+            }
+        }
+        checkAuth();
+
         // Overrides or additional logic for admin page
         const container = document.getElementById('admin-full-score-container');
 
