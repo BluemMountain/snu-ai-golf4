@@ -765,22 +765,34 @@ async function loadAdminData() {
     if (rsvpTbody) {
         rsvpTbody.innerHTML = '<tr><td colspan="12" style="text-align:center; padding: 20px;">불러오는 중...</td></tr>';
 
-        const { data, error } = await supabaseClient
-            .from('rsvps')
-            .select('*');
+        // 1. RSVP 및 회원 데이터 함께 가져오기
+        const [{ data: rsvps, error: rsvpError }, { data: members, error: memberError }] = await Promise.all([
+            supabaseClient.from('rsvps').select('*'),
+            supabaseClient.from('members').select('name, type')
+        ]);
 
-        if (error) {
-            console.error('Error loading RSVPs:', error);
-            rsvpTbody.innerHTML = '<tr><td colspan="12" style="text-align:center; padding: 20px; color: red;">실패: ' + error.message + '</td></tr>';
+        if (rsvpError || memberError) {
+            console.error('Error loading data:', rsvpError || memberError);
+            rsvpTbody.innerHTML = '<tr><td colspan="12" style="text-align:center; padding: 20px; color: red;">실패: ' + (rsvpError?.message || memberError?.message) + '</td></tr>';
             return;
         }
 
+        const memberTypeMap = new Map(members.map(m => [m.name, m.type]));
+
+        // 우선순위 점수 (낮을수록 높음)
+        const getPriorityScore = (name) => {
+            const type = memberTypeMap.get(name);
+            if (type === 'executive' || type === 'jeong') return 0;
+            if (type === 'ilban' || type === 'special') return 1;
+            return 2; // 준회원 및 기타
+        };
+
         rsvpTbody.innerHTML = '';
-        if (data.length === 0) {
+        if (rsvps.length === 0) {
             rsvpTbody.innerHTML = '<tr><td colspan="12" style="text-align:center; padding: 20px;">신청 내역이 없습니다.</td></tr>';
         } else {
             // Group by Month/Date
-            const groupedData = data.reduce((acc, item) => {
+            const groupedData = rsvps.reduce((acc, item) => {
                 const key = `${item.month} ${item.date}`;
                 if (!acc[key]) acc[key] = [];
                 acc[key].push(item);
@@ -819,17 +831,40 @@ async function loadAdminData() {
                 `;
                 rsvpTbody.appendChild(headerRow);
 
-                items.sort((a, b) => new Date(b.submittedat) - new Date(a.submittedat));
-                items.forEach((item) => {
+                // 지능형 우선순위 정렬
+                // 1. 참석 여부 (참석 > 불참)
+                // 2. 우선순위 등급 (임원/정 > 일반/특 > 준)
+                // 3. 신청 일시 (선착순)
+                items.sort((a, b) => {
+                    if (a.status !== b.status) return a.status === 'attend' ? -1 : 1;
+
+                    const scoreA = getPriorityScore(a.name);
+                    const scoreB = getPriorityScore(b.name);
+                    if (scoreA !== scoreB) return scoreA - scoreB;
+
+                    return new Date(a.submittedat) - new Date(b.submittedat);
+                });
+
+                items.forEach((item, index) => {
                     const tr = document.createElement('tr');
                     const stats = getMemberStats(item.name);
 
+                    // 대기 여부 자동 판독 (참석자 중 20위 초과 시)
+                    let isAutoWaiting = false;
+                    if (item.status === 'attend' && (index + 1) > totalDisplay) {
+                        isAutoWaiting = true;
+                    }
+
                     tr.innerHTML = `
                         <td style="padding: 10px; border: 1px solid #ddd;">${item.month} ${item.date}</td>
-                        <td style="padding: 10px; border: 1px solid #ddd;">${item.name}${item.iswaiting ? ' <span style="color:#d35400; font-size:0.8rem;">(대기)</span>' : ''}</td>
+                        <td style="padding: 10px; border: 1px solid #ddd;">
+                            ${item.name}
+                            ${(item.iswaiting || isAutoWaiting) ? ' <span style="color:#d35400; font-size:0.8rem; font-weight:bold;">(대기)</span>' : ''}
+                            <div style="font-size: 0.7rem; color: #888;">#${index + 1}</div>
+                        </td>
                         <td style="padding: 10px; border: 1px solid #ddd;">${item.phone || '-'}</td>
                         <td style="padding: 10px; border: 1px solid #ddd; color: ${item.status === 'attend' ? 'green' : 'red'}; font-weight: bold;">
-                            ${item.status === 'attend' ? (item.iswaiting ? '참석(대기)' : '참석') : '불참'}
+                            ${item.status === 'attend' ? ((item.iswaiting || isAutoWaiting) ? '참석대기' : '참석확정') : '불참'}
                         </td>
                         <td style="padding: 5px; border: 1px solid #ddd;">
                             <input type="text" value="${item.sponsor || ''}" onchange="updateRSVPField(${item.id}, 'sponsor', this.value)" placeholder="스폰 내용" style="width: 100%; min-width: 80px; padding: 4px; border: 1px solid #ddd;">
@@ -865,12 +900,14 @@ async function renderPublicRSVPs() {
     const container = document.getElementById('public-rsvp-container');
     if (!container) return;
 
-    const { data, error } = await supabaseClient
-        .from('rsvps')
-        .select('*');
+    // 1. RSVP 및 회원 데이터 함께 가져오기
+    const [{ data, error }, { data: members, error: memberError }] = await Promise.all([
+        supabaseClient.from('rsvps').select('*'),
+        supabaseClient.from('members').select('name, type')
+    ]);
 
-    if (error) {
-        console.error('Error rendering public RSVPs:', error);
+    if (error || memberError) {
+        console.error('Error rendering public RSVPs:', error || memberError);
         return;
     }
 
@@ -878,6 +915,14 @@ async function renderPublicRSVPs() {
         container.innerHTML = '<div style="text-align:center; padding: 40px; color:#888;">아직 신청 내역이 없습니다.</div>';
         return;
     }
+
+    const memberTypeMap = new Map(members.map(m => [m.name, m.type]));
+    const getPriorityScore = (name) => {
+        const type = memberTypeMap.get(name);
+        if (type === 'executive' || type === 'jeong') return 0;
+        if (type === 'ilban' || type === 'special') return 1;
+        return 2;
+    };
 
     const groupedData = data.reduce((acc, item) => {
         const key = `${item.month} ${item.date}`;
@@ -903,6 +948,24 @@ async function renderPublicRSVPs() {
 
     sortedKeys.forEach(key => {
         const items = groupedData[key];
+
+        // 정원 계산 (3월~11월 20명 고정)
+        let totalCapacity = 20;
+        const monthMatch = key.match(/^(\d+)월/);
+        if (monthMatch) {
+            const mNum = parseInt(monthMatch[1]);
+            if (mNum < 3 || mNum > 11) totalCapacity = 999; // 2월 등 예외
+        }
+
+        // 지능형 우선순위 정렬
+        items.sort((a, b) => {
+            if (a.status !== b.status) return a.status === 'attend' ? -1 : 1;
+            const scoreA = getPriorityScore(a.name);
+            const scoreB = getPriorityScore(b.name);
+            if (scoreA !== scoreB) return scoreA - scoreB;
+            return new Date(a.submittedat) - new Date(b.submittedat);
+        });
+
         const monthDiv = document.createElement('div');
         monthDiv.className = 'public-rsvp-month';
         monthDiv.style.marginBottom = '30px';
@@ -912,7 +975,8 @@ async function renderPublicRSVPs() {
         h3.style.borderBottom = '2px solid #577b2d';
         h3.style.paddingBottom = '5px';
         h3.style.marginBottom = '15px';
-        h3.textContent = key;
+        const attendCount = items.filter(i => i.status === 'attend').length;
+        h3.textContent = `${key} (총 ${totalCapacity === 999 ? items.length : totalCapacity}명 / 참석 ${attendCount}명)`;
         monthDiv.appendChild(h3);
 
         const list = document.createElement('div');
@@ -920,7 +984,7 @@ async function renderPublicRSVPs() {
         list.style.gridTemplateColumns = 'repeat(auto-fill, minmax(280px, 1fr))';
         list.style.gap = '15px';
 
-        items.forEach(item => {
+        items.forEach((item, idx) => {
             const stats = getMemberStats(item.name);
             const card = document.createElement('div');
             card.className = 'public-rsvp-card';
@@ -930,11 +994,16 @@ async function renderPublicRSVPs() {
             card.style.boxShadow = '0 2px 8px rgba(0,0,0,0.05)';
             card.style.border = '1px solid #eee';
 
+            let isAutoWaiting = (item.status === 'attend' && (idx + 1) > totalCapacity);
+
             card.innerHTML = `
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                    <span style="font-weight: bold; font-size: 1.1rem; color: #333;">${item.name}${item.iswaiting ? ' <span style="font-size: 0.8rem; color: #d35400;">(대기)</span>' : ''}</span>
+                    <span style="font-weight: bold; font-size: 1.1rem; color: #333;">
+                        ${item.name}
+                        ${(item.iswaiting || isAutoWaiting) ? ' <span style="font-size: 0.8rem; color: #d35400;">(대기)</span>' : ''}
+                    </span>
                     <span style="padding: 2px 8px; border-radius: 20px; font-size: 0.8rem; font-weight: bold; background: ${item.status === 'attend' ? '#e8f5e9' : '#ffebee'}; color: ${item.status === 'attend' ? '#2e7d32' : '#c62828'};">
-                        ${item.status === 'attend' ? '참석' : '불참'}
+                        ${item.status === 'attend' ? ((item.iswaiting || isAutoWaiting) ? '참석대기' : '참석확정') : '불참'}
                     </span>
                 </div>
                 <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; border-top: 1px solid #f5f5f5; pt: 10px; margin-top: 10px; padding-top: 10px;">
