@@ -293,6 +293,43 @@ function initRSVP() {
 
 }
 
+async function addManualRSVP() {
+    const month = document.getElementById('manual-rsvp-month').value.trim();
+    const date = document.getElementById('manual-rsvp-date').value.trim();
+    const name = document.getElementById('manual-rsvp-name').value.trim();
+    const status = document.getElementById('manual-rsvp-status').value;
+
+    if (!month || !date || !name) {
+        alert('월, 일, 이름을 모두 입력해주세요.');
+        return;
+    }
+
+    try {
+        const { error } = await supabaseClient
+            .from('rsvps')
+            .insert([{
+                month,
+                date,
+                name,
+                status,
+                submittedat: new Date().toISOString()
+            }]);
+
+        if (error) throw error;
+
+        alert(`[${month} ${date}] ${name}님이 추가되었습니다.`);
+
+        // 필드 초기화 (이름만 초기화해서 연속 입력 편하게)
+        document.getElementById('manual-rsvp-name').value = '';
+
+        // 목록 새로고침
+        if (typeof loadAdminData === 'function') loadAdminData();
+    } catch (err) {
+        console.error('Error adding manual RSVP:', err);
+        alert('추가 실패: ' + err.message);
+    }
+}
+
 function initAdminTabs() {
     const tabBtns = document.querySelectorAll('.tab-btn');
     const tabContents = document.querySelectorAll('.tab-content');
