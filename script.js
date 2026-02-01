@@ -1294,7 +1294,8 @@ async function syncScoresToRecords(sessionKey) {
         const addedRounds = JSON.parse(localStorage.getItem('snu_golf_added_rounds') || '[]');
         const nextCount = (parseCSV(CSV_DATA_STRING.trim()).length - 2) + addedRounds.length + 1;
 
-        const newRow = [nextCount.toString(), yymmdd, "신원CC"];
+        const defaultVenue = yymmdd.startsWith('2602') ? "소노펠리체CC in 하롱베이" : "신원CC";
+        const newRow = [nextCount.toString(), yymmdd, defaultVenue];
         memberNames.forEach(name => {
             newRow.push(scoreMap.get(name.trim()) || '');
         });
