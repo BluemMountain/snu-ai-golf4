@@ -827,7 +827,10 @@ async function loadAdminData() {
                     <td colspan="12" style="padding: 10px; border: 1px solid #ddd; font-weight: bold; color: #1e3a2b;">
                         <div style="display: flex; justify-content: space-between; align-items: center;">
                             <span>${key} (총 ${totalDisplay}명 / 참석 ${attendCount}명)</span>
-                            <button onclick="autoCalculateAwards('${key}')" class="edit-control" style="background: #c5a059; color: white; border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">자동 수상 계산</button>
+                            <div style="display: flex; gap: 5px;">
+                                <button onclick="autoCalculateAwards('${key}')" class="edit-control" style="background: #c5a059; color: white; border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">자동 수상 계산</button>
+                                <button onclick="syncScoresToRecords('${key}')" class="edit-control" style="background: #2980b9; color: white; border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">스코어 등록</button>
+                            </div>
                         </div>
                     </td>
                 `;
@@ -1103,6 +1106,13 @@ function renderTable(data, container, isAdmin = false) {
     let headerRowData = data[0];
     let bodyRowsData = data.slice(2);
 
+    // Sort body rows by Date (Index 1) in descending order (Latest First)
+    bodyRowsData.sort((a, b) => {
+        const dateA = String(a[1] || '').trim();
+        const dateB = String(b[1] || '').trim();
+        return dateB.localeCompare(dateA);
+    });
+
     // Calculate Handicap Rows (Total, 2025, 2026)
     const totalHDRow = ['Total', 'Handicap', 'Avg'];
     const h25HDRow = ['2025', 'Handicap', 'CC/HD'];
@@ -1229,6 +1239,79 @@ function shuffleArray(array) {
         [newArr[i], newArr[j]] = [newArr[j], newArr[i]];
     }
     return newArr;
+}
+
+async function syncScoresToRecords(sessionKey) {
+    if (!confirm(`'${sessionKey}'의 스코어를 상세 기록 페이지로 복사하시겠습니까?`)) return;
+
+    try {
+        // 1. Fetch RSVPs for this session
+        const [month, datePart] = sessionKey.split(' ');
+        const { data: rsvps, error } = await supabaseClient
+            .from('rsvps')
+            .select('*')
+            .eq('month', month)
+            .eq('date', datePart);
+
+        if (error) throw error;
+        if (!rsvps || rsvps.length === 0) {
+            alert("해당 일정의 신청 데이터가 없습니다.");
+            return;
+        }
+
+        // 2. Parse Date into YYMMDD format
+        // Example: '2월 2.7' -> Year is current year (2026), Month 02, Day 07 -> 260207
+        let yymmdd = '';
+        const mMatch = month.match(/(\d+)/);
+        const dMatch = datePart.match(/(\d+\.?\d*)/);
+
+        if (mMatch && dMatch) {
+            const m = mMatch[1].padStart(2, '0');
+            const dStr = dMatch[1].replace('.', ''); // 2.7 -> 27, but user wants 07 usually
+            // Correct day logic: if datePart is '2.7', it's Feb 7th
+            const dArr = datePart.split('.');
+            const d = (dArr.length > 1 ? dArr[1] : dArr[0]).padStart(2, '0');
+            yymmdd = `26${m}${d}`;
+        } else {
+            yymmdd = prompt("기록에 사용할 날짜(YYMMDD)를 입력해주세요:", "260207");
+            if (!yymmdd) return;
+        }
+
+        // 3. Prepare Score Map
+        const scoreMap = new Map();
+        rsvps.forEach(r => {
+            if (r.roundscore && r.roundscore.trim() !== '') {
+                scoreMap.set(r.name.trim(), r.roundscore.trim());
+            }
+        });
+
+        // 4. Get Member Column Order from CSV_DATA_STRING
+        const headerData = parseCSV(CSV_DATA_STRING.trim())[0];
+        const memberNames = headerData.slice(3);
+
+        // 5. Build New Record Row
+        // [count, date, venue, member1_score, member2_score, ...]
+        const addedRounds = JSON.parse(localStorage.getItem('snu_golf_added_rounds') || '[]');
+        const nextCount = (parseCSV(CSV_DATA_STRING.trim()).length - 2) + addedRounds.length + 1;
+
+        const newRow = [nextCount.toString(), yymmdd, "신원CC"];
+        memberNames.forEach(name => {
+            newRow.push(scoreMap.get(name.trim()) || '');
+        });
+
+        // 6. Save to localStorage
+        addedRounds.push(newRow);
+        localStorage.setItem('snu_golf_added_rounds', JSON.stringify(addedRounds));
+
+        alert(`'${yymmdd}' 스코어 기록이 성공적으로 동기화되었습니다.\n[상세 스코어 기록 관리] 페이지에서 확인하세요.`);
+
+        // Refresh table if on admin page
+        if (typeof loadAdminData === 'function') loadAdminData();
+
+    } catch (err) {
+        console.error('Score sync failed:', err);
+        alert('동기화 실패: ' + err.message);
+    }
 }
 
 async function assignGroups(mode) {
