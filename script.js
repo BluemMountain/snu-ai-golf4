@@ -1315,6 +1315,30 @@ async function syncScoresToRecords(sessionKey) {
     }
 }
 
+// Auto-fix for Feb Venue names in localStorage (one-time cleanup)
+(function fixFebVenues() {
+    try {
+        const addedRoundsRaw = localStorage.getItem('snu_golf_added_rounds');
+        if (!addedRoundsRaw) return;
+
+        const addedRounds = JSON.parse(addedRoundsRaw);
+        let modified = false;
+        const fixedRounds = addedRounds.map(round => {
+            // Index 1 is Date (YYMMDD), Index 2 is Venue
+            if (round[1] && round[1].startsWith('2602') && round[2] === "신원CC") {
+                round[2] = "소노펠리체CC in 하롱베이";
+                modified = true;
+            }
+            return round;
+        });
+
+        if (modified) {
+            localStorage.setItem('snu_golf_added_rounds', JSON.stringify(fixedRounds));
+            console.log('February venues auto-fixed in localStorage');
+        }
+    } catch (e) { console.error('Venue fix failed:', e); }
+})();
+
 async function assignGroups(mode) {
     let participants = [];
 
