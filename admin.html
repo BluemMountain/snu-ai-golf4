@@ -154,8 +154,12 @@
 <body>
     <!-- Simple Auth Overlay -->
     <div id="admin-auth-overlay">
-        <h2 style="font-family: 'Noto Serif KR', serif; color: #1e3a2b; margin-bottom: 20px;">관리자 인증이 필요합니다</h2>
-        <button onclick="requestAdminAuth()" class="cta-button">관리자 비밀번호 입력</button>
+        <h2 style="font-family: 'Noto Serif KR', serif; color: #1e3a2b; margin-bottom: 20px;">관리자 인증</h2>
+        <div style="display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 300px;">
+            <input type="password" id="admin-password-input" placeholder="비밀번호를 입력하세요"
+                style="padding: 12px; border: 1px solid #ccc; border-radius: 4px; font-size: 1rem;">
+            <button onclick="submitAdminAuth()" class="cta-button" style="width: 100%;">로그인</button>
+        </div>
         <a href="index.html" class="back-home" style="margin-top: 20px; display: block;">← 메인 페이지로 돌아가기</a>
     </div>
 
@@ -401,9 +405,15 @@
             }
         }
 
-        function requestAdminAuth() {
-            const password = prompt("관리자 비밀번호를 입력하세요")?.trim().toLowerCase();
-            if (!password) return;
+        function submitAdminAuth() {
+            const passwordInput = document.getElementById('admin-password-input');
+            const password = passwordInput.value.trim().toLowerCase();
+
+            if (!password) {
+                alert("비밀번호를 입력해주세요.");
+                passwordInput.focus();
+                return;
+            }
 
             async function check() {
                 const msgBuffer = new TextEncoder().encode(password);
@@ -421,7 +431,7 @@
                     sessionStorage.setItem('userRole', 'super');
                     document.getElementById('admin-auth-overlay').style.display = 'none';
                     applyRoleRestrictions();
-                    alert("최고 관리자 권한으로 로그인되었습니다.");
+                    // alert("최고 관리자 권한으로 로그인되었습니다.");
                     // Trigger data load
                     if (typeof loadAdminData === 'function') loadAdminData();
                     if (typeof loadAdminMembers === 'function') loadAdminMembers();
@@ -430,16 +440,25 @@
                     sessionStorage.setItem('userRole', 'readonly');
                     document.getElementById('admin-auth-overlay').style.display = 'none';
                     applyRoleRestrictions();
-                    alert("임원진(읽기 전용) 권한으로 로그인되었습니다.");
+                    // alert("임원진(읽기 전용) 권한으로 로그인되었습니다.");
                     // Trigger data load
                     if (typeof loadAdminData === 'function') loadAdminData();
                     if (typeof loadAdminMembers === 'function') loadAdminMembers();
                 } else {
-                    alert(`비밀번호가 틀렸습니다. (입력된 길이: ${password.length}자)`);
+                    alert(`비밀번호가 틀렸습니다.`);
+                    passwordInput.value = '';
+                    passwordInput.focus();
                 }
             }
             check();
         }
+
+        // Allow Enter key to submit
+        document.getElementById('admin-password-input').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                submitAdminAuth();
+            }
+        });
 
         // Check auth on load
         window.addEventListener('DOMContentLoaded', () => {
@@ -451,6 +470,9 @@
                     if (typeof loadAdminData === 'function') loadAdminData();
                     if (typeof loadAdminMembers === 'function') loadAdminMembers();
                 }, 500);
+            } else {
+                // Focus password input on load
+                setTimeout(() => document.getElementById('admin-password-input')?.focus(), 100);
             }
         });
 

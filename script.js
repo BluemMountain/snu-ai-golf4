@@ -203,6 +203,7 @@ function checkLogin() {
     });
 }
 
+console.log("SNU AI GOLF Script Loaded v4.0");
 function initRSVP() {
     const modal = document.getElementById('rsvp-modal');
     if (!modal) return; // 전용 관리자 페이지 등에서는 RSVP 로직 건너뜀
@@ -647,7 +648,8 @@ async function updateMemberType(name, newType) {
 
 async function loadAdminMembers(prefetchedMembers = null) {
     const tbody = document.querySelector('#admin-member-table tbody');
-    if (tbody) tbody.innerHTML = '';
+    if (!tbody) return;
+    tbody.innerHTML = '';
 
     // Update summary bar separately
     if (typeof window.updateMemberSummary === 'function') {

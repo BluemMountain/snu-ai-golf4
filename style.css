@@ -1126,3 +1126,48 @@ footer {
 .stat-total {
     border-left: 4px solid var(--secondary-color);
 }
+
+/* Modal Notice Styles */
+.modal-notice {
+    margin-top: 25px;
+    padding-top: 20px;
+    border-top: 1px dashed #ddd;
+    text-align: left;
+    font-size: 0.85rem;
+    color: #555;
+    line-height: 1.6;
+}
+
+.notice-title {
+    font-weight: bold;
+    color: var(--secondary-color);
+    margin-bottom: 10px;
+    font-size: 0.95rem;
+}
+
+.notice-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.notice-list li {
+    margin-bottom: 8px;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+}
+
+.notice-list .bullet {
+    color: var(--primary-color);
+    font-weight: bold;
+    flex-shrink: 0;
+}
+
+.text-red {
+    color: #e74c3c;
+}
+
+.notice-list strong {
+    color: #333;
+}
