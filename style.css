@@ -313,10 +313,15 @@ h3 {
 
 .score-table-container {
     overflow-x: auto;
+    overflow-y: auto;
+    max-height: calc(100vh - 450px);
+    /* Tighter height to ensure scrollbar is visible above the fold */
+    min-height: 200px;
     width: 100%;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: thin;
     scrollbar-color: var(--secondary-color) #f0f0f0;
+    box-sizing: border-box;
 }
 
 .score-table-container::-webkit-scrollbar {
@@ -337,6 +342,8 @@ h3 {
 #admin-table,
 #admin-member-table {
     width: 100%;
+    min-width: 1000px;
+    /* Ensure horizontal scroll on smaller screens */
     border-collapse: collapse;
     white-space: nowrap;
     /* Prevent line wrapping */
