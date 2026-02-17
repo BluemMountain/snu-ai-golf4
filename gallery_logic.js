@@ -120,8 +120,10 @@ function initGalleryUI() {
     if (openBtn) {
         openBtn.onclick = () => {
             const isLoggedIn = sessionStorage.getItem('snu_golf_logged_in') === 'true';
-            if (!isLoggedIn) {
-                alert('로그인이 필요한 기능입니다. 메인 페이지에서 로그인해 주세요.');
+            const isAdminMode = sessionStorage.getItem('snu_golf_admin_logged_in') === 'true';
+
+            if (!isLoggedIn && !isAdminMode) {
+                alert('로그인이 필요한 기능입니다. 메인 페이지에서 로그인 혹은 관리자 로그인을 진행해 주세요.');
                 return;
             }
             // Reset for new entry
@@ -129,6 +131,10 @@ function initGalleryUI() {
             document.getElementById('log-edit-id').value = '';
             document.getElementById('submit-log').innerText = 'PUBLISH TO LOG';
             fileDisplay.classList.add('hidden');
+
+            // Auto-fill user name if stored
+            const savedName = localStorage.getItem('snu_golf_user_name');
+            if (savedName) document.getElementById('log-name').value = savedName;
 
             modal.style.display = 'block';
             document.body.style.overflow = 'hidden';
@@ -213,6 +219,12 @@ async function handleLogUpload(form) {
             image_urls: imageUrls
         };
 
+        // Store user name locally for future identification
+        if (logData.user_name) {
+            localStorage.setItem('snu_golf_user_name', logData.user_name);
+            sessionStorage.setItem('snu_golf_user_name', logData.user_name);
+        }
+
         if (editId) {
             // UPDATE
             const { error } = await db.from('round_logs').update(logData).eq('id', editId);
@@ -279,13 +291,18 @@ function openLightbox(log) {
     likeBtn.onclick = () => handleLike(log.id);
 
     // Permission Check: Show/Hide Edit/Delete buttons
-    const currentUserName = sessionStorage.getItem('snu_golf_user_name');
+    const currentUserName = sessionStorage.getItem('snu_golf_user_name') || localStorage.getItem('snu_golf_user_name');
     const isLoggedIn = sessionStorage.getItem('snu_golf_logged_in') === 'true';
     const isAdminMode = sessionStorage.getItem('snu_golf_admin_logged_in') === 'true';
     const controls = document.getElementById('lb-admin-controls');
 
-    if (isLoggedIn && (currentUserName === log.user_name || isAdminMode)) {
+    // If logged in as admin OR regular user matches author
+    if (isAdminMode || (isLoggedIn && currentUserName === log.user_name)) {
         controls.classList.remove('hidden');
+    } else if (isLoggedIn) {
+        // Option: If we want to be more lax for testing, we could show them anyway
+        // but for now let's stick to name match.
+        controls.classList.add('hidden');
     } else {
         controls.classList.add('hidden');
     }
