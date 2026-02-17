@@ -843,16 +843,16 @@ async function loadAdminData() {
                 }
 
                 headerRow.innerHTML = `
-    < td colspan = "12" style = "padding: 10px; border: 1px solid #ddd; font-weight: bold; color: #1e3a2b;" >
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-            <span>${key} (총 ${totalDisplay}명 / 참석 ${attendCount}명)</span>
-            <div style="display: flex; gap: 5px;">
-                <button onclick="autoCalculateAwards('${key}')" class="edit-control" style="background: #c5a059; color: white; border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">자동 수상 계산</button>
-                <button onclick="syncScoresToRecords('${key}')" class="edit-control" style="background: #2980b9; color: white; border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">스코어 등록</button>
-            </div>
-        </div>
-                    </td >
-    `;
+                    <td colspan="12" style="padding: 10px; border: 1px solid #ddd; font-weight: bold; color: #1e3a2b;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span>${key} (총 ${totalDisplay}명 / 참석 ${attendCount}명)</span>
+                            <div style="display: flex; gap: 5px;">
+                                <button onclick="autoCalculateAwards('${key}')" class="edit-control" style="background: #c5a059; color: white; border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">자동 수상 계산</button>
+                                <button onclick="syncScoresToRecords('${key}')" class="edit-control" style="background: #2980b9; color: white; border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">스코어 등록</button>
+                            </div>
+                        </div>
+                    </td>
+                `;
                 rsvpTbody.appendChild(headerRow);
 
                 // 지능형 우선순위 정렬
@@ -880,7 +880,7 @@ async function loadAdminData() {
                     }
 
                     tr.innerHTML = `
-    < td style = "padding: 10px; border: 1px solid #ddd;" > ${item.month} ${item.date}</td >
+                        <td style="padding: 10px; border: 1px solid #ddd;">${item.month} ${item.date}</td>
                         <td style="padding: 10px; border: 1px solid #ddd;">
                             ${item.name}
                             ${(item.iswaiting || isAutoWaiting) ? ' <span style="color:#d35400; font-size:0.8rem; font-weight:bold;">(대기)</span>' : ''}
