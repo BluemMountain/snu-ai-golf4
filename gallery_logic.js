@@ -1,6 +1,6 @@
 /**
- * Magazine Style Round Log Logic
- * Features: Supabase (round_logs), Cloudinary Upload, Editorial Lightbox
+ * Magazine Style Round Log Logic - Multi-Image Version
+ * Features: Supabase (round_logs), Multi-Cloudinary Upload, Editorial Lightbox with Gallery
  */
 
 // Cloudinary Config
@@ -10,6 +10,8 @@ const CLOUDINARY_CONFIG = {
 };
 
 let db = window.supabaseClient;
+let currentGalleryImages = [];
+let currentImageIndex = 0;
 
 document.addEventListener('DOMContentLoaded', async () => {
     // Initialize Supabase if not global
@@ -66,12 +68,18 @@ function createLogCard(log) {
     const card = document.createElement('div');
     card.className = 'log-card';
 
-    // Format date for meta
+    // Support both old image_url and new image_urls (array)
+    const images = log.image_urls || (log.image_url ? [log.image_url] : []);
+    const mainImg = images[0] || 'https://via.placeholder.com/800x1000?text=Editorial+Preview';
+    const isMulti = images.length > 1;
+
+    // Format date
     const dateStr = log.date || new Date(log.created_at).toLocaleDateString('ko-KR');
 
     card.innerHTML = `
         <div class="log-image-wrapper">
-            <img src="${log.image_url}" alt="${log.location}" loading="lazy" onerror="this.src='https://via.placeholder.com/800x1000?text=Editorial+Preview'">
+            <img src="${mainImg}" alt="${log.location}" loading="lazy">
+            ${isMulti ? `<div class="multi-indicator">+${images.length - 1}</div>` : ''}
         </div>
         <div class="log-card-info">
             <div class="log-meta">${dateStr} / ${log.location}</div>
@@ -92,8 +100,22 @@ function initGalleryUI() {
     const openBtn = document.getElementById('open-upload-btn');
     const closeBtn = document.querySelector('.magazine-modal-close');
     const form = document.getElementById('round-log-form');
+    const fileInput = document.getElementById('log-file');
+    const fileDisplay = document.getElementById('file-count-display');
 
-    // Always show the record button
+    // Show file count when selected
+    if (fileInput && fileDisplay) {
+        fileInput.onchange = (e) => {
+            const count = e.target.files.length;
+            if (count > 0) {
+                fileDisplay.innerText = `${count}장의 사진이 선택되었습니다.`;
+                fileDisplay.classList.remove('hidden');
+            } else {
+                fileDisplay.classList.add('hidden');
+            }
+        };
+    }
+
     if (openBtn) {
         openBtn.onclick = () => {
             const isLoggedIn = sessionStorage.getItem('snu_golf_logged_in') === 'true';
@@ -102,21 +124,29 @@ function initGalleryUI() {
                 return;
             }
             modal.style.display = 'block';
+            document.body.style.overflow = 'hidden'; // Stop main scroll when modal open
         };
     }
 
     if (closeBtn) {
-        closeBtn.onclick = () => modal.style.display = 'none';
+        closeBtn.onclick = () => {
+            modal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        };
     }
 
     window.onclick = (e) => {
-        if (e.target === modal) modal.style.display = 'none';
+        if (e.target === modal) {
+            modal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
         if (e.target === document.getElementById('lightbox-modal')) closeLightbox();
     };
 
-    // Close Lightbox
-    const lbClose = document.querySelector('.lightbox-close');
-    if (lbClose) lbClose.onclick = closeLightbox;
+    // Lightbox Controls
+    document.getElementById('lb-prev-btn').onclick = () => navigateGallery(-1);
+    document.getElementById('lb-next-btn').onclick = () => navigateGallery(1);
+    document.querySelector('.lightbox-close').onclick = closeLightbox;
 
     // Form Submit
     if (form) {
@@ -128,28 +158,30 @@ function initGalleryUI() {
 }
 
 /**
- * Handle Upload Process
+ * Handle Multi-Upload Process
  */
 async function handleLogUpload(form) {
     const submitBtn = document.getElementById('submit-log');
     const statusDiv = document.getElementById('upload-status');
     const statusText = document.getElementById('status-text');
-    const file = document.getElementById('log-file').files[0];
+    const fileInput = document.getElementById('log-file');
+    const files = fileInput.files;
 
-    if (!file) return alert('사진을 선택해주세요.');
+    if (files.length === 0) return alert('사진을 선택해주세요.');
 
-    // Start UI Animation
     submitBtn.disabled = true;
     statusDiv.classList.remove('hidden');
-    statusText.innerText = 'Publishing to Clouds...';
 
     try {
-        // 1. Cloudinary Upload
-        const imageUrl = await uploadToCloudinary(file);
+        const imageUrls = [];
+        for (let i = 0; i < files.length; i++) {
+            statusText.innerText = `Uploading Picture ${i + 1}/${files.length}...`;
+            const url = await uploadToCloudinary(files[i]);
+            imageUrls.push(url);
+        }
 
-        statusText.innerText = 'Saving Editorial Metadata...';
+        statusText.innerText = 'Publishing to SNU Editorial...';
 
-        // 2. Supabase Save
         const formData = new FormData(form);
         const logData = {
             date: formData.get('date'),
@@ -158,16 +190,17 @@ async function handleLogUpload(form) {
             companions: formData.get('companions'),
             weather: formData.get('weather'),
             user_name: formData.get('user_name'),
-            image_url: imageUrl
+            image_urls: imageUrls // Array support
         };
 
         const { error } = await db.from('round_logs').insert([logData]);
         if (error) throw error;
 
-        // Success
         alert('뉴 에디토리얼이 성공적으로 발행되었습니다!');
         form.reset();
+        document.getElementById('file-count-display').classList.add('hidden');
         document.getElementById('upload-modal').style.display = 'none';
+        document.body.style.overflow = 'auto';
         loadRoundLogs();
 
     } catch (err) {
@@ -179,9 +212,6 @@ async function handleLogUpload(form) {
     }
 }
 
-/**
- * Cloudinary Helper
- */
 async function uploadToCloudinary(file) {
     const formData = new FormData();
     formData.append('file', file);
@@ -198,11 +228,17 @@ async function uploadToCloudinary(file) {
 }
 
 /**
- * Lightbox Logic
+ * Lightbox Gallery Logic
  */
 function openLightbox(log) {
     const lb = document.getElementById('lightbox-modal');
-    document.getElementById('lb-image').src = log.image_url;
+
+    // Support legacy and multi
+    currentGalleryImages = log.image_urls || (log.image_url ? [log.image_url] : []);
+    currentImageIndex = 0;
+
+    updateLightboxView();
+
     document.getElementById('lb-date').innerText = log.date || new Date(log.created_at).toLocaleDateString('ko-KR');
     document.getElementById('lb-location').innerText = log.location;
     document.getElementById('lb-quote').innerText = `"${log.quote || ''}"`;
@@ -211,12 +247,32 @@ function openLightbox(log) {
     document.getElementById('lb-user').innerText = log.user_name || 'Anonymous';
     document.getElementById('lb-likes').innerText = log.likes_count || 0;
 
-    // Like button logic
     const likeBtn = document.getElementById('lb-like-btn');
     likeBtn.onclick = () => handleLike(log.id);
 
+    // Show/Hide Nav Buttons
+    const hasMultiple = currentGalleryImages.length > 1;
+    document.getElementById('lb-prev-btn').style.display = hasMultiple ? 'flex' : 'none';
+    document.getElementById('lb-next-btn').style.display = hasMultiple ? 'flex' : 'none';
+    document.getElementById('lb-counter').style.display = hasMultiple ? 'block' : 'none';
+
     lb.style.display = 'block';
-    document.body.style.overflow = 'hidden'; // Block scroll
+    document.body.style.overflow = 'hidden';
+}
+
+function updateLightboxView() {
+    const imgEl = document.getElementById('lb-image');
+    imgEl.src = currentGalleryImages[currentImageIndex] || '';
+
+    const counterEl = document.getElementById('lb-counter');
+    counterEl.innerText = `${currentImageIndex + 1} / ${currentGalleryImages.length}`;
+}
+
+function navigateGallery(dir) {
+    currentImageIndex += dir;
+    if (currentImageIndex < 0) currentImageIndex = currentGalleryImages.length - 1;
+    if (currentImageIndex >= currentGalleryImages.length) currentImageIndex = 0;
+    updateLightboxView();
 }
 
 function closeLightbox() {
@@ -226,20 +282,12 @@ function closeLightbox() {
 
 async function handleLike(logId) {
     try {
-        // Increment in DB
-        const { data, error } = await db.rpc('increment_likes', { row_id: logId });
+        // Fallback simple update if RPC not found
+        const { data: current } = await db.from('round_logs').select('likes_count').eq('id', logId).single();
+        await db.from('round_logs').update({ likes_count: (current.likes_count || 0) + 1 }).eq('id', logId);
 
-        // If RPC not available, fallback to simple update (note: better to have RPC for atomicity)
-        if (error) {
-            // Manual fetch and update as fallback
-            const { data: current } = await db.from('round_logs').select('likes_count').eq('id', logId).single();
-            await db.from('round_logs').update({ likes_count: (current.likes_count || 0) + 1 }).eq('id', logId);
-        }
-
-        // Refresh count UI
         const countSpan = document.getElementById('lb-likes');
         countSpan.innerText = parseInt(countSpan.innerText) + 1;
-
     } catch (err) {
         console.error('Like error:', err);
     }

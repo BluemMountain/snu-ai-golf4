@@ -85,19 +85,22 @@
                         <input type="text" id="log-name" name="user_name" required placeholder="본인 성함">
                     </div>
                     <div class="form-group-mag full-width">
-                        <label>Photograph</label>
+                        <label>Photographs (Multiple possible)</label>
                         <div class="custom-file-upload">
-                            <input type="file" id="log-file" accept="image/*" required>
+                            <input type="file" id="log-file" accept="image/*" multiple required>
                             <div class="file-dummy">
                                 <i class="fas fa-camera"></i>
-                                <span class="file-text">사진을 선택해 주세요</span>
+                                <span class="file-text">사진을 선택해 주세요 (여러 장 가능)</span>
+                                <span id="file-count-display" class="selected-files-count hidden"></span>
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <div id="upload-status" class="upload-status-mag hidden">
-                    <div class="status-anim"></div>
+                    <div class="status-anim-bar">
+                        <div class="status-anim-progress"></div>
+                    </div>
                     <span id="status-text">Uploading to Cloudinary...</span>
                 </div>
 
@@ -113,7 +116,12 @@
         <div class="lightbox-close">&times;</div>
         <div class="lightbox-content">
             <div class="lightbox-image-container">
-                <img id="lb-image" src="" alt="Large View">
+                <button class="lb-nav lb-prev" id="lb-prev-btn"><i class="fas fa-chevron-left"></i></button>
+                <div class="lb-gallery-main">
+                    <img id="lb-image" src="" alt="Large View">
+                </div>
+                <button class="lb-nav lb-next" id="lb-next-btn"><i class="fas fa-chevron-right"></i></button>
+                <div class="lb-counter" id="lb-counter">1 / 1</div>
             </div>
             <div class="lightbox-info-panel">
                 <div class="lb-header">
@@ -161,7 +169,7 @@
         };
     </script>
     <script src="script.js?v=4.3"></script>
-    <script src="gallery_logic.js?v=2.2"></script>
+    <script src="gallery_logic.js?v=2.3"></script>
 </body>
 
 </html>
