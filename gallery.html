@@ -59,6 +59,7 @@
             </div>
 
             <form id="round-log-form">
+                <input type="hidden" id="log-edit-id" name="id">
                 <div class="magazine-form-grid">
                     <div class="form-group-mag">
                         <label for="log-date">Date</label>
@@ -152,6 +153,12 @@
                     </button>
                     <div class="lb-magazine-seal">SNU AI GOLF BOARD</div>
                 </div>
+
+                <!--수정 및 삭제 버튼 영역 -->
+                <div class="lb-admin-controls hidden" id="lb-admin-controls">
+                    <button class="lb-edit-btn" id="lb-edit-btn">EDIT</button>
+                    <button class="lb-delete-btn" id="lb-delete-btn">DELETE</button>
+                </div>
             </div>
         </div>
     </div>
@@ -169,7 +176,7 @@
         };
     </script>
     <script src="script.js?v=4.3"></script>
-    <script src="gallery_logic.js?v=2.3"></script>
+    <script src="gallery_logic.js?v=2.4"></script>
 </body>
 
 </html>

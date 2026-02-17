@@ -1,6 +1,6 @@
 /**
  * Magazine Style Round Log Logic - Multi-Image Version
- * Features: Supabase (round_logs), Multi-Cloudinary Upload, Editorial Lightbox with Gallery
+ * Features: Supabase (round_logs), Multi-Cloudinary Upload, Editorial Lightbox with Gallery, Edit/Delete
  */
 
 // Cloudinary Config
@@ -12,6 +12,7 @@ const CLOUDINARY_CONFIG = {
 let db = window.supabaseClient;
 let currentGalleryImages = [];
 let currentImageIndex = 0;
+let currentLogData = null; // 현재 라이트박스에 표시된 로그 데이터 저장
 
 document.addEventListener('DOMContentLoaded', async () => {
     // Initialize Supabase if not global
@@ -123,8 +124,14 @@ function initGalleryUI() {
                 alert('로그인이 필요한 기능입니다. 메인 페이지에서 로그인해 주세요.');
                 return;
             }
+            // Reset for new entry
+            form.reset();
+            document.getElementById('log-edit-id').value = '';
+            document.getElementById('submit-log').innerText = 'PUBLISH TO LOG';
+            fileDisplay.classList.add('hidden');
+
             modal.style.display = 'block';
-            document.body.style.overflow = 'hidden'; // Stop main scroll when modal open
+            document.body.style.overflow = 'hidden';
         };
     }
 
@@ -148,6 +155,10 @@ function initGalleryUI() {
     document.getElementById('lb-next-btn').onclick = () => navigateGallery(1);
     document.querySelector('.lightbox-close').onclick = closeLightbox;
 
+    // Edit/Delete in Lightbox
+    document.getElementById('lb-edit-btn').onclick = () => handleLogEdit();
+    document.getElementById('lb-delete-btn').onclick = () => handleLogDelete();
+
     // Form Submit
     if (form) {
         form.onsubmit = async (e) => {
@@ -158,7 +169,7 @@ function initGalleryUI() {
 }
 
 /**
- * Handle Multi-Upload Process
+ * Handle Multi-Upload (Update or Insert)
  */
 async function handleLogUpload(form) {
     const submitBtn = document.getElementById('submit-log');
@@ -166,18 +177,27 @@ async function handleLogUpload(form) {
     const statusText = document.getElementById('status-text');
     const fileInput = document.getElementById('log-file');
     const files = fileInput.files;
+    const editId = document.getElementById('log-edit-id').value;
 
-    if (files.length === 0) return alert('사진을 선택해주세요.');
+    // If editing, photos are optional. If new, they are required.
+    if (!editId && files.length === 0) return alert('사진을 선택해주세요.');
 
     submitBtn.disabled = true;
     statusDiv.classList.remove('hidden');
 
     try {
-        const imageUrls = [];
-        for (let i = 0; i < files.length; i++) {
-            statusText.innerText = `Uploading Picture ${i + 1}/${files.length}...`;
-            const url = await uploadToCloudinary(files[i]);
-            imageUrls.push(url);
+        let imageUrls = [];
+
+        // 1. Upload new photos if selected
+        if (files.length > 0) {
+            for (let i = 0; i < files.length; i++) {
+                statusText.innerText = `Uploading Picture ${i + 1}/${files.length}...`;
+                const url = await uploadToCloudinary(files[i]);
+                imageUrls.push(url);
+            }
+        } else if (editId && currentLogData) {
+            // Keep existing photos if none selected during edit
+            imageUrls = currentLogData.image_urls || (currentLogData.image_url ? [currentLogData.image_url] : []);
         }
 
         statusText.innerText = 'Publishing to SNU Editorial...';
@@ -190,22 +210,29 @@ async function handleLogUpload(form) {
             companions: formData.get('companions'),
             weather: formData.get('weather'),
             user_name: formData.get('user_name'),
-            image_urls: imageUrls // Array support
+            image_urls: imageUrls
         };
 
-        const { error } = await db.from('round_logs').insert([logData]);
-        if (error) throw error;
+        if (editId) {
+            // UPDATE
+            const { error } = await db.from('round_logs').update(logData).eq('id', editId);
+            if (error) throw error;
+            alert('기록이 수정되었습니다.');
+        } else {
+            // INSERT
+            const { error } = await db.from('round_logs').insert([logData]);
+            if (error) throw error;
+            alert('뉴 에디토리얼이 성공적으로 발행되었습니다!');
+        }
 
-        alert('뉴 에디토리얼이 성공적으로 발행되었습니다!');
         form.reset();
-        document.getElementById('file-count-display').classList.add('hidden');
         document.getElementById('upload-modal').style.display = 'none';
         document.body.style.overflow = 'auto';
         loadRoundLogs();
 
     } catch (err) {
         console.error('Upload Error:', err);
-        alert('발행 실패: ' + err.message);
+        alert('작업 실패: ' + err.message);
     } finally {
         submitBtn.disabled = false;
         statusDiv.classList.add('hidden');
@@ -231,6 +258,7 @@ async function uploadToCloudinary(file) {
  * Lightbox Gallery Logic
  */
 function openLightbox(log) {
+    currentLogData = log;
     const lb = document.getElementById('lightbox-modal');
 
     // Support legacy and multi
@@ -249,6 +277,18 @@ function openLightbox(log) {
 
     const likeBtn = document.getElementById('lb-like-btn');
     likeBtn.onclick = () => handleLike(log.id);
+
+    // Permission Check: Show/Hide Edit/Delete buttons
+    const currentUserName = sessionStorage.getItem('snu_golf_user_name');
+    const isLoggedIn = sessionStorage.getItem('snu_golf_logged_in') === 'true';
+    const isAdminMode = sessionStorage.getItem('snu_golf_admin_logged_in') === 'true';
+    const controls = document.getElementById('lb-admin-controls');
+
+    if (isLoggedIn && (currentUserName === log.user_name || isAdminMode)) {
+        controls.classList.remove('hidden');
+    } else {
+        controls.classList.add('hidden');
+    }
 
     // Show/Hide Nav Buttons
     const hasMultiple = currentGalleryImages.length > 1;
@@ -278,11 +318,61 @@ function navigateGallery(dir) {
 function closeLightbox() {
     document.getElementById('lightbox-modal').style.display = 'none';
     document.body.style.overflow = 'auto';
+    currentLogData = null;
+}
+
+/**
+ * Handle Edit Button
+ */
+function handleLogEdit() {
+    if (!currentLogData) return;
+
+    const modal = document.getElementById('upload-modal');
+    const form = document.getElementById('round-log-form');
+
+    // Fill form
+    document.getElementById('log-edit-id').value = currentLogData.id;
+    document.getElementById('log-date').value = currentLogData.date || '';
+    document.getElementById('log-location').value = currentLogData.location || '';
+    document.getElementById('log-quote').value = currentLogData.quote || '';
+    document.getElementById('log-companions').value = currentLogData.companions || '';
+    document.getElementById('log-weather').value = currentLogData.weather || '';
+    document.getElementById('log-name').value = currentLogData.user_name || '';
+
+    // Change submit button text
+    document.getElementById('submit-log').innerText = 'UPDATE EDITORIAL';
+
+    // Photos are optional during edit
+    document.getElementById('log-file').required = false;
+
+    closeLightbox();
+    modal.style.display = 'block';
+    document.body.style.overflow = 'hidden';
+}
+
+/**
+ * Handle Delete Button
+ */
+async function handleLogDelete() {
+    if (!currentLogData) return;
+
+    if (!confirm('이 기록을 영구적으로 삭제하시겠습니까?')) return;
+
+    try {
+        const { error } = await db.from('round_logs').delete().eq('id', currentLogData.id);
+        if (error) throw error;
+
+        alert('삭제되었습니다.');
+        closeLightbox();
+        loadRoundLogs();
+    } catch (err) {
+        console.error('Delete error:', err);
+        alert('삭제 실패: ' + err.message);
+    }
 }
 
 async function handleLike(logId) {
     try {
-        // Fallback simple update if RPC not found
         const { data: current } = await db.from('round_logs').select('likes_count').eq('id', logId).single();
         await db.from('round_logs').update({ likes_count: (current.likes_count || 0) + 1 }).eq('id', logId);
 

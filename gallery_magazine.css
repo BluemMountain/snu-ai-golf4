@@ -560,6 +560,38 @@
     transform: rotate(-10deg);
 }
 
+.lb-admin-controls {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px dotted #ccc;
+}
+
+.lb-edit-btn,
+.lb-delete-btn {
+    flex: 1;
+    padding: 12px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    cursor: pointer;
+    border: 1px solid #ddd;
+    background: white;
+    transition: 0.3s;
+}
+
+.lb-edit-btn:hover {
+    background: var(--mag-gold);
+    color: white;
+    border-color: var(--mag-gold);
+}
+
+.lb-delete-btn:hover {
+    background: #c62828;
+    color: white;
+    border-color: #c62828;
+}
+
 .lightbox-close {
     position: fixed;
     /* 절대 위치가 아니라 화면에 고정 */
