@@ -17,17 +17,17 @@ if (localStorage.getItem('snu_golf_logged_in')) {
 const CSV_DATA_STRING = `
 , ,Name,강순대,곽노준,권민오,김기록,김대욱,김태일,남서우,문성욱,박상길,박철호,박청산,박희석,송원득,신소우,심민선,안삼근,안원익,이교구,이대식,이문형,이상열,이석환,이용환,정대규,정민호,정지환,조중규,현성호,박지선,신수희,김윤석,이진우,장병탁,이성원,전은미,최정훈,김종세,배태근,권혁찬,한예성,최철호,이재욱,이준기,이주민,김은현,채성희,김도열,이영규,함종민
 count,Date,CC/HD,92.5,88.7,97.3,87.5,87,89.5,90.6,91,83.2,86.6,89.4,88,87.4,101.5,98.3,100.3,0,93,90,86,98,83.3,106.7,93,94.3,88.3,92.6,82.3,105,96.7,0,111,90,78.3,94.5,77.7,88,85.5,101,0,87,101,93,94.7,98.5,100,87,97,0
-1,250427,알펜시아,99,93,97,90,93,96,94,91,86,88,85,92,94,101,103,106,0,90,96,86,98,85,112,99,100,91,92,53,,,,,,,,,,,,,,,,,,,,
-2,250625,힐드로사이,,91,,,89,,,,75,,86,,,,94,,,,,,,,,98,96,,,72,,,,,,70,79,,,,,,,,,,,,,
-3,250726,88CC,,,103,85,85,83,85,,81,80,80,,,,,90,,,86,,,84,,89,89,,,83,,92,,,90,,92,75,88,86,,,,,,,,,,
-4,250827,힐드로사이,,,,,87,,94,,,85,91,,,105,98,105,,,94,,,,,102,99,,102,,,,,,,,104,,,,,,,,,,,,,
-5,250910,사우스스프링스,,82,,,82,,92,,85,87,92,,82,,99,,,,,82,,81,104,92,90,86,91,88,,99,,,,77,100,78,,,101,,87,,,,,,,
-6,250924,힐드로사이,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-7,251019,대호단양,86,,92,,85,,,,89,,91,81,84,,,100,,96,84,88,,,,85,,88,87,90,,,,,,88,,80,,85,,,,101,93,89,93,,,
-8,251022,힐드로사이,,,,,89,,88,,,,96,,90,101,94,,,,,88,,,104,88,91,,,94,105,99,,111,,,96,,,,,,,,,97,,100,,
-9,251126,힐드로사이,,,,,86,,,,,93,94,91,87,99,102,,,,,,,,,91,95,,91,96,,,,,,,96,,,,,,,,,98,104,,87,97,
-10,260207,소노펠리체CC in 하롱베이,-,-,-,,,,-,,,,,-,,,,,,,-,,,,,,,,,-,-,,,-,,,,,,,,,,,,,,,-
-11,260208,소노펠리체CC in 하롱베이,-,-,-,,,,-,,,,,-,,,,,,,-,,,,,,,,,-,-,,,-,,,,,,,,,,,,,,,-
+1,250427,알펜시아,99,93,97,90,93,96,94,91,86,88,85,92,94,101,103,106,0,90,96,86,98,85,112,99,100,91,92,53,,,,,,,,,,,,,,,,,,,,,
+2,250625,힐드로사이,,91,,,89,,,,75,,86,,,,94,,,,,,,,,98,96,,,72,,,,,,70,79,,,,,,,,,,,,,,
+3,250726,88CC,,,103,85,85,83,85,,81,80,80,,,,,90,,,86,,,84,,89,89,,,83,,92,,,90,,92,75,88,86,,,,,,,,,,,
+4,250827,힐드로사이,,,,,87,,94,,,85,91,,,105,98,105,,,94,,,,,102,99,,102,,,,,,,,104,,,,,,,,,,,,,,
+5,250910,사우스스프링스,,82,,,82,,92,,85,87,92,,82,,99,,,,,82,,81,104,92,90,86,91,88,,99,,,,77,100,78,,,101,,87,,,,,,,,
+6,250924,힐드로사이,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+7,251019,대호단양,86,,92,,85,,,,89,,91,81,84,,,100,,96,84,88,,,,85,,88,87,90,,,,,,88,,80,,85,,,,101,93,89,93,,,,
+8,251022,힐드로사이,,,,,89,,88,,,,96,,90,101,94,,,,,88,,,104,88,91,,,94,105,99,,111,,,96,,,,,,,,,,97,,100,,,
+9,251126,힐드로사이,,,,,86,,,,,93,94,91,87,99,102,,,,,,,,,91,95,,91,96,,,,,,,96,,,,,,,,,,98,104,,87,97,
+10,260207,소노펠리체CC in 하롱베이,-,-,-,,,,,-,,,,,-,,,,,,,-,,,,,,,,,-,-,,,,,-,,,,,,,,,,,,,,,,,-
+11,260208,소노펠리체CC in 하롱베이,-,-,-,,,,,-,,,,,-,,,,,,,-,,,,,,,,,-,-,,,,,-,,,,,,,,,,,,,,,,,-
 `;
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -230,9 +230,9 @@ function initRSVP() {
                 return;
             }
 
-            modalSubtitle.textContent = `일시: ${month} ${date}`;
+            modalSubtitle.textContent = `일시: ${month} ${date} `;
             if (availability.status === 'waiting') {
-                modalSubtitle.innerHTML += ` <span style="color: #d35400; font-weight: bold; margin-left: 10px;">(현재 대기자 신청 기간입니다)</span>`;
+                modalSubtitle.innerHTML += ` < span style = "color: #d35400; font-weight: bold; margin-left: 10px;" > (현재 대기자 신청 기간입니다)</span > `;
             }
 
             rsvpMonthInput.value = month;
@@ -311,8 +311,8 @@ async function loadGroupSessions() {
         // 중복 제거 및 정렬
         const sessionMap = new Map();
         data.forEach(item => {
-            const key = `${item.month}|${item.date}`;
-            sessionMap.set(key, `${item.month} ${item.date}`);
+            const key = `${item.month}| ${item.date} `;
+            sessionMap.set(key, `${item.month} ${item.date} `);
         });
 
         // 3월 -> 11월 순서로 대략 정렬 (문자열 비교 방식)
@@ -323,7 +323,7 @@ async function loadGroupSessions() {
         });
 
         select.innerHTML = sortedKeys.map(key =>
-            `<option value="${key}">${sessionMap.get(key)}</option>`
+            `< option value = "${key}" > ${sessionMap.get(key)}</option > `
         ).join('');
 
         if (sortedKeys.length === 0) {
@@ -574,9 +574,9 @@ async function loadMembers() {
         div.style.minWidth = '150px';
 
         div.innerHTML = `
-            <div style="font-size: 0.85rem; color: #577b2d; font-weight: bold; margin-bottom: 5px;">${member.role || '임원'}</div>
-            <div style="font-size: 1.1rem; font-weight: bold; color: #333;">${member.name}</div>
-        `;
+    < div style = "font-size: 0.85rem; color: #577b2d; font-weight: bold; margin-bottom: 5px;" > ${member.role || '임원'}</div >
+        <div style="font-size: 1.1rem; font-weight: bold; color: #333;">${member.name}</div>
+`;
 
         if (execList) {
             execList.appendChild(div);
@@ -605,7 +605,7 @@ async function addMember(name, type, role) {
 }
 
 async function deleteMember(name) {
-    if (!confirm(`${name}님을 정말 삭제하시겠습니까?`)) return;
+    if (!confirm(`${name}님을 정말 삭제하시겠습니까 ? `)) return;
 
     const { error } = await supabaseClient
         .from('members')
@@ -627,7 +627,7 @@ async function deleteMember(name) {
 async function updateMemberType(name, newType) {
     let role = '';
     if (newType === 'executive' || newType === 'special') {
-        role = prompt(`${name}님의 직책/설명을 입력해주세요:`, '');
+        role = prompt(`${name}님의 직책 / 설명을 입력해주세요: `, '');
         if (role === null) return; // User cancelled prompt
     }
 
@@ -683,7 +683,7 @@ async function loadAdminMembers(prefetchedMembers = null) {
         const isExecutive = item.type === 'executive';
 
         tr.innerHTML = `
-            <td style="padding: 10px; border: 1px solid #ddd;">${item.name}</td>
+    < td style = "padding: 10px; border: 1px solid #ddd;" > ${item.name}</td >
             <td style="padding: 10px; border: 1px solid #ddd;">
                 <select onchange="updateMemberType('${item.name}', this.value)" style="padding: 4px; border-radius: 4px; border: 1px solid #ddd; width: 100%;">
                     <option value="ilban" ${item.type === 'ilban' ? 'selected' : ''}>일반회원</option>
@@ -700,7 +700,7 @@ async function loadAdminMembers(prefetchedMembers = null) {
             <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">
                 <button class="cta-button edit-control" onclick="deleteMember('${item.name}')" style="padding: 2px 8px; font-size: 0.8rem; background-color: #e74c3c; min-width: auto;">삭제</button>
             </td>
-        `;
+`;
         tbody.appendChild(tr);
     });
 }
@@ -797,7 +797,7 @@ async function loadAdminData() {
         } else {
             // Group by Month/Date
             const groupedData = rsvps.reduce((acc, item) => {
-                const key = `${item.month} ${item.date}`;
+                const key = `${item.month} ${item.date} `;
                 if (!acc[key]) acc[key] = [];
                 acc[key].push(item);
                 return acc;
@@ -843,16 +843,16 @@ async function loadAdminData() {
                 }
 
                 headerRow.innerHTML = `
-                    <td colspan="12" style="padding: 10px; border: 1px solid #ddd; font-weight: bold; color: #1e3a2b;">
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <span>${key} (총 ${totalDisplay}명 / 참석 ${attendCount}명)</span>
-                            <div style="display: flex; gap: 5px;">
-                                <button onclick="autoCalculateAwards('${key}')" class="edit-control" style="background: #c5a059; color: white; border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">자동 수상 계산</button>
-                                <button onclick="syncScoresToRecords('${key}')" class="edit-control" style="background: #2980b9; color: white; border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">스코어 등록</button>
-                            </div>
-                        </div>
-                    </td>
-                `;
+    < td colspan = "12" style = "padding: 10px; border: 1px solid #ddd; font-weight: bold; color: #1e3a2b;" >
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span>${key} (총 ${totalDisplay}명 / 참석 ${attendCount}명)</span>
+            <div style="display: flex; gap: 5px;">
+                <button onclick="autoCalculateAwards('${key}')" class="edit-control" style="background: #c5a059; color: white; border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">자동 수상 계산</button>
+                <button onclick="syncScoresToRecords('${key}')" class="edit-control" style="background: #2980b9; color: white; border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">스코어 등록</button>
+            </div>
+        </div>
+                    </td >
+    `;
                 rsvpTbody.appendChild(headerRow);
 
                 // 지능형 우선순위 정렬
@@ -880,7 +880,7 @@ async function loadAdminData() {
                     }
 
                     tr.innerHTML = `
-                        <td style="padding: 10px; border: 1px solid #ddd;">${item.month} ${item.date}</td>
+    < td style = "padding: 10px; border: 1px solid #ddd;" > ${item.month} ${item.date}</td >
                         <td style="padding: 10px; border: 1px solid #ddd;">
                             ${item.name}
                             ${(item.iswaiting || isAutoWaiting) ? ' <span style="color:#d35400; font-size:0.8rem; font-weight:bold;">(대기)</span>' : ''}
@@ -906,7 +906,7 @@ async function loadAdminData() {
                         <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">
                             <button onclick="deleteRSVP(${item.id})" class="edit-control" style="background: #e74c3c; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">삭제</button>
                         </td>
-                    `;
+`;
                     rsvpTbody.appendChild(tr);
                 });
             });
@@ -949,7 +949,7 @@ async function renderPublicRSVPs() {
     };
 
     const groupedData = data.reduce((acc, item) => {
-        const key = `${item.month} ${item.date}`;
+        const key = `${item.month} ${item.date} `;
         if (!acc[key]) acc[key] = [];
         acc[key].push(item);
         return acc;
@@ -1014,7 +1014,7 @@ async function renderPublicRSVPs() {
         h3.style.paddingBottom = '5px';
         h3.style.marginBottom = '15px';
         const attendCount = items.filter(i => i.status === 'attend').length;
-        h3.textContent = `${key} (총 ${totalCapacity === 999 ? items.length : totalCapacity}명 / 참석 ${attendCount}명)`;
+        h3.textContent = `${key} (총 ${totalCapacity === 999 ? items.length : totalCapacity} 명 / 참석 ${attendCount}명)`;
         monthDiv.appendChild(h3);
 
         const list = document.createElement('div');
@@ -1035,7 +1035,7 @@ async function renderPublicRSVPs() {
             let isAutoWaiting = (item.status === 'attend' && (idx + 1) > totalCapacity);
 
             card.innerHTML = `
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+    < div style = "display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;" >
                     <span style="font-weight: bold; font-size: 1.1rem; color: #333;">
                         ${item.name}
                         ${(item.iswaiting || isAutoWaiting) ? ' <span style="font-size: 0.8rem; color: #d35400;">(대기)</span>' : ''}
@@ -1043,22 +1043,22 @@ async function renderPublicRSVPs() {
                     <span style="padding: 2px 8px; border-radius: 20px; font-size: 0.8rem; font-weight: bold; background: ${item.status === 'attend' ? '#e8f5e9' : '#ffebee'}; color: ${item.status === 'attend' ? '#2e7d32' : '#c62828'};">
                         ${item.status === 'attend' ? ((item.iswaiting || isAutoWaiting) ? '참석대기' : '참석확정') : '불참'}
                     </span>
-                </div>
-                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; border-top: 1px solid #f5f5f5; pt: 10px; margin-top: 10px; padding-top: 10px;">
-                    <div style="text-align: center;">
-                        <div style="font-size: 0.7rem; color: #888;">25년 핸디</div>
-                        <div style="font-weight: bold; color: #577b2d;">${stats.h25}</div>
-                    </div>
-                    <div style="text-align: center; border-left: 1px solid #f5f5f5; border-right: 1px solid #f5f5f5;">
-                        <div style="font-size: 0.7rem; color: #888;">이전 스코어</div>
-                        <div style="font-weight: bold; color: #d35400;">${stats.last}</div>
-                    </div>
-                    <div style="text-align: center;">
-                        <div style="font-size: 0.7rem; color: #888;">26년 핸디</div>
-                        <div style="font-weight: bold; color: #2980b9;">${stats.h26}</div>
-                    </div>
-                </div>
-            `;
+                </div >
+    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; border-top: 1px solid #f5f5f5; pt: 10px; margin-top: 10px; padding-top: 10px;">
+        <div style="text-align: center;">
+            <div style="font-size: 0.7rem; color: #888;">25년 핸디</div>
+            <div style="font-weight: bold; color: #577b2d;">${stats.h25}</div>
+        </div>
+        <div style="text-align: center; border-left: 1px solid #f5f5f5; border-right: 1px solid #f5f5f5;">
+            <div style="font-size: 0.7rem; color: #888;">이전 스코어</div>
+            <div style="font-weight: bold; color: #d35400;">${stats.last}</div>
+        </div>
+        <div style="text-align: center;">
+            <div style="font-size: 0.7rem; color: #888;">26년 핸디</div>
+            <div style="font-weight: bold; color: #2980b9;">${stats.h26}</div>
+        </div>
+    </div>
+`;
             list.appendChild(card);
         });
 
@@ -1075,17 +1075,17 @@ async function renderPublicRSVPs() {
             sponsorBox.style.border = '1px dashed #577b2d';
 
             sponsorBox.innerHTML = `
-                <h4 style="margin: 0 0 10px 0; color: #2e7d32; display: flex; align-items: center;">
-                    <span style="margin-right: 8px;">🎁</span> 이달의 스폰서
-                </h4>
-                <div style="display: flex; flex-wrap: wrap; gap: 10px;">
-                    ${sponsors.map(s => `
+    < h4 style = "margin: 0 0 10px 0; color: #2e7d32; display: flex; align-items: center;" >
+        <span style="margin-right: 8px;">🎁</span> 이달의 스폰서
+                </h4 >
+    <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+        ${sponsors.map(s => `
                         <div style="background: #fff; padding: 5px 12px; border-radius: 20px; font-size: 0.9rem; border: 1px solid #c8e6c9; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
                             <span style="font-weight: bold; color: #1b5e20;">${s.name}</span>: ${s.sponsor}
                         </div>
                     `).join('')}
-                </div>
-            `;
+    </div>
+`;
             monthDiv.appendChild(sponsorBox);
         }
 
@@ -1275,7 +1275,7 @@ function shuffleArray(array) {
 }
 
 async function syncScoresToRecords(sessionKey) {
-    if (!confirm(`'${sessionKey}'의 스코어를 상세 기록 페이지로 복사하시겠습니까?`)) return;
+    if (!confirm(`'${sessionKey}'의 스코어를 상세 기록 페이지로 복사하시겠습니까 ? `)) return;
 
     try {
         // 1. Fetch RSVPs for this session
@@ -1304,7 +1304,7 @@ async function syncScoresToRecords(sessionKey) {
             // Correct day logic: if datePart is '2.7', it's Feb 7th
             const dArr = datePart.split('.');
             const d = (dArr.length > 1 ? dArr[1] : dArr[0]).padStart(2, '0');
-            yymmdd = `26${m}${d}`;
+            yymmdd = `26${m}${d} `;
         } else {
             yymmdd = prompt("기록에 사용할 날짜(YYMMDD)를 입력해주세요:", "260207");
             if (!yymmdd) return;
@@ -1485,7 +1485,7 @@ function renderGroups(groups) {
         div.style.boxShadow = '0 2px 4px rgba(0,0,0,0.05)';
 
         const h5 = document.createElement('h5');
-        h5.textContent = `${index + 1}조`;
+        h5.textContent = `${index + 1} 조`;
         h5.style.margin = '0 0 10px 0';
         h5.style.color = '#577b2d';
         h5.style.borderBottom = '1px solid #eee';
@@ -1497,7 +1497,7 @@ function renderGroups(groups) {
         ul.style.padding = '0';
         ul.style.margin = '0';
 
-        copyText += `${index + 1}조: ${group.join(', ')}\n`;
+        copyText += `${index + 1} 조: ${group.join(', ')} \n`;
 
         group.forEach(name => {
             const li = document.createElement('li');
@@ -1534,7 +1534,7 @@ async function autoCalculateAwards(groupKey) {
     }
 
     // 해당 날짜의 참석자 중 점수가 입력된 사람만 추출
-    const participants = rsvps.filter(d => `${d.month} ${d.date}` === groupKey && d.status === 'attend' && d.roundscore);
+    const participants = rsvps.filter(d => `${d.month} ${d.date} ` === groupKey && d.status === 'attend' && d.roundscore);
 
     if (participants.length === 0) {
         alert("점수가 입력된 참석자가 없습니다. 먼저 점수를 입력해주세요.");
@@ -1587,7 +1587,7 @@ async function autoCalculateAwards(groupKey) {
 
         return {
             id: p.id,
-            roundaward: `[${rank}위]${award ? ' ' + award : ''}`
+            roundaward: `[${rank}위]${award ? ' ' + award : ''} `
         };
     });
 
