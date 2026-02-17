@@ -323,7 +323,7 @@ async function loadGroupSessions() {
         });
 
         select.innerHTML = sortedKeys.map(key =>
-            `< option value = "${key}" > ${sessionMap.get(key)}</option > `
+            `<option value="${key}">${sessionMap.get(key)}</option>`
         ).join('');
 
         if (sortedKeys.length === 0) {
@@ -574,9 +574,9 @@ async function loadMembers() {
         div.style.minWidth = '150px';
 
         div.innerHTML = `
-    < div style = "font-size: 0.85rem; color: #577b2d; font-weight: bold; margin-bottom: 5px;" > ${member.role || '임원'}</div >
-        <div style="font-size: 1.1rem; font-weight: bold; color: #333;">${member.name}</div>
-`;
+            <div style="font-size: 0.85rem; color: #577b2d; font-weight: bold; margin-bottom: 5px;">${member.role || '임원'}</div>
+            <div style="font-size: 1.1rem; font-weight: bold; color: #333;">${member.name}</div>
+        `;
 
         if (execList) {
             execList.appendChild(div);
@@ -683,7 +683,7 @@ async function loadAdminMembers(prefetchedMembers = null) {
         const isExecutive = item.type === 'executive';
 
         tr.innerHTML = `
-    < td style = "padding: 10px; border: 1px solid #ddd;" > ${item.name}</td >
+            <td style="padding: 10px; border: 1px solid #ddd;">${item.name}</td>
             <td style="padding: 10px; border: 1px solid #ddd;">
                 <select onchange="updateMemberType('${item.name}', this.value)" style="padding: 4px; border-radius: 4px; border: 1px solid #ddd; width: 100%;">
                     <option value="ilban" ${item.type === 'ilban' ? 'selected' : ''}>일반회원</option>
