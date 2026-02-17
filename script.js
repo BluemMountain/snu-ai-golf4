@@ -939,14 +939,28 @@ async function renderPublicRSVPs() {
     const now = new Date();
     const currentMonth = now.getMonth() + 1; // 1-12
 
-    const sortedKeys = Object.keys(groupedData).sort((a, b) => {
-        const monthA = parseInt(a);
-        const monthB = parseInt(b);
-        return monthA - monthB;
-    }).filter(key => {
-        const month = parseInt(key);
-        // Only show current or future months
-        return month >= currentMonth;
+    const sortedKeys = Object.keys(groupedData).filter(key => {
+        const monthMatch = key.match(/(\d+)월/);
+        const dateMatch = key.match(/\.(\d+)/);
+        if (monthMatch && dateMatch) {
+            const m = parseInt(monthMatch[1]) - 1; // 0-indexed
+            const dStr = dateMatch[1];
+            const d = parseInt(dStr);
+            const eventDate = new Date(2026, m, d);
+
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            return eventDate >= today;
+        }
+        return false;
+    }).sort((a, b) => {
+        const parseK = (k) => {
+            const mm = k.match(/(\d+)월/);
+            const dd = k.match(/\.(\d+)/);
+            return new Date(2026, parseInt(mm[1]) - 1, parseInt(dd[1]));
+        };
+        return parseK(a) - parseK(b);
     }).slice(0, 2); // Only take the nearest 2
 
     container.innerHTML = '';
