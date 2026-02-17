@@ -93,14 +93,16 @@ function initGalleryUI() {
     const closeBtn = document.querySelector('.magazine-modal-close');
     const form = document.getElementById('round-log-form');
 
-    // Only show upload for logged in users
-    const isLoggedIn = sessionStorage.getItem('snu_golf_logged_in') === 'true';
-    if (!isLoggedIn && openBtn) {
-        openBtn.style.display = 'none';
-    }
-
+    // Always show the record button
     if (openBtn) {
-        openBtn.onclick = () => modal.style.display = 'block';
+        openBtn.onclick = () => {
+            const isLoggedIn = sessionStorage.getItem('snu_golf_logged_in') === 'true';
+            if (!isLoggedIn) {
+                alert('로그인이 필요한 기능입니다. 메인 페이지에서 로그인해 주세요.');
+                return;
+            }
+            modal.style.display = 'block';
+        };
     }
 
     if (closeBtn) {
