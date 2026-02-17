@@ -1035,7 +1035,7 @@ async function renderPublicRSVPs() {
             let isAutoWaiting = (item.status === 'attend' && (idx + 1) > totalCapacity);
 
             card.innerHTML = `
-    < div style = "display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;" >
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                     <span style="font-weight: bold; font-size: 1.1rem; color: #333;">
                         ${item.name}
                         ${(item.iswaiting || isAutoWaiting) ? ' <span style="font-size: 0.8rem; color: #d35400;">(대기)</span>' : ''}
@@ -1043,7 +1043,7 @@ async function renderPublicRSVPs() {
                     <span style="padding: 2px 8px; border-radius: 20px; font-size: 0.8rem; font-weight: bold; background: ${item.status === 'attend' ? '#e8f5e9' : '#ffebee'}; color: ${item.status === 'attend' ? '#2e7d32' : '#c62828'};">
                         ${item.status === 'attend' ? ((item.iswaiting || isAutoWaiting) ? '참석대기' : '참석확정') : '불참'}
                     </span>
-                </div >
+                </div>
     <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; border-top: 1px solid #f5f5f5; pt: 10px; margin-top: 10px; padding-top: 10px;">
         <div style="text-align: center;">
             <div style="font-size: 0.7rem; color: #888;">25년 핸디</div>
@@ -1075,9 +1075,9 @@ async function renderPublicRSVPs() {
             sponsorBox.style.border = '1px dashed #577b2d';
 
             sponsorBox.innerHTML = `
-    < h4 style = "margin: 0 0 10px 0; color: #2e7d32; display: flex; align-items: center;" >
-        <span style="margin-right: 8px;">🎁</span> 이달의 스폰서
-                </h4 >
+                <h4 style="margin: 0 0 10px 0; color: #2e7d32; display: flex; align-items: center;">
+                    <span style="margin-right: 8px;">🎁</span> 이달의 스폰서
+                </h4>
     <div style="display: flex; flex-wrap: wrap; gap: 10px;">
         ${sponsors.map(s => `
                         <div style="background: #fff; padding: 5px 12px; border-radius: 20px; font-size: 0.9rem; border: 1px solid #c8e6c9; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
