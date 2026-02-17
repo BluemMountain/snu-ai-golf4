@@ -1,196 +1,244 @@
 /**
- * Gallery & Lounge Logic (Cloudinary version)
- * Handles photo listing, Cloudinary uploads, and Supabase metadata.
+ * Magazine Style Round Log Logic
+ * Features: Supabase (round_logs), Cloudinary Upload, Editorial Lightbox
  */
 
-// Cloudinary Config (User values should be replaced here)
+// Cloudinary Config
 const CLOUDINARY_CONFIG = {
-    cloudName: 'dbbz6xmot', // 사용자가 제공한 실제 값 적용
-    uploadPreset: 'kghs-89f-golf_preset' // 사용자가 제공한 실제 값 적용 (unsigned)
+    cloudName: 'dbbz6xmot',
+    uploadPreset: 'kghs-89f-golf_preset'
 };
 
 let db = window.supabaseClient;
-let currentTab = 'round';
 
 document.addEventListener('DOMContentLoaded', async () => {
-    // If global client not ready, initialize local one (matching script.js logic)
+    // Initialize Supabase if not global
     if (!db && window.supabase && typeof SUPABASE_CONFIG !== 'undefined') {
         db = window.supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.key);
     }
 
     if (db) {
-        initGalleryTabs();
-        loadGalleryPosts(currentTab);
-        initUploadUI();
+        loadRoundLogs();
+        initGalleryUI();
     } else {
-        console.error('Supabase client failed to initialize.');
-        alert('데이터베이스 연결에 실패했습니다. 페이지를 새로고침해 주세요.');
+        console.error('Supabase client failure');
+        alert('데이터베이스 연결에 실패했습니다.');
     }
 });
 
-function initGalleryTabs() {
-    const tabs = document.querySelectorAll('.gallery-tabs .tab-btn');
-    tabs.forEach(tab => {
-        tab.addEventListener('click', () => {
-            tabs.forEach(t => t.classList.remove('active'));
-            tab.classList.add('active');
-            currentTab = tab.dataset.category;
-            loadGalleryPosts(currentTab);
-        });
-    });
-}
-
-async function loadGalleryPosts(category) {
-    const galleryGrid = document.querySelector('.gallery-grid');
-    if (!galleryGrid) return;
-
-    galleryGrid.innerHTML = '<div class="loading-spinner">갤러리를 불러오는 중입니다...</div>';
+/**
+ * Load logs from round_logs table
+ */
+async function loadRoundLogs() {
+    const grid = document.getElementById('round-logs-grid');
+    if (!grid) return;
 
     try {
         const { data, error } = await db
-            .from('gallery_posts')
+            .from('round_logs')
             .select('*')
-            .eq('category', category)
             .order('created_at', { ascending: false });
 
         if (error) throw error;
 
-        galleryGrid.innerHTML = '';
+        grid.innerHTML = '';
 
         if (!data || data.length === 0) {
-            galleryGrid.innerHTML = `<div style="text-align:center; padding: 40px; color:#666; width:100%;">
-                ${category === 'round' ? '아직 등록된 라운드 사진이 없습니다.' : '아직 등록된 게시글이 없습니다.'}<br>
-                첫 주인공이 되어보세요!
-            </div>`;
+            grid.innerHTML = '<div style="grid-column: 1/-1; text-align:center; padding: 100px; font-family: serif; font-style: italic; color: #888;">No editorial entries yet. Be the first to publish.</div>';
             return;
         }
 
-        data.forEach(post => {
-            const postElement = createPostElement(post);
-            galleryGrid.appendChild(postElement);
+        data.forEach(log => {
+            const card = createLogCard(log);
+            grid.appendChild(card);
         });
 
     } catch (err) {
-        console.error('Error loading gallery posts:', err);
-        galleryGrid.innerHTML = '<div class="error-msg">갤러리를 불러오지 못했습니다.</div>';
+        console.error('Fetch error:', err);
+        grid.innerHTML = '<div class="magazine-loader">Error loading stories.</div>';
     }
 }
 
-function createPostElement(post) {
-    const item = document.createElement('div');
-    item.className = 'gallery-item fade-in-up visible';
+/**
+ * Create a magazine-style log card
+ */
+function createLogCard(log) {
+    const card = document.createElement('div');
+    card.className = 'log-card';
 
-    const dateStr = new Date(post.created_at).toLocaleDateString('ko-KR');
+    // Format date for meta
+    const dateStr = log.date || new Date(log.created_at).toLocaleDateString('ko-KR');
 
-    item.innerHTML = `
-        <img src="${post.image_url}" alt="${post.caption || '갤러리 이미지'}" onerror="this.src='https://via.placeholder.com/800x600?text=이미지 로딩 실패'">
-        <div class="gallery-item-content">
-            <div class="gallery-item-user">
-                <div class="user-avatar">${post.user_avatar || (post.user_name ? post.user_name.substring(0, 1) : 'U')}</div>
-                <span class="user-name">${post.user_name}</span>
-            </div>
-            <p class="gallery-item-caption">${post.caption || ''}</p>
-            <div class="gallery-item-footer">
-                <span><i class="far fa-heart"></i> ${post.likes_count || 0}</span>
-                <span>${dateStr}</span>
-            </div>
+    card.innerHTML = `
+        <div class="log-image-wrapper">
+            <img src="${log.image_url}" alt="${log.location}" loading="lazy" onerror="this.src='https://via.placeholder.com/800x1000?text=Editorial+Preview'">
+        </div>
+        <div class="log-card-info">
+            <div class="log-meta">${dateStr} / ${log.location}</div>
+            <h3 class="log-location-title">${log.location}</h3>
+            <p class="log-quote-short">"${log.quote || 'No caption provided.'}"</p>
         </div>
     `;
 
-    item.addEventListener('click', () => {
-        // Post detail logic if needed
-    });
-    return item;
+    card.addEventListener('click', () => openLightbox(log));
+    return card;
 }
 
-function initUploadUI() {
-    const uploadBtn = document.querySelector('.upload-btn-fixed');
+/**
+ * UI Interactions
+ */
+function initGalleryUI() {
     const modal = document.getElementById('upload-modal');
-    const closeBtn = document.querySelector('.upload-close');
-    const form = document.getElementById('upload-form');
+    const openBtn = document.getElementById('open-upload-btn');
+    const closeBtn = document.querySelector('.magazine-modal-close');
+    const form = document.getElementById('round-log-form');
 
-    if (!uploadBtn || !modal) return;
-
-    // Check login status (Consistent with original logic)
+    // Only show upload for logged in users
     const isLoggedIn = sessionStorage.getItem('snu_golf_logged_in') === 'true';
-    if (!isLoggedIn) {
-        uploadBtn.style.display = 'none';
-        return;
+    if (!isLoggedIn && openBtn) {
+        openBtn.style.display = 'none';
     }
 
-    uploadBtn.onclick = () => {
-        modal.style.display = 'block';
-        // Set default category to current tab
-        const categoryRadio = form.querySelector(`input[name="upload-category"][value="${currentTab}"]`);
-        if (categoryRadio) categoryRadio.checked = true;
+    if (openBtn) {
+        openBtn.onclick = () => modal.style.display = 'block';
+    }
+
+    if (closeBtn) {
+        closeBtn.onclick = () => modal.style.display = 'none';
+    }
+
+    window.onclick = (e) => {
+        if (e.target === modal) modal.style.display = 'none';
+        if (e.target === document.getElementById('lightbox-modal')) closeLightbox();
     };
 
-    closeBtn.onclick = () => modal.style.display = 'none';
-    window.onclick = (event) => { if (event.target == modal) modal.style.display = 'none'; };
+    // Close Lightbox
+    const lbClose = document.querySelector('.lightbox-close');
+    if (lbClose) lbClose.onclick = closeLightbox;
 
-    form.onsubmit = async (e) => {
-        e.preventDefault();
-
-        const submitBtn = document.getElementById('submit-upload');
-        const fileInput = document.getElementById('upload-file');
-        const file = fileInput.files[0];
-        const name = document.getElementById('upload-name').value;
-        const caption = document.getElementById('upload-caption').value;
-        const category = form.querySelector('input[name="upload-category"]:checked').value;
-
-        if (!file) return alert('사진을 선택해주세요.');
-
-        submitBtn.disabled = true;
-        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 업로드 중...';
-
-        try {
-            // 1. Upload to Cloudinary
-            const imageUrl = await uploadToCloudinary(file);
-
-            // 2. Save Metadata to Supabase
-            const { error: dbError } = await db
-                .from('gallery_posts')
-                .insert([{
-                    user_name: name,
-                    image_url: imageUrl,
-                    caption: caption || '',
-                    category: category,
-                    user_avatar: name.substring(0, 1)
-                }]);
-
-            if (dbError) throw dbError;
-
-            alert('사진이 성공적으로 업로드되었습니다!');
-            modal.style.display = 'none';
-            form.reset();
-            loadGalleryPosts(currentTab);
-
-        } catch (err) {
-            console.error('Upload failed:', err);
-            alert('업로드 실패: ' + (err.message || '알 수 없는 오류'));
-        } finally {
-            submitBtn.disabled = false;
-            submitBtn.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> 업로드 하기';
-        }
-    };
+    // Form Submit
+    if (form) {
+        form.onsubmit = async (e) => {
+            e.preventDefault();
+            handleLogUpload(form);
+        };
+    }
 }
 
+/**
+ * Handle Upload Process
+ */
+async function handleLogUpload(form) {
+    const submitBtn = document.getElementById('submit-log');
+    const statusDiv = document.getElementById('upload-status');
+    const statusText = document.getElementById('status-text');
+    const file = document.getElementById('log-file').files[0];
+
+    if (!file) return alert('사진을 선택해주세요.');
+
+    // Start UI Animation
+    submitBtn.disabled = true;
+    statusDiv.classList.remove('hidden');
+    statusText.innerText = 'Publishing to Clouds...';
+
+    try {
+        // 1. Cloudinary Upload
+        const imageUrl = await uploadToCloudinary(file);
+
+        statusText.innerText = 'Saving Editorial Metadata...';
+
+        // 2. Supabase Save
+        const formData = new FormData(form);
+        const logData = {
+            date: formData.get('date'),
+            location: formData.get('location'),
+            quote: formData.get('quote'),
+            companions: formData.get('companions'),
+            weather: formData.get('weather'),
+            user_name: formData.get('user_name'),
+            image_url: imageUrl
+        };
+
+        const { error } = await db.from('round_logs').insert([logData]);
+        if (error) throw error;
+
+        // Success
+        alert('뉴 에디토리얼이 성공적으로 발행되었습니다!');
+        form.reset();
+        document.getElementById('upload-modal').style.display = 'none';
+        loadRoundLogs();
+
+    } catch (err) {
+        console.error('Upload Error:', err);
+        alert('발행 실패: ' + err.message);
+    } finally {
+        submitBtn.disabled = false;
+        statusDiv.classList.add('hidden');
+    }
+}
+
+/**
+ * Cloudinary Helper
+ */
 async function uploadToCloudinary(file) {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('upload_preset', CLOUDINARY_CONFIG.uploadPreset);
 
-    const response = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CONFIG.cloudName}/image/upload`, {
+    const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CONFIG.cloudName}/image/upload`, {
         method: 'POST',
         body: formData
     });
 
-    if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error.message || 'Cloudinary 업로드 실패');
-    }
-
-    const data = await response.json();
+    if (!res.ok) throw new Error('Cloudinary Upload Failed');
+    const data = await res.json();
     return data.secure_url;
 }
 
+/**
+ * Lightbox Logic
+ */
+function openLightbox(log) {
+    const lb = document.getElementById('lightbox-modal');
+    document.getElementById('lb-image').src = log.image_url;
+    document.getElementById('lb-date').innerText = log.date || new Date(log.created_at).toLocaleDateString('ko-KR');
+    document.getElementById('lb-location').innerText = log.location;
+    document.getElementById('lb-quote').innerText = `"${log.quote || ''}"`;
+    document.getElementById('lb-companions').innerText = log.companions || '-';
+    document.getElementById('lb-weather').innerText = log.weather || '-';
+    document.getElementById('lb-user').innerText = log.user_name || 'Anonymous';
+    document.getElementById('lb-likes').innerText = log.likes_count || 0;
+
+    // Like button logic
+    const likeBtn = document.getElementById('lb-like-btn');
+    likeBtn.onclick = () => handleLike(log.id);
+
+    lb.style.display = 'block';
+    document.body.style.overflow = 'hidden'; // Block scroll
+}
+
+function closeLightbox() {
+    document.getElementById('lightbox-modal').style.display = 'none';
+    document.body.style.overflow = 'auto';
+}
+
+async function handleLike(logId) {
+    try {
+        // Increment in DB
+        const { data, error } = await db.rpc('increment_likes', { row_id: logId });
+
+        // If RPC not available, fallback to simple update (note: better to have RPC for atomicity)
+        if (error) {
+            // Manual fetch and update as fallback
+            const { data: current } = await db.from('round_logs').select('likes_count').eq('id', logId).single();
+            await db.from('round_logs').update({ likes_count: (current.likes_count || 0) + 1 }).eq('id', logId);
+        }
+
+        // Refresh count UI
+        const countSpan = document.getElementById('lb-likes');
+        countSpan.innerText = parseInt(countSpan.innerText) + 1;
+
+    } catch (err) {
+        console.error('Like error:', err);
+    }
+}

@@ -4,88 +4,155 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gallery & Lounge | SNU AI Golf</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Round Logs | SNU AI Golf Club</title>
+    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
-        href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Noto+Serif+KR:wght@400;700&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700&family=Noto+Sans+KR:wght@300;400;500;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap"
         rel="stylesheet">
+    <!-- CSS -->
+    <link rel="stylesheet" href="style.css?v=4.2">
+    <link rel="stylesheet" href="gallery_magazine.css?v=1.0">
+    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 
-<body class="gallery-section">
-    <nav class="lounge-nav">
-        <div class="container lounge-nav-content">
-            <a href="index.html" class="back-link"><i class="fas fa-arrow-left"></i> 홈으로</a>
-            <h1 style="font-size: 1.2rem; margin: 0;">라운딩 갤러리 & 라운지</h1>
-            <div></div> <!-- Spacer -->
+<body class="magazine-body">
+    <!-- Magazine Header -->
+    <header class="magazine-header">
+        <div class="header-top">
+            <a href="index.html" class="magazine-back-link"><i class="fas fa-long-arrow-alt-left"></i> BACK TO HOME</a>
+            <div class="magazine-brand">SNU AI GOLF CLUB</div>
+            <div class="magazine-meta">ISSUE 2026.02</div>
         </div>
-    </nav>
+        <div class="magazine-title-container">
+            <h1 class="magazine-title">Round Log</h1>
+            <p class="magazine-subtitle">Premium Memories on the Green</p>
+        </div>
+    </header>
 
-    <div class="gallery-tabs">
-        <button class="tab-btn active" data-category="round">라운드 사진</button>
-        <button class="tab-btn" data-category="general">자유 게시판</button>
-    </div>
+    <main class="magazine-container">
+        <!-- Masonry Grid -->
+        <div id="round-logs-grid" class="masonry-grid">
+            <!-- Content will be dynamically loaded via gallery_logic.js -->
+            <div class="magazine-loader">
+                <div class="magazine-spinner"></div>
+                <p>Loading Editorial Content...</p>
+            </div>
+        </div>
+    </main>
 
-    <div class="gallery-grid">
-        <!-- Content will be dynamically loaded via gallery_logic.js -->
-        <div class="loading-spinner">갤러리를 불러오는 중입니다...</div>
-    </div>
-    </div>
+    <!-- Upload Button (Floating) -->
+    <button class="magazine-record-btn" id="open-upload-btn">
+        <span class="btn-icon"><i class="fas fa-pen-nib"></i></span>
+        <span class="btn-text">기록하기</span>
+    </button>
 
     <!-- Upload Modal -->
-    <div id="upload-modal" class="modal">
-        <div class="modal-content glass-panel">
-            <span class="close-btn upload-close">&times;</span>
-            <h3>사진 올리기</h3>
-            <p style="font-size: 0.9rem; color: #666; margin-bottom: 20px;">원우분들과 소중한 순간을 공유해 주세요.</p>
+    <div id="upload-modal" class="magazine-modal">
+        <div class="magazine-modal-content">
+            <span class="magazine-modal-close">&times;</span>
+            <div class="modal-magazine-header">
+                <h2>New Entry</h2>
+                <div class="modal-line"></div>
+            </div>
 
-            <form id="upload-form">
-                <div class="form-group">
-                    <label>카테고리</label>
-                    <div class="radio-group">
-                        <label><input type="radio" name="upload-category" value="round" checked> 라운드 사진</label>
-                        <label><input type="radio" name="upload-category" value="general"> 자유 게시판</label>
+            <form id="round-log-form">
+                <div class="magazine-form-grid">
+                    <div class="form-group-mag">
+                        <label for="log-date">Date</label>
+                        <input type="text" id="log-date" name="date" required placeholder="2026.02.17">
+                    </div>
+                    <div class="form-group-mag">
+                        <label for="log-location">Location</label>
+                        <input type="text" id="log-location" name="location" required placeholder="신원CC">
+                    </div>
+                    <div class="form-group-mag full-width">
+                        <label for="log-quote">A Line of the Day</label>
+                        <input type="text" id="log-quote" name="quote" required placeholder="소중한 원우님들과 함께한 최고의 라운딩">
+                    </div>
+                    <div class="form-group-mag">
+                        <label for="log-companions">Companions</label>
+                        <input type="text" id="log-companions" name="companions" placeholder="홍길동, 김철수, 이영희">
+                    </div>
+                    <div class="form-group-mag">
+                        <label for="log-weather">Weather</label>
+                        <input type="text" id="log-weather" name="weather" placeholder="맑음, 바람 다소">
+                    </div>
+                    <div class="form-group-mag full-width">
+                        <label for="log-name">Submitter</label>
+                        <input type="text" id="log-name" name="user_name" required placeholder="본인 성함">
+                    </div>
+                    <div class="form-group-mag full-width">
+                        <label>Photograph</label>
+                        <div class="custom-file-upload">
+                            <input type="file" id="log-file" accept="image/*" required>
+                            <div class="file-dummy">
+                                <i class="fas fa-camera"></i>
+                                <span class="file-text">사진을 선택해 주세요</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <div class="form-group">
-                    <label for="upload-name">성함</label>
-                    <input type="text" id="upload-name" name="name" required placeholder="성함을 입력하세요">
+                <div id="upload-status" class="upload-status-mag hidden">
+                    <div class="status-anim"></div>
+                    <span id="status-text">Uploading to Cloudinary...</span>
                 </div>
 
-                <div class="form-group">
-                    <label for="upload-caption">설명 (선택)</label>
-                    <input type="text" id="upload-caption" name="caption" placeholder="사진에 대한 짧은 설명을 남겨주세요">
-                </div>
-
-                <div class="form-group">
-                    <label for="upload-file">사진 선택</label>
-                    <div class="file-input-wrapper" style="margin-top: 10px;">
-                        <input type="file" id="upload-file" accept="image/*" required>
-                        <p class="file-hint" style="font-size: 0.8rem; color: #888; margin-top: 5px;">* 이미지 파일만 업로드
-                            가능합니다.</p>
-                    </div>
-                </div>
-
-                <button type="submit" class="cta-button full-width" id="submit-upload">
-                    <i class="fas fa-cloud-upload-alt"></i> 업로드 하기
+                <button type="submit" class="magazine-submit-btn" id="submit-log">
+                    <span>PUBLISH TO LOG</span>
                 </button>
             </form>
         </div>
     </div>
 
-    <button class="upload-btn-fixed" title="사진 올리기">
-        <i class="fas fa-camera"></i>
-    </button>
-
-    <footer style="margin-top: 50px;">
-        <div class="container">
-            <p>&copy; 2026 SNU AI Golf Club. All Rights Reserved.</p>
+    <!-- Lightbox Modal -->
+    <div id="lightbox-modal" class="magazine-lightbox">
+        <div class="lightbox-close">&times;</div>
+        <div class="lightbox-content">
+            <div class="lightbox-image-container">
+                <img id="lb-image" src="" alt="Large View">
+            </div>
+            <div class="lightbox-info-panel">
+                <div class="lb-header">
+                    <span id="lb-date"></span>
+                    <h2 id="lb-location"></h2>
+                    <div class="lb-line"></div>
+                </div>
+                <div class="lb-quote-box">
+                    <p id="lb-quote"></p>
+                </div>
+                <div class="lb-details">
+                    <div class="lb-detail-item">
+                        <span class="label">WITH</span>
+                        <span id="lb-companions" class="value"></span>
+                    </div>
+                    <div class="lb-detail-item">
+                        <span class="label">WEATHER</span>
+                        <span id="lb-weather" class="value"></span>
+                    </div>
+                    <div class="lb-detail-item">
+                        <span class="label">WRITTEN BY</span>
+                        <span id="lb-user" class="value"></span>
+                    </div>
+                </div>
+                <div class="lb-footer">
+                    <button class="lb-like-btn" id="lb-like-btn">
+                        <i class="far fa-heart"></i> <span id="lb-likes">0</span>
+                    </button>
+                    <div class="lb-magazine-seal">SNU AI GOLF BOARD</div>
+                </div>
+            </div>
         </div>
+    </div>
+
+    <footer class="magazine-footer">
+        <p>&copy; 2026 SNU AI Golf Club Editorial. All Rights Reserved.</p>
     </footer>
 
+    <!-- Supabase & Logic Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
         const SUPABASE_CONFIG = {
@@ -93,8 +160,8 @@
             key: 'sb_publishable_mYejtROOg-2JN7z6_RlWdg_PXYSYgFi'
         };
     </script>
-    <script src="script.js?v=4.2"></script>
-    <script src="gallery_logic.js?v=1.2"></script>
+    <script src="script.js?v=4.3"></script>
+    <script src="gallery_logic.js?v=2.1"></script>
 </body>
 
 </html>
