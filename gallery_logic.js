@@ -12,7 +12,8 @@ const CLOUDINARY_CONFIG = {
 let db = window.supabaseClient;
 let currentGalleryImages = [];
 let currentImageIndex = 0;
-let currentLogData = null; // 현재 라이트박스에 표시된 로그 데이터 저장
+let currentLogData = null; // 현재 라이트박스에 표시된 로그 데이터
+let editingImageUrls = []; // 수정 시 기존 이미지를 임시 보관할 변수
 
 document.addEventListener('DOMContentLoaded', async () => {
     // Initialize Supabase if not global
@@ -201,9 +202,9 @@ async function handleLogUpload(form) {
                 const url = await uploadToCloudinary(files[i]);
                 imageUrls.push(url);
             }
-        } else if (editId && currentLogData) {
-            // Keep existing photos if none selected during edit
-            imageUrls = currentLogData.image_urls || (currentLogData.image_url ? [currentLogData.image_url] : []);
+        } else if (editId) {
+            // Keep existing photos from backup variable if none selected during edit
+            imageUrls = editingImageUrls;
         }
 
         statusText.innerText = 'Publishing to SNU Editorial...';
@@ -238,6 +239,7 @@ async function handleLogUpload(form) {
         }
 
         form.reset();
+        editingImageUrls = []; // Clear after use
         document.getElementById('upload-modal').style.display = 'none';
         document.body.style.overflow = 'auto';
         loadRoundLogs();
@@ -361,6 +363,9 @@ function handleLogEdit() {
 
     // Photos are optional during edit
     document.getElementById('log-file').required = false;
+
+    // Backup existing images BEFORE closing lightbox
+    editingImageUrls = currentLogData.image_urls || (currentLogData.image_url ? [currentLogData.image_url] : []);
 
     closeLightbox();
     modal.style.display = 'block';
