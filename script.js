@@ -756,7 +756,7 @@ function getMemberStats(name) {
     let last = '-';
     for (let i = csvData.length - 1; i >= 2; i--) {
         const val = csvData[i][nameIndex];
-        if (val && val.trim() !== '' && val.trim() !== '0' && val.trim() !== '0.0') {
+        if (val && val.trim() !== '' && !['0', '0.0', '-'].includes(val.trim())) {
             last = val;
             break;
         }
