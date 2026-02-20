@@ -275,6 +275,23 @@ function initRSVP() {
         };
 
         try {
+            // 중복 신청 확인 (공백 제거 후 검색)
+            const cleanName = formData.name.trim();
+            const { data: existingRSVP, error: checkError } = await supabaseClient
+                .from('rsvps')
+                .select('id')
+                .eq('month', formData.month)
+                .eq('date', formData.date)
+                .eq('name', cleanName)
+                .maybeSingle();
+
+            if (checkError) throw checkError;
+
+            if (existingRSVP) {
+                alert(`[${cleanName}] 님은 이미 해당 일정(${formData.month} ${formData.date})에 신청하셨습니다.`);
+                return;
+            }
+
             const { error } = await supabaseClient
                 .from('rsvps')
                 .insert([formData]);
