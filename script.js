@@ -311,8 +311,8 @@ async function loadGroupSessions() {
         // 중복 제거 및 정렬
         const sessionMap = new Map();
         data.forEach(item => {
-            const key = `${item.month}| ${item.date} `;
-            sessionMap.set(key, `${item.month} ${item.date} `);
+            const key = `${item.month.trim()}|${item.date.trim()}`;
+            sessionMap.set(key, `${item.month.trim()} ${item.date.trim()}`);
         });
 
         // 3월 -> 11월 순서로 대략 정렬 (문자열 비교 방식)
@@ -797,7 +797,7 @@ async function loadAdminData() {
         } else {
             // Group by Month/Date
             const groupedData = rsvps.reduce((acc, item) => {
-                const key = `${item.month} ${item.date} `;
+                const key = `${item.month.trim()} ${item.date.trim()}`;
                 if (!acc[key]) acc[key] = [];
                 acc[key].push(item);
                 return acc;
@@ -949,7 +949,7 @@ async function renderPublicRSVPs() {
     };
 
     const groupedData = data.reduce((acc, item) => {
-        const key = `${item.month} ${item.date} `;
+        const key = `${item.month.trim()} ${item.date.trim()}`;
         if (!acc[key]) acc[key] = [];
         acc[key].push(item);
         return acc;
@@ -1393,12 +1393,12 @@ async function assignGroups(mode) {
         const { data: rsvps, error } = await supabaseClient
             .from('rsvps')
             .select('name')
-            .eq('month', month)
-            .eq('date', date)
+            .eq('month', month.trim())
+            .eq('date', date.trim())
             .eq('status', 'attend');
         if (error) return;
 
-        participants = [...new Set(rsvps.map(r => r.name))];
+        participants = [...new Set(rsvps.map(r => r.name.trim()))];
     }
 
     if (participants.length === 0) {
