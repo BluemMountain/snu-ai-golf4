@@ -7,8 +7,8 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-    title: "경기고 89회 불어반 골프회",
-    description: "경기고 89회 불어반 골프 모임 AntiGravity",
+    title: "SNU AI CEO 4기 골프회",
+    description: "SNU AI CEO 4기 골프 모임 - 공식 홈페이지",
 };
 
 export default function RootLayout({
