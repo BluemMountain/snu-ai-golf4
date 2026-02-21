@@ -895,6 +895,16 @@ async function loadAdminData() {
                 items.forEach((item, index) => {
                     const tr = document.createElement('tr');
                     const stats = getMemberStats(item.name);
+                    const memberType = memberTypeMap.get(item.name);
+                    const typeLabels = {
+                        'executive_plus': '임원',
+                        'executive': '임원',
+                        'jeong': '정회원',
+                        'jun': '준회원',
+                        'special': '특별회원',
+                        'ilban': '일반회원'
+                    };
+                    const typeLabel = typeLabels[memberType] || '일반';
 
                     // 대기 여부 자동 판독 (참석자 중 20위 초과 시)
                     let isAutoWaiting = false;
@@ -907,7 +917,7 @@ async function loadAdminData() {
                         <td style="padding: 10px; border: 1px solid #ddd;">
                             ${item.name}
                             ${(item.iswaiting || isAutoWaiting) ? ' <span style="color:#d35400; font-size:0.8rem; font-weight:bold;">(대기)</span>' : ''}
-                            <div style="font-size: 0.7rem; color: #888;">#${index + 1}</div>
+                            <div style="font-size: 0.7rem; color: #888;">#${index + 1} ${typeLabel}</div>
                         </td>
                         <td style="padding: 10px; border: 1px solid #ddd;">${item.phone || '-'}</td>
                         <td style="padding: 10px; border: 1px solid #ddd; color: ${item.status === 'attend' ? 'green' : 'red'}; font-weight: bold;">
