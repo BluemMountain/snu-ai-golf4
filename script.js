@@ -343,9 +343,15 @@ async function loadGroupSessions() {
             `<option value="${key}">${sessionMap.get(key)}</option>`
         ).join('');
 
-        if (sortedKeys.length === 0) {
-            select.innerHTML = '<option value="">신청 데이터 없음</option>';
+        if (sortedKeys.length > 0) {
+            // 초기 로드: 첫 번째 세션의 저장된 조편성 불러오기
+            loadSavedGroups(sortedKeys[0]);
         }
+
+        // 선택 변경 시 자동 불러오기
+        select.onchange = (e) => {
+            loadSavedGroups(e.target.value);
+        };
 
     } catch (err) {
         console.error('Error loading group sessions:', err);
@@ -1393,19 +1399,16 @@ async function assignGroups(mode) {
     let participants = [];
 
     const sessionVal = document.getElementById('group-session-select').value;
+    if (!sessionVal) {
+        alert("조편성할 일시를 먼저 선택해주세요.");
+        return;
+    }
 
     if (mode === 'sample') {
-        // 전체 회원 기반 (샘플)
         const { data: members, error } = await supabaseClient.from('members').select('name');
         if (error) return;
         participants = members.map(m => m.name);
     } else {
-        // 현재 신청자(참석) 기반
-        if (!sessionVal) {
-            alert("조편성할 일시를 먼저 선택해주세요.");
-            return;
-        }
-
         const [month, date] = sessionVal.split('|');
         const { data: rsvps, error } = await supabaseClient
             .from('rsvps')
@@ -1423,13 +1426,80 @@ async function assignGroups(mode) {
         return;
     }
 
-    // 무작위 섞기
     const shuffled = shuffleArray(participants);
-
-    // 지능형 조 나누기 (3~4인 기반)
     const groups = splitIntoOptimalGroups(shuffled);
-
     renderGroups(groups);
+}
+
+// 조편성 데이터 저장
+async function saveGroups() {
+    const sessionVal = document.getElementById('group-session-select').value;
+    if (!sessionVal) {
+        alert("저장할 일시를 선택해주세요.");
+        return;
+    }
+
+    const groups = [];
+    document.querySelectorAll('#group-assignment-result > div').forEach((groupDiv, index) => {
+        if (!groupDiv.id || !groupDiv.id.startsWith('group-card-')) return;
+        const groupMembers = [];
+        groupDiv.querySelectorAll('ul li .member-name').forEach(nameSpan => {
+            groupMembers.push(nameSpan.textContent.trim());
+        });
+        if (groupMembers.length > 0) {
+            groups.push(groupMembers);
+        }
+    });
+
+    if (groups.length === 0) {
+        alert("저장할 조편성 데이터가 없습니다.");
+        return;
+    }
+
+    try {
+        const { error } = await supabaseClient
+            .from('group_assignments')
+            .upsert({
+                session_key: sessionVal,
+                groups_data: groups,
+                updated_at: new Date().toISOString()
+            });
+
+        if (error) throw error;
+        alert("조편성이 성공적으로 저장되었습니다.");
+    } catch (err) {
+        console.error("저장 실패:", err);
+        alert("저장에 실패했습니다: " + err.message);
+    }
+}
+
+// 저장된 조편성 불러오기
+async function loadSavedGroups(sessionKey) {
+    if (!sessionKey) return;
+    try {
+        const { data, error } = await supabaseClient
+            .from('group_assignments')
+            .select('groups_data')
+            .eq('session_key', sessionKey)
+            .maybeSingle();
+
+        if (error) throw error;
+        if (data && data.groups_data) {
+            renderGroups(data.groups_data);
+        } else {
+            // 저장된 데이터가 없으면 비움
+            const container = document.getElementById('group-assignment-result');
+            if (container) {
+                container.innerHTML = `
+                    <div style="grid-column: 1/-1; text-align: center; color: #aaa; padding: 60px; border: 2px dashed #eee; border-radius: 12px;">
+                        <i class="fa-solid fa-users-viewfinder" style="font-size: 3rem; margin-bottom: 20px; color: #eee;"></i>
+                        <p>저장된 조편성이 없습니다. 조편성을 시작하세요.</p>
+                    </div>`;
+            }
+        }
+    } catch (err) {
+        console.error("불러오기 실패:", err);
+    }
 }
 
 /**
@@ -1490,11 +1560,12 @@ function renderGroups(groups) {
     if (!container) return;
 
     container.innerHTML = '';
-
     let copyText = "[조편성 결과]\n\n";
 
     groups.forEach((group, index) => {
         const div = document.createElement('div');
+        div.id = `group-card-${index}`;
+        div.className = 'group-card';
         div.style.background = '#fff';
         div.style.padding = '15px';
         div.style.borderRadius = '8px';
@@ -1510,6 +1581,7 @@ function renderGroups(groups) {
         div.appendChild(h5);
 
         const ul = document.createElement('ul');
+        ul.id = `group-list-${index}`;
         ul.style.listStyle = 'none';
         ul.style.padding = '0';
         ul.style.margin = '0';
@@ -1518,9 +1590,30 @@ function renderGroups(groups) {
 
         group.forEach(name => {
             const li = document.createElement('li');
-            li.textContent = name;
-            li.style.padding = '3px 0';
-            li.style.fontSize = '0.95rem';
+            li.style.display = 'flex';
+            li.style.justifyContent = 'space-between';
+            li.style.alignItems = 'center';
+            li.style.padding = '5px 0';
+            li.style.borderBottom = '1px solid #f9f9f9';
+
+            const nameSpan = document.createElement('span');
+            nameSpan.className = 'member-name';
+            nameSpan.textContent = name;
+            nameSpan.style.fontSize = '0.95rem';
+            li.appendChild(nameSpan);
+
+            // 이동 버튼 (수동 편집용)
+            const moveBtn = document.createElement('button');
+            moveBtn.innerHTML = '<i class="fa-solid fa-arrows-left-right"></i>';
+            moveBtn.title = '조 이동';
+            moveBtn.style.border = 'none';
+            moveBtn.style.background = 'none';
+            moveBtn.style.color = '#aaa';
+            moveBtn.style.cursor = 'pointer';
+            moveBtn.style.fontSize = '0.8rem';
+            moveBtn.onclick = () => moveMemberToOtherGroup(name, index, groups.length);
+
+            li.appendChild(moveBtn);
             ul.appendChild(li);
         });
         div.appendChild(ul);
@@ -1535,6 +1628,46 @@ function renderGroups(groups) {
                 alert("조편성 결과가 클립보드에 복사되었습니다.");
             });
         };
+    }
+
+    // 저장 버튼 기능 연결
+    const saveBtn = document.getElementById('save-groups-btn');
+    if (saveBtn) {
+        saveBtn.onclick = saveGroups;
+    }
+}
+
+// 멤버 조 이동 로직
+function moveMemberToOtherGroup(memberName, currentGroupIdx, totalGroups) {
+    const targetGroupStr = prompt(`'${memberName}' 원우님을 이동시킬 조 번호를 입력해주세요 (1~${totalGroups} 조):`, "");
+    if (!targetGroupStr) return;
+
+    const targetGroupIdx = parseInt(targetGroupStr) - 1;
+    if (isNaN(targetGroupIdx) || targetGroupIdx < 0 || targetGroupIdx >= totalGroups) {
+        alert("올바른 조 번호를 입력해 주세요.");
+        return;
+    }
+
+    if (targetGroupIdx === currentGroupIdx) {
+        alert("현재와 동일한 조입니다.");
+        return;
+    }
+
+    // 현재 화면 데이터 수집
+    const currentGroups = [];
+    document.querySelectorAll('#group-assignment-result > div').forEach(groupDiv => {
+        if (!groupDiv.id || !groupDiv.id.startsWith('group-card-')) return;
+        const members = [];
+        groupDiv.querySelectorAll('ul li .member-name').forEach(span => members.push(span.textContent.trim()));
+        currentGroups.push(members);
+    });
+
+    // 이동 처리
+    const memberIdx = currentGroups[currentGroupIdx].indexOf(memberName);
+    if (memberIdx > -1) {
+        currentGroups[currentGroupIdx].splice(memberIdx, 1);
+        currentGroups[targetGroupIdx].push(memberName);
+        renderGroups(currentGroups);
     }
 }
 
