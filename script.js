@@ -749,13 +749,22 @@ async function updateMemberAward(name, value) {
 }
 
 async function updateRSVPField(id, field, value) {
-    const { error } = await supabaseClient
-        .from('rsvps')
-        .update({ [field.toLowerCase()]: value })
-        .eq('id', id);
+    try {
+        const { error } = await supabaseClient
+            .from('rsvps')
+            .update({ [field]: value })
+            .eq('id', id);
 
-    if (error) {
-        console.error('Error updating RSVP field:', error);
+        if (error) throw error;
+        console.log(`Field ${field} updated for RSVP ${id}`);
+        showToast('성공적으로 저장되었습니다.');
+
+        // 스폰서 정보가 수정된 경우 명예의 전당 즉시 갱신을 위해 데이터 재로드 유도
+        if (field === 'sponsor') {
+            renderSponsorHall();
+        }
+    } catch (err) {
+        console.error('Error updating RSVP field:', err);
     }
 }
 
@@ -1974,3 +1983,78 @@ async function deleteRSVP(id) {
     loadAdminData();
     renderPublicRSVPs();
 }
+/**
+ * 모든 RSVP 데이터를 분석하여 스폰서 정보를 집계하고 명예의 전당 섹션에 렌더링합니다.
+ */
+async function renderSponsorHall(prefetchedData = null) {
+    const container = document.getElementById('sponsor-hall-container');
+    if (!container) return;
+
+    try {
+        let rsvps = prefetchedData;
+        if (!rsvps) {
+            const { data, error } = await supabaseClient
+                .from('rsvps')
+                .select('name, month, date, sponsor')
+                .not('sponsor', 'is', null)
+                .neq('sponsor', '');
+            if (error) throw error;
+            rsvps = data;
+        }
+
+        // 스폰서 정보가 있는 항목만 필터링 (다시 한번 검증)
+        const sponsors = rsvps.filter(r => r.sponsor && r.sponsor.trim() !== '' && !r.sponsor.includes('불참'));
+
+        if (sponsors.length === 0) {
+            container.innerHTML = '<div style="grid-column: 1/-1; text-align:center; padding: 40px; color:#888;">아직 스폰서 내역이 없습니다.</div>';
+            return;
+        }
+
+        // 최신순 정렬 (월/일 기반 정렬은 복잡하므로 단순 역순 또는 이름순 등 고려 가능)
+        // 여기서는 데이터베이스에서 온 순서 또는 입력 순으로 표시
+        container.innerHTML = '';
+        sponsors.reverse().forEach(s => {
+            const card = document.createElement('div');
+            card.className = 'sponsor-card fade-in-up';
+            card.innerHTML = `
+                <div class="name">${s.name} 원우님</div>
+                <div class="item">${s.sponsor}</div>
+                <div class="event-date">${s.month} ${s.date} 정기 라운드</div>
+            `;
+            container.appendChild(card);
+        });
+    } catch (err) {
+        console.error('Error rendering sponsor hall:', err);
+        container.innerHTML = '<div style="grid-column: 1/-1; text-align:center; padding: 40px; color:red;">내역을 불러오는 중 오류가 발생했습니다.</div>';
+    }
+}
+
+/**
+ * 화면 하단에 일시적인 알림 메시지를 표시합니다.
+ */
+function showToast(message) {
+    // 기존 토스트 제거
+    const oldToast = document.querySelector('.toast');
+    if (oldToast) oldToast.remove();
+
+    const toast = document.createElement('div');
+    toast.className = 'toast';
+    toast.innerText = message;
+    document.body.appendChild(toast);
+
+    // 강비 동기화 후 클래스 추가
+    setTimeout(() => {
+        toast.classList.add('show');
+    }, 10);
+
+    // 3초 후 제거
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => {
+            if (toast.parentNode) toast.parentNode.removeChild(toast);
+        }, 300);
+    }, 3000);
+}
+
+window.renderSponsorHall = renderSponsorHall;
+window.showToast = showToast;
