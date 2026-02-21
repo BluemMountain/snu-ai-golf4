@@ -1148,6 +1148,9 @@ async function renderPublicRSVPs() {
 
         container.appendChild(monthDiv);
     });
+
+    // 명예의 전당 렌더링 추가 (가져온 전체 데이터를 재사용하여 속도 최적화)
+    renderSponsorHall(data);
 }
 
 function parseCSV(text) {
