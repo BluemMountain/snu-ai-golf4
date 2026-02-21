@@ -267,9 +267,11 @@ function initRSVP() {
         e.preventDefault();
 
         const availability = getRSVPAvailability(rsvpMonthInput.value);
+        const rawName = document.getElementById('name').value;
+        const cleanName = (rawName || '').trim();
 
         const formData = {
-            name: document.getElementById('name').value,
+            name: cleanName,
             phone: document.getElementById('phone').value,
             status: document.querySelector('input[name="status"]:checked').value,
             sponsor: document.getElementById('sponsor').value,
@@ -280,7 +282,6 @@ function initRSVP() {
 
         try {
             // 중복 신청 확인 (공백 제거 후 검색)
-            const cleanName = formData.name.trim();
             const { data: existingRSVP, error: checkError } = await supabaseClient
                 .from('rsvps')
                 .select('id')
@@ -817,11 +818,11 @@ async function loadAdminData() {
             return;
         }
 
-        const memberTypeMap = new Map(members.map(m => [m.name, m.type]));
+        const memberTypeMap = new Map(members.map(m => [(m.name || '').trim(), m.type]));
 
         // 우선순위 점수 (낮을수록 높음)
         const getPriorityScore = (name) => {
-            const type = memberTypeMap.get(name);
+            const type = memberTypeMap.get((name || '').trim());
             if (type === 'executive' || type === 'jeong') return 0;
             if (type === 'ilban' || type === 'special') return 1;
             return 2; // 준회원 및 기타
@@ -908,7 +909,7 @@ async function loadAdminData() {
                 items.forEach((item, index) => {
                     const tr = document.createElement('tr');
                     const stats = getMemberStats(item.name);
-                    const memberType = memberTypeMap.get(item.name);
+                    const memberType = memberTypeMap.get((item.name || '').trim());
                     const typeLabels = {
                         'executive_plus': '임원',
                         'executive': '임원',
@@ -987,9 +988,9 @@ async function renderPublicRSVPs() {
         return;
     }
 
-    const memberTypeMap = new Map(members.map(m => [m.name, m.type]));
+    const memberTypeMap = new Map(members.map(m => [(m.name || '').trim(), m.type]));
     const getPriorityScore = (name) => {
-        const type = memberTypeMap.get(name);
+        const type = memberTypeMap.get((name || '').trim());
         if (type === 'executive' || type === 'jeong') return 0;
         if (type === 'ilban' || type === 'special') return 1;
         return 2;
