@@ -148,6 +148,43 @@
         body.is-readonly .edit-control {
             display: none !important;
         }
+
+        /* Drag and Drop Styles */
+        .member-item {
+            cursor: grab;
+            transition: background-color 0.2s, transform 0.1s;
+            user-select: none;
+            touch-action: none;
+            /* Disable default touch actions for better drag control */
+        }
+
+        .member-item:active {
+            cursor: grabbing;
+        }
+
+        .member-item.dragging {
+            opacity: 0.5;
+            background-color: #e8f5e9;
+            transform: scale(0.95);
+        }
+
+        .group-card.drag-over {
+            border: 2px dashed #577b2d !important;
+            background-color: #f1f8e9 !important;
+        }
+
+        .member-ghost {
+            position: fixed;
+            pointer-events: none;
+            z-index: 10000;
+            background: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            font-size: 0.9rem;
+            opacity: 0.9;
+            border: 1px solid #577b2d;
+        }
     </style>
 </head>
 

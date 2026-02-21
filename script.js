@@ -1571,6 +1571,21 @@ function renderGroups(groups) {
         div.style.borderRadius = '8px';
         div.style.border = '1px solid #ddd';
         div.style.boxShadow = '0 2px 4px rgba(0,0,0,0.05)';
+        div.style.transition = 'all 0.2s';
+
+        // Drop Event Listeners (Desktop)
+        div.ondragover = (e) => {
+            e.preventDefault();
+            div.classList.add('drag-over');
+        };
+        div.ondragleave = () => div.classList.remove('drag-over');
+        div.ondrop = (e) => {
+            e.preventDefault();
+            div.classList.remove('drag-over');
+            const memberName = e.dataTransfer.getData('text/plain');
+            const fromIdx = parseInt(e.dataTransfer.getData('fromIdx'));
+            handleMoveMember(memberName, fromIdx, index);
+        };
 
         const h5 = document.createElement('h5');
         h5.textContent = `${index + 1} 조`;
@@ -1585,35 +1600,90 @@ function renderGroups(groups) {
         ul.style.listStyle = 'none';
         ul.style.padding = '0';
         ul.style.margin = '0';
+        ul.style.minHeight = '100px'; // Empty zone drop support
 
         copyText += `${index + 1} 조: ${group.join(', ')} \n`;
 
         group.forEach(name => {
             const li = document.createElement('li');
+            li.className = 'member-item';
+            li.draggable = true;
             li.style.display = 'flex';
             li.style.justifyContent = 'space-between';
             li.style.alignItems = 'center';
-            li.style.padding = '5px 0';
-            li.style.borderBottom = '1px solid #f9f9f9';
+            li.style.padding = '8px 12px';
+            li.style.marginBottom = '5px';
+            li.style.borderRadius = '4px';
+            li.style.background = '#f9f9f9';
+            li.style.border = '1px solid #f0f0f0';
 
             const nameSpan = document.createElement('span');
             nameSpan.className = 'member-name';
             nameSpan.textContent = name;
-            nameSpan.style.fontSize = '0.95rem';
+            nameSpan.style.fontSize = '1.0rem';
+            nameSpan.style.fontWeight = '500';
             li.appendChild(nameSpan);
 
-            // 이동 버튼 (수동 편집용)
-            const moveBtn = document.createElement('button');
-            moveBtn.innerHTML = '<i class="fa-solid fa-arrows-left-right"></i>';
-            moveBtn.title = '조 이동';
-            moveBtn.style.border = 'none';
-            moveBtn.style.background = 'none';
-            moveBtn.style.color = '#aaa';
-            moveBtn.style.cursor = 'pointer';
-            moveBtn.style.fontSize = '0.8rem';
-            moveBtn.onclick = () => moveMemberToOtherGroup(name, index, groups.length);
+            // Drag Events (Desktop)
+            li.ondragstart = (e) => {
+                e.dataTransfer.setData('text/plain', name);
+                e.dataTransfer.setData('fromIdx', index);
+                setTimeout(() => li.classList.add('dragging'), 0);
+            };
+            li.ondragend = () => li.classList.remove('dragging');
 
-            li.appendChild(moveBtn);
+            // Touch Events (Mobile)
+            let touchGhost = null;
+            li.ontouchstart = (e) => {
+                const touch = e.touches[0];
+                li.classList.add('dragging');
+
+                // Create ghost element for touch
+                touchGhost = document.createElement('div');
+                touchGhost.className = 'member-ghost';
+                touchGhost.textContent = name;
+                document.body.appendChild(touchGhost);
+                updateGhostPos(touch);
+            };
+
+            li.ontouchmove = (e) => {
+                e.preventDefault(); // Prevent scrolling while dragging
+                const touch = e.touches[0];
+                updateGhostPos(touch);
+
+                // Highlight target group
+                const target = document.elementFromPoint(touch.clientX, touch.clientY);
+                const targetGroup = target?.closest('.group-card');
+
+                document.querySelectorAll('.group-card').forEach(g => g.classList.remove('drag-over'));
+                if (targetGroup) targetGroup.classList.add('drag-over');
+            };
+
+            li.ontouchend = (e) => {
+                li.classList.remove('dragging');
+                if (touchGhost) {
+                    const touch = e.changedTouches[0];
+                    const target = document.elementFromPoint(touch.clientX, touch.clientY);
+                    const targetGroup = target?.closest('.group-card');
+
+                    if (targetGroup) {
+                        const targetIdx = parseInt(targetGroup.id.replace('group-card-', ''));
+                        handleMoveMember(name, index, targetIdx);
+                    }
+
+                    document.body.removeChild(touchGhost);
+                    touchGhost = null;
+                }
+                document.querySelectorAll('.group-card').forEach(g => g.classList.remove('drag-over'));
+            };
+
+            function updateGhostPos(touch) {
+                if (touchGhost) {
+                    touchGhost.style.left = (touch.clientX + 10) + 'px';
+                    touchGhost.style.top = (touch.clientY - 40) + 'px';
+                }
+            }
+
             ul.appendChild(li);
         });
         div.appendChild(ul);
@@ -1637,36 +1707,23 @@ function renderGroups(groups) {
     }
 }
 
-// 멤버 조 이동 로직
-function moveMemberToOtherGroup(memberName, currentGroupIdx, totalGroups) {
-    const targetGroupStr = prompt(`'${memberName}' 원우님을 이동시킬 조 번호를 입력해주세요 (1~${totalGroups} 조):`, "");
-    if (!targetGroupStr) return;
-
-    const targetGroupIdx = parseInt(targetGroupStr) - 1;
-    if (isNaN(targetGroupIdx) || targetGroupIdx < 0 || targetGroupIdx >= totalGroups) {
-        alert("올바른 조 번호를 입력해 주세요.");
-        return;
-    }
-
-    if (targetGroupIdx === currentGroupIdx) {
-        alert("현재와 동일한 조입니다.");
-        return;
-    }
+// 멤버 이동 통합 처리 함수
+function handleMoveMember(memberName, fromIdx, toIdx) {
+    if (fromIdx === toIdx) return;
 
     // 현재 화면 데이터 수집
     const currentGroups = [];
-    document.querySelectorAll('#group-assignment-result > div').forEach(groupDiv => {
-        if (!groupDiv.id || !groupDiv.id.startsWith('group-card-')) return;
+    document.querySelectorAll('#group-assignment-result > .group-card').forEach(groupDiv => {
         const members = [];
         groupDiv.querySelectorAll('ul li .member-name').forEach(span => members.push(span.textContent.trim()));
         currentGroups.push(members);
     });
 
-    // 이동 처리
-    const memberIdx = currentGroups[currentGroupIdx].indexOf(memberName);
-    if (memberIdx > -1) {
-        currentGroups[currentGroupIdx].splice(memberIdx, 1);
-        currentGroups[targetGroupIdx].push(memberName);
+    // 데이터 이동
+    const mIdx = currentGroups[fromIdx].indexOf(memberName);
+    if (mIdx > -1) {
+        currentGroups[fromIdx].splice(mIdx, 1);
+        currentGroups[toIdx].push(memberName);
         renderGroups(currentGroups);
     }
 }
