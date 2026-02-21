@@ -4,6 +4,10 @@ const SUPABASE_URL = 'https://qfzmwlyqezmkkxtpscik.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_mYejtROOg-2JN7z6_RlWdg_PXYSYgFi'; // Anon Key
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+// Rendering Guards to prevent duplication
+let isRenderingAdminMembers = false;
+let isRenderingAdminData = false;
+
 // Force cleanup of legacy local login state to ensure sessionStorage takes over
 if (localStorage.getItem('snu_golf_logged_in')) {
     const wasLoggedIn = localStorage.getItem('snu_golf_logged_in');
@@ -672,40 +676,41 @@ async function updateMemberType(name, newType) {
 }
 
 async function loadAdminMembers(prefetchedMembers = null) {
-    const tbody = document.querySelector('#admin-member-table tbody');
-    if (!tbody) return;
-    tbody.innerHTML = '';
+    if (isRenderingAdminMembers) return;
+    isRenderingAdminMembers = true;
 
-    // Update summary bar separately
-    if (typeof window.updateMemberSummary === 'function') {
-        window.updateMemberSummary();
-    }
+    try {
+        const tbody = document.querySelector('#admin-member-table tbody');
+        if (!tbody) return;
 
-    let members = prefetchedMembers;
-    if (!members) {
-        try {
+        // Update summary bar separately
+        if (typeof window.updateMemberSummary === 'function') {
+            window.updateMemberSummary();
+        }
+
+        let members = prefetchedMembers;
+        if (!members) {
             const { data, error } = await supabaseClient.from('members').select('*');
             if (error) throw error;
             members = data;
-        } catch (err) {
-            console.error('Error loading admin members:', err);
-            return;
         }
-    }
 
-    const typeOrder = { 'executive': 1, 'special': 2, 'jeong': 3, 'jun': 4, 'ilban': 5 };
-    members.sort((a, b) => {
-        if (typeOrder[a.type] !== typeOrder[b.type]) {
-            return typeOrder[a.type] - typeOrder[b.type];
-        }
-        return a.name.localeCompare(b.name, 'ko');
-    });
+        // Clear only after data is fetched to prevent flicker/race overlap
+        tbody.innerHTML = '';
 
-    members.forEach((item) => {
-        const tr = document.createElement('tr');
-        const isExecutive = item.type === 'executive';
+        const typeOrder = { 'executive': 1, 'special': 2, 'jeong': 3, 'jun': 4, 'ilban': 5 };
+        members.sort((a, b) => {
+            if (typeOrder[a.type] !== typeOrder[b.type]) {
+                return typeOrder[a.type] - typeOrder[b.type];
+            }
+            return a.name.localeCompare(b.name, 'ko');
+        });
 
-        tr.innerHTML = `
+        members.forEach((item) => {
+            const tr = document.createElement('tr');
+            const isExecutive = item.type === 'executive';
+
+            tr.innerHTML = `
             <td style="padding: 10px; border: 1px solid #ddd;">${item.name}</td>
             <td style="padding: 10px; border: 1px solid #ddd;">
                 <select onchange="updateMemberType('${item.name}', this.value)" style="padding: 4px; border-radius: 4px; border: 1px solid #ddd; width: 100%;">
@@ -724,8 +729,13 @@ async function loadAdminMembers(prefetchedMembers = null) {
                 <button class="cta-button edit-control" onclick="deleteMember('${item.name}')" style="padding: 2px 8px; font-size: 0.8rem; background-color: #e74c3c; min-width: auto;">삭제</button>
             </td>
 `;
-        tbody.appendChild(tr);
-    });
+            tbody.appendChild(tr);
+        });
+    } catch (err) {
+        console.error('Error loading admin members:', err);
+    } finally {
+        isRenderingAdminMembers = false;
+    }
 }
 
 async function updateMemberAward(name, value) {
@@ -787,6 +797,9 @@ function getMemberStats(name) {
 }
 
 async function loadAdminData() {
+    if (isRenderingAdminData) return;
+    isRenderingAdminData = true;
+
     // 1. RSVP Table Update
     const rsvpTbody = document.querySelector('#admin-table tbody');
     if (rsvpTbody) {
@@ -951,6 +964,7 @@ async function loadAdminData() {
     if (scoreContainer) {
         renderTable(parseCSV(CSV_DATA_STRING.trim()), scoreContainer, true);
     }
+    isRenderingAdminData = false;
 }
 
 async function renderPublicRSVPs() {
