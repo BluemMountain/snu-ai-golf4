@@ -17,22 +17,51 @@ if (localStorage.getItem('snu_golf_logged_in')) {
     localStorage.removeItem('snu_golf_logged_in');
 }
 
-// Global CSV Data for Stats lookup (Sorted Alphabetically)
-const CSV_DATA_STRING = `
-, ,Name,강순대,곽노준,권민오,김기록,김대욱,김태일,남서우,문성욱,박상길,박철호,박청산,박희석,송원득,신소우,심민선,안삼근,안원익,이교구,이대식,이문형,이상열,이석환,이용환,정대규,정민호,정지환,조중규,현성호,박지선,신수희,김윤석,이진우,장병탁,이성원,전은미,최정훈,김종세,배태근,권혁찬,한예성,최철호,이재욱,이준기,이주민,김은현,채성희,김도열,이영규,함종민
-count,Date,CC/HD,92.5,88.7,97.3,87.5,87,89.5,90.6,91,83.2,86.6,89.4,88,87.4,101.5,98.3,100.3,0,93,90,86,98,83.3,106.7,93,94.3,88.3,92.6,82.3,105,96.7,0,111,90,78.3,94.5,77.7,88,85.5,101,0,87,101,93,94.7,98.5,100,87,97,0
-1,250427,알펜시아,99,93,97,90,93,96,94,91,86,88,85,92,94,101,103,106,0,90,96,86,98,85,112,99,100,91,92,53,,,,,,,,,,,,,,,,,,,,,
-2,250625,힐드로사이,,91,,,89,,,,75,,86,,,,94,,,,,,,,,98,96,,,72,,,,,,70,79,,,,,,,,,,,,,,
-3,250726,88CC,,,103,85,85,83,85,,81,80,80,,,,,90,,,86,,,84,,89,89,,,83,,92,,,90,,92,75,88,86,,,,,,,,,,,
-4,250827,힐드로사이,,,,,87,,94,,,85,91,,,105,98,105,,,94,,,,,102,99,,102,,,,,,,,104,,,,,,,,,,,,,,
-5,250910,사우스스프링스,,82,,,82,,92,,85,87,92,,82,,99,,,,,82,,81,104,92,90,86,91,88,,99,,,,77,100,78,,,101,,87,,,,,,,,
-6,250924,힐드로사이,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-7,251019,대호단양,86,,92,,85,,,,89,,91,81,84,,,100,,96,84,88,,,,85,,88,87,90,,,,,,88,,80,,85,,,,101,93,89,93,,,,
-8,251022,힐드로사이,,,,,89,,88,,,,96,,90,101,94,,,,,88,,,104,88,91,,,94,105,99,,111,,,96,,,,,,,,,,97,,100,,,
-9,251126,힐드로사이,,,,,86,,,,,93,94,91,87,99,102,,,,,,,,,91,95,,91,96,,,,,,,96,,,,,,,,,,98,104,,87,97,
-10,260207,소노펠리체CC in 하롱베이,-,-,-,,,,-,,,,-,,,,,,,-,,,,,,,,,-,-,,,,-,,,,,,,,,,,,,,,,,-
-11,260208,소노펠리체CC in 하롱베이,-,-,-,,,,-,,,,-,,,,,,,-,,,,,,,,,-,-,,,,-,,,,,,,,,,,,,,,,,-
-`;
+// Global Score Data Storage (Original 2D Array format for compatibility)
+let G_SCORES_RAW = [];
+
+/**
+ * Supabase에서 스코어 데이터를 불러와 기존 CSV 호환 형식(2D Array)으로 변환합니다.
+ */
+async function loadScoresFromSupabase() {
+    try {
+        const [{ data: scores, error }, { data: members, error: memberError }] = await Promise.all([
+            supabaseClient.from('scores').select('*').order('round_count', { ascending: true }),
+            supabaseClient.from('members').select('name')
+        ]);
+
+        if (error || memberError) throw error || memberError;
+
+        // 1. 헤더 생성 (이름순 정렬)
+        const sortedMemberNames = members.map(m => m.name.trim()).sort((a, b) => a.localeCompare(b, 'ko'));
+        const header = ['', '', 'Name', ...sortedMemberNames];
+
+        // 2. 데이터 행 변환 및 핸디캡 행 분리
+        let handicapRow = ['count', 'Date', 'CC/HD', ...sortedMemberNames.map(() => '0')];
+        const dataRows = [];
+
+        scores.forEach(s => {
+            const row = [s.round_count.toString(), s.date || '', s.venue || ''];
+            const scoresMap = s.scores_data || {};
+            sortedMemberNames.forEach(name => {
+                row.push(scoresMap[name] || '');
+            });
+
+            if (s.round_count === 0) {
+                handicapRow = row;
+            } else {
+                dataRows.push(row);
+            }
+        });
+
+        G_SCORES_RAW = [header, handicapRow, ...dataRows];
+        console.log("Supabase Scores Loaded:", G_SCORES_RAW.length, "rows (including Handicap)");
+        return G_SCORES_RAW;
+    } catch (err) {
+        console.error("Failed to load scores from Supabase:", err);
+        return [];
+    }
+}
 
 document.addEventListener('DOMContentLoaded', () => {
     // Smooth scrolling for navigation links
@@ -67,10 +96,11 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Render Scores using global data
-    // Render Scores using global data (Public View: Only Handicap)
     const scoreContainer = document.getElementById('score-table-container');
     if (scoreContainer) {
-        renderTable(parseCSV(CSV_DATA_STRING.trim()), scoreContainer, false);
+        loadScoresFromSupabase().then(data => {
+            renderTable(data, scoreContainer, false);
+        });
     }
 
     // Login Check & Section Toggle
@@ -236,7 +266,7 @@ function initRSVP() {
 
             modalSubtitle.textContent = `일시: ${month} ${date} `;
             if (availability.status === 'waiting') {
-                modalSubtitle.innerHTML += ` < span style = "color: #d35400; font-weight: bold; margin-left: 10px;" > (현재 대기자 신청 기간입니다)</span > `;
+                modalSubtitle.innerHTML += ` <span style="color: #d35400; font-weight: bold; margin-left: 10px;">(현재 대기자 신청 기간입니다)</span>`;
             }
 
             rsvpMonthInput.value = month;
@@ -769,7 +799,7 @@ async function updateRSVPField(id, field, value) {
 }
 
 function getMemberStats(name) {
-    const csvData = parseCSV(CSV_DATA_STRING.trim());
+    const csvData = G_SCORES_RAW;
     const names = csvData[0];
     const nameIndex = names.findIndex(n => n.trim() === name.trim());
 
@@ -972,7 +1002,13 @@ async function loadAdminData() {
     // 2. Score Table (Full View) for Admin
     const scoreContainer = document.getElementById('admin-score-table-container');
     if (scoreContainer) {
-        renderTable(parseCSV(CSV_DATA_STRING.trim()), scoreContainer, true);
+        if (G_SCORES_RAW.length > 0) {
+            renderTable(G_SCORES_RAW, scoreContainer, true);
+        } else {
+            loadScoresFromSupabase().then(data => {
+                renderTable(data, scoreContainer, true);
+            });
+        }
     }
     isRenderingAdminData = false;
 }
@@ -1302,7 +1338,7 @@ function renderTable(data, container, isAdmin = false) {
 
 function downloadScorecard() {
     try {
-        const csvContent = CSV_DATA_STRING.trim();
+        const csvContent = G_SCORES_RAW.map(row => row.join(',')).join('\n');
         const encodedUri = "data:text/csv;charset=utf-8,%EF%BB%BF" + encodeURIComponent(csvContent);
 
         const link = document.createElement("a");
@@ -1378,14 +1414,14 @@ async function syncScoresToRecords(sessionKey) {
             }
         });
 
-        // 4. Get Member Column Order from CSV_DATA_STRING
-        const headerData = parseCSV(CSV_DATA_STRING.trim())[0];
+        // 4. Get Member Column Order from G_SCORES_RAW
+        const headerData = G_SCORES_RAW[0];
         const memberNames = headerData.slice(3);
 
         // 5. Build New Record Row
         // [count, date, venue, member1_score, member2_score, ...]
         const addedRounds = JSON.parse(localStorage.getItem('snu_golf_added_rounds') || '[]');
-        const nextCount = (parseCSV(CSV_DATA_STRING.trim()).length - 2) + addedRounds.length + 1;
+        const nextCount = (G_SCORES_RAW.length - 2) + addedRounds.length + 1;
 
         const defaultVenue = yymmdd.startsWith('2602') ? "소노펠리체CC in 하롱베이" : "신원CC";
         const newRow = [nextCount.toString(), yymmdd, defaultVenue];

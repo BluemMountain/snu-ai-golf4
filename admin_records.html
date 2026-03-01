@@ -241,33 +241,30 @@
         const container = document.getElementById('admin-full-score-container');
 
         // Initial Admin Render
-        function refreshAdminTable() {
-            const rawData = parseCSV(CSV_DATA_STRING.trim());
-            // Merge with localStorage data if any
-            const addedRounds = JSON.parse(localStorage.getItem('snu_golf_added_rounds') || '[]');
-
-            if (addedRounds.length > 0) {
-                addedRounds.forEach(round => {
-                    rawData.push(round);
-                });
+        async function refreshAdminTable() {
+            const data = await loadScoresFromSupabase();
+            if (data && data.length > 0) {
+                renderTable(data, container, true);
             }
-
-            renderTable(rawData, container, true);
         }
 
         // Wait for script.js to load or just call after a bit
-        setTimeout(refreshAdminTable, 100);
+        setTimeout(refreshAdminTable, 500);
 
-        function openAddModal() {
+        async function openAddModal() {
             const modal = document.getElementById('add-modal');
             const inputList = document.getElementById('member-input-list');
-            inputList.innerHTML = '';
+            inputList.innerHTML = '<div style="grid-column: 1/-1; text-align:center; padding: 20px;">로딩 중...</div>';
 
-            const data = parseCSV(CSV_DATA_STRING.trim());
-            const members = data[0].slice(3); // Get member names
-            const nextCount = (data.length - 2) + JSON.parse(localStorage.getItem('snu_golf_added_rounds') || '[]').length + 1;
+            if (G_SCORES_RAW.length === 0) {
+                await loadScoresFromSupabase();
+            }
+
+            const members = G_SCORES_RAW[0].slice(3); // Get member names
+            const nextCount = (G_SCORES_RAW.length - 2) + 1;
 
             document.getElementById('new-count').value = nextCount;
+            inputList.innerHTML = '';
 
             members.forEach(name => {
                 const group = document.createElement('div');
@@ -286,10 +283,10 @@
             document.getElementById('add-modal').style.display = 'none';
         }
 
-        function saveNewRound() {
+        async function saveNewRound() {
             const date = document.getElementById('new-date').value.trim();
             const venue = document.getElementById('new-venue').value.trim();
-            const count = document.getElementById('new-count').value;
+            const count = parseInt(document.getElementById('new-count').value);
 
             if (!date || !venue) {
                 alert('날짜와 장소를 입력해주세요.');
@@ -297,34 +294,57 @@
             }
 
             const scoreInputs = document.querySelectorAll('.member-score');
-            const newRow = [count, date, venue];
+            const scoresData = {};
 
             scoreInputs.forEach(input => {
-                newRow.push(input.value || ''); // Empty if not entered
+                if (input.value) {
+                    scoresData[input.dataset.name] = input.value;
+                }
             });
 
-            const addedRounds = JSON.parse(localStorage.getItem('snu_golf_added_rounds') || '[]');
-            addedRounds.push(newRow);
-            localStorage.setItem('snu_golf_added_rounds', JSON.stringify(addedRounds));
+            try {
+                const { error } = await supabaseClient
+                    .from('scores')
+                    .upsert([{
+                        round_count: count,
+                        date: date,
+                        venue: venue,
+                        scores_data: scoresData
+                    }], { onConflict: 'round_count' });
 
-            alert('라운드 기록이 추가되었습니다.');
-            closeAddModal();
-            refreshAdminTable();
+                if (error) throw error;
+
+                alert('라운드 기록이 Supabase에 성공적으로 저장되었습니다.');
+                closeAddModal();
+                refreshAdminTable();
+            } catch (err) {
+                console.error("저장 실패:", err);
+                alert("저장에 실패했습니다: " + err.message);
+            }
         }
 
-        function clearAddedRounds() {
-            if (confirm('추가된 모든 기록을 삭제하시겠습니까? 원본 데이터는 유지됩니다.')) {
-                localStorage.removeItem('snu_golf_added_rounds');
-                refreshAdminTable();
+        async function clearAddedRounds() {
+            if (confirm('모든 스코어 기록을 삭제하시겠습니까? (이 작업은 되돌릴 수 없습니다)')) {
+                const { error } = await supabaseClient
+                    .from('scores')
+                    .delete()
+                    .neq('id', 0); // 모든 행 삭제
+
+                if (error) {
+                    alert("삭제 실패: " + error.message);
+                } else {
+                    alert("모든 기록이 삭제되었습니다.");
+                    refreshAdminTable();
+                }
             }
         }
 
         function exportToCSV() {
-            const rawData = parseCSV(CSV_DATA_STRING.trim());
-            const addedRounds = JSON.parse(localStorage.getItem('snu_golf_added_rounds') || '[]');
-            const fullData = [...rawData, ...addedRounds];
-
-            const csvContent = fullData.map(row => row.join(',')).join('\n');
+            if (G_SCORES_RAW.length === 0) {
+                alert("데이터가 로드되지 않았습니다.");
+                return;
+            }
+            const csvContent = G_SCORES_RAW.map(row => row.join(',')).join('\n');
             const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement("a");
             const url = URL.createObjectURL(blob);
@@ -336,7 +356,7 @@
             link.click();
             document.body.removeChild(link);
 
-            alert('CSV 파일이 생성되었습니다. 이 파일의 내용을 scores.csv에 덮어쓰거나 AI에게 전달하여 script.js를 업데이트할 수 있습니다.');
+            alert('CSV 파일이 생성되었습니다.');
         }
     </script>
 </body>
