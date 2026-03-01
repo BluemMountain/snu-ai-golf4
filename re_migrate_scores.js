@@ -39,9 +39,14 @@ async function reMigrate() {
         const cols = line.split(',');
         const round_count = parseInt(cols[0]) || 0;
         const date = cols[1] ? cols[1].trim() : '';
-        const venue = cols[2] ? cols[2].trim() : '';
+        let venue = cols[2] ? cols[2].trim() : '';
 
-        if (!date && !venue && isNaN(round_count)) continue;
+        // "비로 인해 워크샵 취소됨" 등이 첫 번째 회원 칸(cols[3])에 있는 경우 처리
+        const firstColScore = cols[3] ? cols[3].trim() : '';
+        if (firstColScore.includes('취소') || firstColScore.includes('워크샾')) {
+            venue += '\n(' + firstColScore + ')';
+            cols[3] = ''; // 회원 칸에서는 지움
+        }
 
         const scores_data = {};
         CORRECT_NAMES.forEach((name, idx) => {

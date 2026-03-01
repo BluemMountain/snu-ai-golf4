@@ -459,6 +459,9 @@ h3 {
     text-align: left;
     left: 140px;
     z-index: 31;
+    white-space: pre-line;
+    /* 개행 문자 처리 */
+    line-height: 1.3;
 }
 
 /* Corner cells (Sticky Header AND Sticky Column) must be higher z-index */
