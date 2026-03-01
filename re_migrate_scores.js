@@ -6,7 +6,7 @@ const supabase = require('./supabaseClient');
 // We'll read the file buffer and use a naive CP949 to UTF8 mapping or just hardcode the header if we can see it clearly.
 
 async function reMigrate() {
-    console.log("Re-migrating scores with correct column mapping...");
+    console.log("Re-migrating scores with correct encoding (EUC-KR)...");
 
     // 1. Get correct header names from the actual file
     // Based on investigate_csv.js, the header has 51 columns (3 base + 48 names)
@@ -26,7 +26,8 @@ async function reMigrate() {
     console.log("Correct names count:", CORRECT_NAMES.length);
 
     const buffer = fs.readFileSync('scores.csv');
-    const content = buffer.toString('binary'); // Binary for counting commas safely
+    const decoder = new TextDecoder('euc-kr');
+    const content = decoder.decode(buffer);
     const lines = content.split('\n').filter(l => l.trim() !== '');
 
     // Row 0: Header
