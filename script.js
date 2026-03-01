@@ -800,6 +800,7 @@ async function updateRSVPField(id, field, value) {
 
 function getMemberStats(name) {
     const csvData = G_SCORES_RAW;
+    if (!csvData || csvData.length < 2) return { h25: '-', last: '-', h26: '-' };
     const names = csvData[0];
     const nameIndex = names.findIndex(n => n.trim() === name.trim());
 
@@ -839,6 +840,10 @@ function getMemberStats(name) {
 async function loadAdminData() {
     if (isRenderingAdminData) return;
     isRenderingAdminData = true;
+
+    if (G_SCORES_RAW.length === 0) {
+        await loadScoresFromSupabase();
+    }
 
     // 1. RSVP Table Update
     const rsvpTbody = document.querySelector('#admin-table tbody');
@@ -1016,6 +1021,10 @@ async function loadAdminData() {
 async function renderPublicRSVPs() {
     const container = document.getElementById('public-rsvp-container');
     if (!container) return;
+
+    if (G_SCORES_RAW.length === 0) {
+        await loadScoresFromSupabase();
+    }
 
     // 1. RSVP 및 회원 데이터 함께 가져오기
     const [{ data, error }, { data: members, error: memberError }] = await Promise.all([
