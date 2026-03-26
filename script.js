@@ -395,30 +395,39 @@ async function loadGroupSessions() {
 }
 
 async function addManualRSVP() {
-    const month = document.getElementById('manual-rsvp-month').value.trim();
-    const date = document.getElementById('manual-rsvp-date').value.trim();
-    const name = document.getElementById('manual-rsvp-name').value.trim();
+    const monthRaw = document.getElementById('manual-rsvp-month').value.trim();
+    const dateRaw = document.getElementById('manual-rsvp-date').value.trim();
+    const nameInput = document.getElementById('manual-rsvp-name').value.trim();
     const status = document.getElementById('manual-rsvp-status').value;
 
-    if (!month || !date || !name) {
+    if (!monthRaw || !dateRaw || !nameInput) {
         alert('월, 일, 이름을 모두 입력해주세요.');
         return;
     }
 
+    // 포맷 보정 (5, 27 -> 5월, 5.27 로 자동 변환)
+    const month = monthRaw.includes('월') ? monthRaw : `${monthRaw}월`;
+    const dateNum = dateRaw.replace(/[^0-9]/g, ''); // 숫자만 추출
+    const date = dateRaw.includes('.') ? dateRaw : `${month.replace('월', '')}.${dateNum}`;
+
+    const names = nameInput.split(',').map(n => n.trim()).filter(n => n);
+
     try {
+        const inserts = names.map(n => ({
+            month,
+            date,
+            name: n,
+            status,
+            submittedat: new Date().toISOString()
+        }));
+
         const { error } = await supabaseClient
             .from('rsvps')
-            .insert([{
-                month,
-                date,
-                name,
-                status,
-                submittedat: new Date().toISOString()
-            }]);
+            .insert(inserts);
 
         if (error) throw error;
 
-        alert(`[${month} ${date}] ${name}님이 추가되었습니다.`);
+        alert(`[${month} ${date}] ${names.join(', ')}님이 추가되었습니다.`);
 
         // 필드 초기화 (이름만 초기화해서 연속 입력 편하게)
         document.getElementById('manual-rsvp-name').value = '';
