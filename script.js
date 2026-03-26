@@ -876,8 +876,8 @@ async function loadAdminData() {
         // 우선순위 점수 (낮을수록 높음)
         const getPriorityScore = (name) => {
             const type = memberTypeMap.get((name || '').trim());
-            if (type === 'executive' || type === 'jeong') return 0;
-            if (type === 'ilban' || type === 'special') return 1;
+            if (type === 'executive' || type === 'jeong' || type === 'special') return 0;
+            if (type === 'ilban') return 1;
             return 2; // 준회원 및 기타
         };
 
@@ -1054,8 +1054,8 @@ async function renderPublicRSVPs() {
     const memberTypeMap = new Map(members.map(m => [(m.name || '').trim(), m.type]));
     const getPriorityScore = (name) => {
         const type = memberTypeMap.get((name || '').trim());
-        if (type === 'executive' || type === 'jeong') return 0;
-        if (type === 'ilban' || type === 'special') return 1;
+        if (type === 'executive' || type === 'jeong' || type === 'special') return 0;
+        if (type === 'ilban') return 1;
         return 2;
     };
 
