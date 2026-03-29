@@ -2048,35 +2048,58 @@ async function renderSponsorHall(prefetchedData = null) {
     if (!container) return;
 
     try {
-        let rsvps = prefetchedData;
-        if (!rsvps) {
-            const { data, error } = await supabaseClient
-                .from('rsvps')
-                .select('name, month, date, sponsor')
-                .not('sponsor', 'is', null)
-                .neq('sponsor', '');
-            if (error) throw error;
-            rsvps = data;
-        }
+        const sponsorHistory = [
+            {
+                title: "3월 스폰서",
+                list: [
+                    "김대욱 골프회장님 : 사과",
+                    "박철호 골프부회장님 : 사과",
+                    "정진우 원우님 : 상품권, 인형"
+                ]
+            },
+            {
+                title: "5월 스폰서",
+                list: [
+                    "현성호 원우회장님 : 200만원"
+                ]
+            }
+        ];
 
-        // 스폰서 정보가 있는 항목만 필터링 (다시 한번 검증)
-        const sponsors = rsvps.filter(r => r.sponsor && r.sponsor.trim() !== '' && !r.sponsor.includes('불참'));
-
-        if (sponsors.length === 0) {
-            container.innerHTML = '<div style="grid-column: 1/-1; text-align:center; padding: 40px; color:#888;">아직 스폰서 내역이 없습니다.</div>';
-            return;
-        }
-
-        // 최신순 정렬 (월/일 기반 정렬은 복잡하므로 단순 역순 또는 이름순 등 고려 가능)
-        // 여기서는 데이터베이스에서 온 순서 또는 입력 순으로 표시
         container.innerHTML = '';
-        sponsors.reverse().forEach(s => {
+        container.style.display = 'grid';
+        container.style.gridTemplateColumns = 'repeat(auto-fit, minmax(300px, 1fr))';
+        container.style.gap = '20px';
+
+        sponsorHistory.forEach(data => {
             const card = document.createElement('div');
             card.className = 'sponsor-card fade-in-up';
+            card.style.background = '#fff';
+            card.style.padding = '25px';
+            card.style.borderRadius = '15px';
+            card.style.border = '1px solid #e0c58a';
+            card.style.boxShadow = '0 4px 15px rgba(197, 160, 89, 0.1)';
+            card.style.display = 'flex';
+            card.style.flexDirection = 'column';
+            card.style.alignItems = 'flex-start';
+
+            let listHtml = data.list.map(item => {
+                const parts = item.split(':').map(p => p.trim());
+                if(parts.length === 2) {
+                    return `<div style="display: flex; justify-content: space-between; width: 100%; border-bottom: 1px dashed #f0f0f0; padding: 8px 0;">
+                                <span style="color: #444; font-weight: 500;">${parts[0]}</span>
+                                <span style="color: #577b2d; font-weight: bold;">${parts[1]}</span>
+                            </div>`;
+                }
+                return `<div style="margin-bottom: 8px; font-size: 1.05rem; color: #333;">${item}</div>`;
+            }).join('');
+
             card.innerHTML = `
-                <div class="name">${s.name} 원우님</div>
-                <div class="item">${s.sponsor}</div>
-                <div class="event-date">${s.month} ${s.date} 정기 라운드</div>
+                <div style="font-size: 1.2rem; color: #c5a059; font-weight: bold; margin-bottom: 10px; border-bottom: 2px solid #f0e6d2; padding-bottom: 10px; width: 100%; text-align: left;">
+                    ${data.title}
+                </div>
+                <div style="width: 100%;">
+                    ${listHtml}
+                </div>
             `;
             container.appendChild(card);
         });
