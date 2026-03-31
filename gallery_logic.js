@@ -161,6 +161,8 @@ function initGalleryUI() {
     document.getElementById('lb-prev-btn').onclick = () => navigateGallery(-1);
     document.getElementById('lb-next-btn').onclick = () => navigateGallery(1);
     document.querySelector('.lightbox-close').onclick = closeLightbox;
+    
+    initSwipeLogic();
 
     // Edit/Delete in Lightbox
     document.getElementById('lb-edit-btn').onclick = () => handleLogEdit();
@@ -402,5 +404,61 @@ async function handleLike(logId) {
         countSpan.innerText = parseInt(countSpan.innerText) + 1;
     } catch (err) {
         console.error('Like error:', err);
+    }
+}
+
+/**
+ * Swipe and Drag Logic
+ */
+let touchStartX = 0;
+let touchEndX = 0;
+const SWIPE_THRESHOLD = 50;
+
+function initSwipeLogic() {
+    const lbContainer = document.querySelector('.lightbox-image-container');
+    const lbImage = document.getElementById('lb-image');
+    
+    if (!lbContainer || !lbImage) return;
+
+    // Prevent default drag on image
+    lbImage.ondragstart = () => false;
+
+    // Touch events for mobile
+    lbContainer.addEventListener('touchstart', e => {
+        touchStartX = e.changedTouches[0].screenX;
+    }, {passive: true});
+
+    lbContainer.addEventListener('touchend', e => {
+        touchEndX = e.changedTouches[0].screenX;
+        handleSwipe();
+    }, {passive: true});
+
+    // Mouse events for desktop
+    let isDragging = false;
+    lbContainer.addEventListener('mousedown', e => {
+        if (e.target.closest('.lb-nav') || e.target.closest('button')) return;
+        isDragging = true;
+        touchStartX = e.screenX;
+    });
+
+    window.addEventListener('mouseup', e => {
+        if (!isDragging) return;
+        isDragging = false;
+        touchEndX = e.screenX;
+        handleSwipe();
+    });
+}
+
+function handleSwipe() {
+    if (!currentGalleryImages || currentGalleryImages.length <= 1) return;
+    
+    const diff = touchStartX - touchEndX;
+    
+    if (Math.abs(diff) > SWIPE_THRESHOLD) {
+        if (diff > 0) {
+            navigateGallery(1); // Swiped left -> next
+        } else {
+            navigateGallery(-1); // Swiped right -> prev
+        }
     }
 }
