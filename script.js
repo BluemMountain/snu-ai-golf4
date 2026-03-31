@@ -1921,6 +1921,7 @@ function getRSVPAvailability(monthText) {
 /* --- Bulk Register Executives --- */
 const GOLF_SCHEDULE = [
     { month: '3월', date: '3.25' },
+    { month: '4월', date: '4.3' },
     { month: '4월', date: '4.22' },
     { month: '5월', date: '5.27' },
     { month: '6월', date: '6.24' },
