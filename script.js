@@ -2067,6 +2067,7 @@ async function renderSponsorHall(prefetchedData = null) {
             {
                 title: "5월 스폰서",
                 list: [
+                    "원우회 : 300만원",
                     "현성호 원우회장님 : 200만원",
                     "김대욱 골프회장님 : 100만원",
                     "정민호 골프부회장님 : 공진단"
