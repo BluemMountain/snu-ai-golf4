@@ -735,6 +735,11 @@ async function loadAdminMembers(prefetchedMembers = null) {
             members = data;
         }
 
+        // Ensure scores are loaded for handicap calculation
+        if (G_SCORES_RAW.length === 0) {
+            await loadScoresFromSupabase();
+        }
+
         // Clear only after data is fetched to prevent flicker/race overlap
         tbody.innerHTML = '';
 
@@ -749,9 +754,16 @@ async function loadAdminMembers(prefetchedMembers = null) {
         members.forEach((item) => {
             const tr = document.createElement('tr');
             const isExecutive = item.type === 'executive';
+            const stats = getMemberStats(item.name);
 
             tr.innerHTML = `
-            <td style="padding: 10px; border: 1px solid #ddd;">${item.name}</td>
+            <td style="padding: 10px; border: 1px solid #ddd;">
+                <div style="font-weight: bold;">${item.name}</div>
+                <div style="font-size: 0.75rem; color: #666; margin-top: 5px; line-height: 1.4;">
+                    26년 핸디: <span style="color: #2980b9; font-weight: bold;">${stats.h26}</span><br>
+                    총 핸디: <span style="color: #577b2d; font-weight: bold;">${stats.h25}</span>
+                </div>
+            </td>
             <td style="padding: 10px; border: 1px solid #ddd;">
                 <select onchange="updateMemberType('${item.name}', this.value)" style="padding: 4px; border-radius: 4px; border: 1px solid #ddd; width: 100%;">
                     <option value="ilban" ${item.type === 'ilban' ? 'selected' : ''}>일반회원</option>
