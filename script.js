@@ -1505,8 +1505,6 @@ async function syncScoresToRecords(sessionKey) {
 })();
 
 async function assignGroups(mode) {
-    let participants = [];
-
     const sessionVal = document.getElementById('group-session-select').value;
     if (!sessionVal) {
         alert("조편성할 일시를 먼저 선택해주세요.");
@@ -1516,28 +1514,80 @@ async function assignGroups(mode) {
     if (mode === 'sample') {
         const { data: members, error } = await supabaseClient.from('members').select('name');
         if (error) return;
-        participants = members.map(m => m.name);
-    } else {
+        const participants = members.map(m => m.name);
+        if (participants.length === 0) return;
+        const shuffled = shuffleArray(participants);
+        const groups = splitIntoOptimalGroups(shuffled);
+        renderGroups(groups);
+        return;
+    }
+
+    // mode === 'rsvp' (현재 신청자 기반 조편성)
+    try {
         const [month, date] = sessionVal.split('|');
-        const { data: rsvps, error } = await supabaseClient
+        const { data: rsvps, error: rsvpError } = await supabaseClient
             .from('rsvps')
             .select('name')
             .eq('month', month.trim())
             .eq('date', date.trim())
             .eq('status', 'attend');
-        if (error) return;
+        if (rsvpError) throw rsvpError;
 
-        participants = [...new Set(rsvps.map(r => r.name.trim()))];
+        const attendList = [...new Set(rsvps.map(r => r.name.trim()))];
+        if (attendList.length === 0) {
+            alert("조편성할 인원(참석 확정자)이 없습니다.");
+            return;
+        }
+
+        // 기존에 저장된 조편성 데이터가 있는지 확인
+        const { data: saved, error: savedError } = await supabaseClient
+            .from('group_assignments')
+            .select('groups_data')
+            .eq('session_key', sessionVal)
+            .maybeSingle();
+
+        if (savedError) console.error("기존 조편성 확인 중 오류:", savedError);
+
+        if (saved && saved.groups_data && saved.groups_data.length > 0) {
+            // [INCREMENTAL Update] 기존 조편성 유지 로직
+            console.log("Existing groups found. Updating incrementally...");
+            
+            // 1. 기존 조에서 현재 불참하는 인원 제거
+            let updatedGroups = saved.groups_data.map(group => 
+                group.filter(name => attendList.includes(name.trim()))
+            ).filter(group => group.length > 0); // 텅 빈 조는 삭제
+
+            // 2. 현재 조에 편성되지 않은 새로운 인원 찾기
+            const assignedNames = updatedGroups.flat();
+            const newParticipants = attendList.filter(name => !assignedNames.includes(name));
+
+            if (newParticipants.length > 0) {
+                // 3. 새 인원을 기존 조 중 빈자리(4인 미만)가 있는 곳에 먼저 채우기
+                newParticipants.forEach(person => {
+                    let targetGroup = updatedGroups.find(g => g.length < 4);
+                    if (targetGroup) {
+                        targetGroup.push(person);
+                    } else {
+                        // 모든 조가 4명이면 새로운 조 생성
+                        updatedGroups.push([person]);
+                    }
+                });
+                alert(`기존 조편성을 유지하면서 새 인원(${newParticipants.length}명)을 추가 배치하였습니다.`);
+            } else {
+                alert("기존 조편성에서 변동 사항이 없거나 불참자만 정리되었습니다.");
+            }
+            
+            renderGroups(updatedGroups);
+        } else {
+            // [Initial Setup] 저장된 데이터가 없으면 새로 고침
+            const shuffled = shuffleArray(attendList);
+            const groups = splitIntoOptimalGroups(shuffled);
+            renderGroups(groups);
+        }
+    } catch (err) {
+        console.error("조편성 실패:", err);
+        alert("조편성 로딩 중 오류가 발생했습니다.");
     }
-
-    if (participants.length === 0) {
-        alert("조편성할 인원이 없습니다.");
-        return;
-    }
-
-    const shuffled = shuffleArray(participants);
-    const groups = splitIntoOptimalGroups(shuffled);
-    renderGroups(groups);
 }
 
 // 조편성 데이터 저장
