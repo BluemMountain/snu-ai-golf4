@@ -1539,34 +1539,18 @@ async function assignGroups(mode) {
             return;
         }
 
-        // --- [NEW Logic] 우선순위: 1. 화면의 현재 조편성 / 2. DB에 저장된 조편성 ---
+        // --- [Logic] DB에 저장된 조편성을 기준으로 유지 ---
         let baseGroups = [];
-        const resultContainer = document.getElementById('group-assignment-result');
-        const currentGroupCards = resultContainer.querySelectorAll('.group-card');
+        const { data: saved, error: savedError } = await supabaseClient
+            .from('group_assignments')
+            .select('groups_data')
+            .eq('session_key', sessionVal)
+            .maybeSingle();
 
-        // 화면상에 이미 조편성이 되어 있는지 확인
-        if (currentGroupCards.length > 0) {
-            currentGroupCards.forEach(card => {
-                const members = [];
-                card.querySelectorAll('.member-name').forEach(span => {
-                    members.push(span.textContent.trim());
-                });
-                if (members.length > 0) baseGroups.push(members);
-            });
-            console.log("Using current UI state as grouping base.");
-        } else {
-            // 화면에 없으면 DB 확인
-            const { data: saved, error: savedError } = await supabaseClient
-                .from('group_assignments')
-                .select('groups_data')
-                .eq('session_key', sessionVal)
-                .maybeSingle();
-
-            if (savedError) console.error("기존 조편성 확인 오류:", savedError);
-            if (saved && saved.groups_data && saved.groups_data.length > 0) {
-                baseGroups = saved.groups_data;
-                console.log("Using saved database state as grouping base.");
-            }
+        if (savedError) console.error("기존 조편성 확인 오류:", savedError);
+        if (saved && saved.groups_data && saved.groups_data.length > 0) {
+            baseGroups = saved.groups_data;
+            console.log("Using saved database state as grouping base.");
         }
 
         if (baseGroups.length > 0) {
