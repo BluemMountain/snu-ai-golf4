@@ -934,12 +934,14 @@ async function loadAdminData() {
                 headerRow.style.backgroundColor = "#e8f5e9";
                 const attendCount = items.filter(i => i.status === 'attend').length;
 
-                // 3월~11월 정규 라운드는 5팀(20명) 예약으로 정원 고정
+                // 5월만 10팀(40명), 3월~11월 정규 라운드는 5팀(20명) 예약으로 정원 고정
                 let totalDisplay = items.length;
                 const monthMatch = key.match(/^(\d+)월/);
                 if (monthMatch) {
                     const monthNum = parseInt(monthMatch[1]);
-                    if (monthNum >= 3 && monthNum <= 11) {
+                    if (monthNum === 5) {
+                        totalDisplay = 40;
+                    } else if (monthNum >= 3 && monthNum <= 11) {
                         totalDisplay = 20;
                     }
                 }
@@ -1110,12 +1112,16 @@ async function renderPublicRSVPs() {
     sortedKeys.forEach(key => {
         const items = groupedData[key];
 
-        // 정원 계산 (3월~11월 20명 고정)
+        // 정원 계산 (5월 10팀-40명, 3월~11월 5팀-20명 고정)
         let totalCapacity = 20;
         const monthMatch = key.match(/^(\d+)월/);
         if (monthMatch) {
             const mNum = parseInt(monthMatch[1]);
-            if (mNum < 3 || mNum > 11) totalCapacity = 999; // 2월 등 예외
+            if (mNum === 5) {
+                totalCapacity = 40;
+            } else if (mNum < 3 || mNum > 11) {
+                totalCapacity = 999; // 2월 등 예측 불가능한 일정 예외
+            }
         }
 
         // 지능형 우선순위 정렬
