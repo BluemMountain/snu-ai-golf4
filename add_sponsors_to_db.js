@@ -51,6 +51,30 @@ const newSponsors = [
         status: 'attend',
         sponsor: '공진단 3박스(60만원 * 3 = 180만원 상당)',
         submittedat: new Date().toISOString()
+    },
+    {
+        name: '김대욱',
+        month: '3월',
+        date: '3.25',
+        status: 'attend',
+        sponsor: '사과 3박스',
+        submittedat: new Date().toISOString()
+    },
+    {
+        name: '박철호',
+        month: '3월',
+        date: '3.25',
+        status: 'attend',
+        sponsor: '사과 3박스',
+        submittedat: new Date().toISOString()
+    },
+    {
+        name: '정진우',
+        month: '3월',
+        date: '3.25',
+        status: 'attend',
+        sponsor: '10만원 상품권 3장, 인형 2개',
+        submittedat: new Date().toISOString()
     }
 ];
 
