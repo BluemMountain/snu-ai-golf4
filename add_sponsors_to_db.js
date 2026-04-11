@@ -53,6 +53,14 @@ const newSponsors = [
         submittedat: new Date().toISOString()
     },
     {
+        name: '이문형',
+        month: '5월',
+        date: '5.27',
+        status: 'attend',
+        sponsor: '수정방',
+        submittedat: new Date().toISOString()
+    },
+    {
         name: '김대욱',
         month: '3월',
         date: '3.25',
