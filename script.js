@@ -454,12 +454,25 @@ function initAdminTabs() {
             const targetContent = document.getElementById(tabId);
             if (targetContent) targetContent.classList.add('active');
 
+            // 탭 상태 저장
+            sessionStorage.setItem('activeAdminTab', tabId);
+
             // 조편성 탭 선택 시 데이터 로딩
             if (tabId === 'tab-groups') {
                 loadGroupSessions();
             }
         });
     });
+
+    // 저장된 탭 상태 복원
+    const savedTabId = sessionStorage.getItem('activeAdminTab');
+    if (savedTabId) {
+        const savedTabBtn = document.querySelector(`.tab-btn[data-tab="${savedTabId}"]`);
+        if (savedTabBtn) {
+            // timeout을 약간 주어 초기화 로직(DOMContentLoaded 하위 다른 함수들)과 순서 보정
+            setTimeout(() => savedTabBtn.click(), 100);
+        }
+    }
 }
 
 function initAdminMemberManagement() {
@@ -504,8 +517,7 @@ function initAdminButtons() {
 
     if (adminRefreshBtn) {
         adminRefreshBtn.onclick = () => {
-            loadAdminData();
-            loadAdminMembers();
+            location.reload();
         };
     }
 
