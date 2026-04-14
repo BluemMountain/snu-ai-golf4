@@ -1730,7 +1730,7 @@ function renderGroups(groups) {
         div.id = `group-card-${index}`;
         div.className = 'group-card';
         div.style.background = '#fff';
-        div.style.padding = '15px';
+        div.style.padding = '8px 5px';
         div.style.borderRadius = '8px';
         div.style.border = '1px solid #ddd';
         div.style.boxShadow = '0 2px 4px rgba(0,0,0,0.05)';
@@ -1752,7 +1752,7 @@ function renderGroups(groups) {
 
         const h5 = document.createElement('h5');
         h5.textContent = `${index + 1} 조`;
-        h5.style.margin = '0 0 10px 0';
+        h5.style.margin = '0 0 5px 0';
         h5.style.color = '#577b2d';
         h5.style.borderBottom = '1px solid #eee';
         h5.style.paddingBottom = '5px';
@@ -1774,8 +1774,8 @@ function renderGroups(groups) {
             li.style.display = 'flex';
             li.style.justifyContent = 'space-between';
             li.style.alignItems = 'center';
-            li.style.padding = '8px 12px';
-            li.style.marginBottom = '5px';
+            li.style.padding = '4px 6px';
+            li.style.marginBottom = '2px';
             li.style.borderRadius = '4px';
             li.style.background = '#f9f9f9';
             li.style.border = '1px solid #f0f0f0';

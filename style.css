@@ -1250,3 +1250,21 @@ footer {
     border-top: 1px dashed #eee;
     padding-top: 10px;
 }
+
+/* Group Assignment Grid */
+.group-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 15px;
+}
+
+@media (max-width: 600px) {
+    .group-grid {
+        grid-template-columns: repeat(3, 1fr) !important;
+        gap: 6px !important;
+    }
+    
+    .group-grid > .group-card {
+        padding: 8px 4px !important;
+    }
+}
