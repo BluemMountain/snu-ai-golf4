@@ -116,13 +116,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initAdminMemberManagement();
     initAdminButtons();
 
-    // Admin Modal setup (for index.html)
-    const adminLink = document.getElementById('admin-link');
-    const adminModal = document.getElementById('admin-modal');
-    const adminCloseBtn = document.querySelector('.admin-close');
-    if (adminLink && adminModal) {
-        setupAdminModal(adminLink, adminModal, adminCloseBtn);
-    }
+    // Admin Modal setup (legacy logic removed - handled by login.html redirect)
 
     // PWA Install Prompt
     initPWAInstall();
@@ -239,7 +233,7 @@ function checkLogin() {
     });
 }
 
-console.log("SNU AI GOLF Script Loaded v4.0");
+console.log("SNU AI GOLF Script Loaded v5.5");
 function initRSVP() {
     const modal = document.getElementById('rsvp-modal');
     if (!modal) return; // 전용 관리자 페이지 등에서는 RSVP 로직 건너뜀
@@ -558,59 +552,7 @@ function initAdminButtons() {
     }
 }
 
-function setupAdminModal(adminLink, adminModal, adminCloseBtn) {
-    const sha256 = async (message) => {
-        const msgBuffer = new TextEncoder().encode(message);
-        const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
-        const hashArray = Array.from(new Uint8Array(hashBuffer));
-        return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-    };
-
-    adminLink.onclick = async (e) => {
-        e.preventDefault();
-        const password = prompt("관리자 비밀번호를 입력하세요")?.trim().toLowerCase();
-        if (!password) return;
-
-        const readOnlyHash = '07e47f77d22e2fc388c2d12f73b8b8b7e9928630d39a4964a9daabbc27a060f4';
-        const superHash = '216af8f8d1513e343fd4533a21148ad1355d6f01e42a8d91de3c598690d0a1e2';
-
-        try {
-            const inputHash = await sha256(password);
-            if (inputHash === superHash) {
-                sessionStorage.setItem('snu_golf_admin_logged_in', 'true');
-                sessionStorage.setItem('userRole', 'super');
-                loadAdminData();
-                loadAdminMembers();
-                if (typeof applyRoleRestrictions === 'function') applyRoleRestrictions();
-                adminModal.style.display = 'block';
-                alert("최고 관리자 권한으로 로그인되었습니다.");
-            } else if (inputHash === readOnlyHash) {
-                sessionStorage.setItem('snu_golf_admin_logged_in', 'true');
-                sessionStorage.setItem('userRole', 'readonly');
-                loadAdminData();
-                loadAdminMembers();
-                if (typeof applyRoleRestrictions === 'function') applyRoleRestrictions();
-                adminModal.style.display = 'block';
-                alert("임원진(읽기 전용) 권한으로 로그인되었습니다.");
-            } else {
-                alert(`비밀번호가 틀렸습니다. (입력된 길이: ${password.length}자)`);
-            }
-        } catch (err) {
-            console.error('Admin hash error:', err);
-        }
-    };
-
-    if (adminCloseBtn) {
-        adminCloseBtn.onclick = () => { adminModal.style.display = 'none'; };
-    }
-
-    // Modal background click
-    window.addEventListener('click', (event) => {
-        if (event.target == adminModal) {
-            adminModal.style.display = 'none';
-        }
-    });
-}
+// Legacy admin modal logic removed
 
 /* --- Member Management Functions --- */
 

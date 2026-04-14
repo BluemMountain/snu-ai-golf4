@@ -186,20 +186,15 @@
             border: 1px solid #577b2d;
         }
     </style>
+    <script>
+        // Early redirect if not logged in
+        if (sessionStorage.getItem('snu_golf_admin_logged_in') !== 'true') {
+            window.location.href = 'login.html?next=admin.html';
+        }
+    </script>
 </head>
 
 <body>
-    <!-- Simple Auth Overlay -->
-    <div id="admin-auth-overlay">
-        <h2 style="font-family: 'Noto Serif KR', serif; color: #1e3a2b; margin-bottom: 20px;">관리자 인증</h2>
-        <div style="display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 300px;">
-            <input type="password" id="admin-password-input" placeholder="비밀번호를 입력하세요"
-                style="padding: 12px; border: 1px solid #ccc; border-radius: 4px; font-size: 1rem;">
-            <button onclick="submitAdminAuth()" class="cta-button" style="width: 100%;">로그인</button>
-        </div>
-        <a href="index.html" class="back-home" style="margin-top: 20px; display: block;">← 메인 페이지로 돌아가기</a>
-    </div>
-
     <div class="container">
         <div class="admin-page-container">
             <div class="admin-header">
@@ -420,7 +415,7 @@
     <!-- Supabase JS -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="admin_logic.js?v=1.4"></script>
-    <script src="script.js?v=5.4"></script>
+    <script src="script.js?v=5.5"></script>
 
     <script>
         // Inline Auth Logic for Admin Page
@@ -438,78 +433,18 @@
                     document.querySelectorAll('#admin-table input, #admin-table select, #admin-member-table input, #admin-member-table select').forEach(el => {
                         el.disabled = true;
                     });
-                    // Hide delete buttons in rows via edit-control class (applied in script.js rendering)
                 }, 1000);
             }
         }
 
-        function submitAdminAuth() {
-            const passwordInput = document.getElementById('admin-password-input');
-            const password = passwordInput.value.trim().toLowerCase();
-
-            if (!password) {
-                alert("비밀번호를 입력해주세요.");
-                passwordInput.focus();
-                return;
-            }
-
-            async function check() {
-                const msgBuffer = new TextEncoder().encode(password);
-                const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
-                const hashArray = Array.from(new Uint8Array(hashBuffer));
-                const inputHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-
-                // Hash for "aiceo4thgolf-admin" (Read Only)
-                const readOnlyHash = '07e47f77d22e2fc388c2d12f73b8b8b7e9928630d39a4964a9daabbc27a060f4';
-                // Hash for "aiceo4thgolf-admin-8003" (Super Admin)
-                const superHash = '216af8f8d1513e343fd4533a21148ad1355d6f01e42a8d91de3c598690d0a1e2';
-
-                if (inputHash === superHash) {
-                    sessionStorage.setItem('snu_golf_admin_logged_in', 'true');
-                    sessionStorage.setItem('userRole', 'super');
-                    document.getElementById('admin-auth-overlay').style.display = 'none';
-                    applyRoleRestrictions();
-                    // alert("최고 관리자 권한으로 로그인되었습니다.");
-                    // Trigger data load
-                    if (typeof loadAdminData === 'function') loadAdminData();
-                    if (typeof loadAdminMembers === 'function') loadAdminMembers();
-                } else if (inputHash === readOnlyHash) {
-                    sessionStorage.setItem('snu_golf_admin_logged_in', 'true');
-                    sessionStorage.setItem('userRole', 'readonly');
-                    document.getElementById('admin-auth-overlay').style.display = 'none';
-                    applyRoleRestrictions();
-                    // alert("임원진(읽기 전용) 권한으로 로그인되었습니다.");
-                    // Trigger data load
-                    if (typeof loadAdminData === 'function') loadAdminData();
-                    if (typeof loadAdminMembers === 'function') loadAdminMembers();
-                } else {
-                    alert(`비밀번호가 틀렸습니다.`);
-                    passwordInput.value = '';
-                    passwordInput.focus();
-                }
-            }
-            check();
-        }
-
-        // Allow Enter key to submit
-        document.getElementById('admin-password-input').addEventListener('keypress', function (e) {
-            if (e.key === 'Enter') {
-                submitAdminAuth();
-            }
-        });
-
-        // Check auth on load
         window.addEventListener('DOMContentLoaded', () => {
             if (sessionStorage.getItem('snu_golf_admin_logged_in') === 'true') {
-                document.getElementById('admin-auth-overlay').style.display = 'none';
                 applyRoleRestrictions();
                 // Wait for script.js to load functions
                 setTimeout(() => {
                     if (typeof loadAdminData === 'function') loadAdminData();
                     if (typeof loadAdminMembers === 'function') loadAdminMembers();
                 }, 500);
-            } else {
-                // Focus password input on load
                 setTimeout(() => document.getElementById('admin-password-input')?.focus(), 100);
             }
         });

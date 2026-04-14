@@ -130,27 +130,40 @@
             try {
                 const inputHash = await sha256(password);
 
-                if (inputHash === targetHash) {
-                    // 1. Set simple session state
-                    sessionStorage.setItem('snu_golf_logged_in', 'true');
+                const targetHash = 'e8b4f6ec0fc711b46eabf2891dc653f6b04e8e2bb9cefb8319c02fc6155b3264'; // 회원
+                const superHash = '216af8f8d1513e343fd4533a21148ad1355d6f01e42a8d91de3c598690d0a1e2'; // 최고 관리자
+                const readOnlyHash = '07e47f77d22e2fc388c2d12f73b8b8b7e9928630d39a4964a9daabbc27a060f4'; // 읽기 전용
 
-                    // 2. Perform background Supabase Auth login for RLS
-                    // Note: This account must be created in Supabase Auth first
-                    const { error: authError } = await supabaseClient.auth.signInWithPassword({
+                let redirectUrl = '';
+
+                if (inputHash === superHash) {
+                    // 최고 관리자 로그인
+                    sessionStorage.setItem('snu_golf_admin_logged_in', 'true');
+                    sessionStorage.setItem('userRole', 'super');
+                    redirectUrl = 'admin.html';
+                } else if (inputHash === readOnlyHash) {
+                    // 임원진(읽기 전용) 로그인
+                    sessionStorage.setItem('snu_golf_admin_logged_in', 'true');
+                    sessionStorage.setItem('userRole', 'readonly');
+                    redirectUrl = 'admin.html';
+                } else if (inputHash === targetHash) {
+                    // 일반 회원 로그인
+                    sessionStorage.setItem('snu_golf_logged_in', 'true');
+                    
+                    // Supabase Auth (RLS 용)
+                    await supabaseClient.auth.signInWithPassword({
                         email: 'member@snugolf.com',
                         password: 'aiceo4thgolfPassword123!'
-                    });
+                    }).catch(err => console.warn('Supabase Auth failed:', err));
 
-                    if (authError) {
-                        console.warn('Background Auth failed (Account might not exist yet):', authError.message);
-                        // We still proceed since the local session is enough for UI visibility, 
-                        // but RLS-protected uploads will fail until the account is created.
-                    }
+                    redirectUrl = 'index.html';
+                }
 
-                    // redirect 처리
+                if (redirectUrl) {
+                    // URL 파라미터(next)가 있으면 우선순위 적용
                     const urlParams = new URLSearchParams(window.location.search);
-                    const next = urlParams.get('next') || 'index.html';
-                    window.location.href = next;
+                    const next = urlParams.get('next');
+                    window.location.href = next || redirectUrl;
                 } else {
                     errorMsg.style.display = 'block';
                     errorMsg.textContent = '비밀번호가 올바르지 않습니다.';
