@@ -1162,7 +1162,15 @@ async function renderPublicRSVPs() {
                     <span style="margin-right: 8px;">🎁</span> 이달의 스폰서
                 </h4>
     <div style="display: flex; flex-wrap: wrap; gap: 10px;">
-        ${sponsors.map(s => `
+        ${sponsors.sort((a, b) => {
+            const order = ['원우회', '현성호', '김대욱', '정민호', '이문형'];
+            const idxA = order.indexOf(a.name);
+            const idxB = order.indexOf(b.name);
+            if (idxA > -1 && idxB > -1) return idxA - idxB;
+            if (idxA > -1) return -1;
+            if (idxB > -1) return 1;
+            return a.name.localeCompare(b.name, 'ko');
+        }).map(s => `
                         <div style="background: #fff; padding: 5px 12px; border-radius: 20px; font-size: 0.9rem; border: 1px solid #c8e6c9; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
                             <span style="font-weight: bold; color: #1b5e20;">${s.name}</span>: ${s.sponsor}
                         </div>
