@@ -1684,10 +1684,15 @@ function renderGroups(groups) {
     const container = document.getElementById('group-assignment-result');
     if (!container) return;
 
+    // Get current session key to lookup tee times
+    const sessionKey = document.getElementById('group-session-select')?.value;
+    const teeTimes = (typeof GOLF_TEE_TIMES !== 'undefined' && sessionKey) ? GOLF_TEE_TIMES[sessionKey] : [];
+
     container.innerHTML = '';
     let copyText = "[조편성 결과]\n\n";
 
     groups.forEach((group, index) => {
+        const teeTime = (teeTimes && teeTimes[index]) ? teeTimes[index] : "";
         const div = document.createElement('div');
         div.id = `group-card-${index}`;
         div.className = 'group-card';
@@ -1713,7 +1718,7 @@ function renderGroups(groups) {
         };
 
         const h5 = document.createElement('h5');
-        h5.textContent = `${index + 1} 조`;
+        h5.innerHTML = `${index + 1} 조 ${teeTime ? `<span style="font-size: 0.8rem; color: #e67e22; margin-left: 8px;">[${teeTime}]</span>` : ""}`;
         h5.style.margin = '0 0 5px 0';
         h5.style.color = '#577b2d';
         h5.style.borderBottom = '1px solid #eee';
@@ -1727,7 +1732,7 @@ function renderGroups(groups) {
         ul.style.margin = '0';
         ul.style.minHeight = '100px'; // Empty zone drop support
 
-        copyText += `${index + 1} 조: ${group.join(', ')} \n`;
+        copyText += `${index + 1} 조: ${teeTime ? `(${teeTime}) ` : ""}${group.join(', ')} \n`;
 
         group.forEach(name => {
             const li = document.createElement('li');
@@ -1964,6 +1969,20 @@ const GOLF_SCHEDULE = [
     { month: '10월', date: '10.28' },
     { month: '11월', date: '11.25' }
 ];
+
+/* --- Tee Time Definitions for Group Assignment --- */
+const GOLF_TEE_TIMES = {
+    "3월|3.25": [
+        "데이비드 13:22", "에벤에셀 13:22", "데이비드 13:30", "에벤에셀 13:30", "데이비드 13:37"
+    ],
+    "4월|4.22": [
+        "솔로몬 13:22", "데이비드 13:22", "솔로몬 13:30", "데이비드 13:30", "솔로몬 13:37"
+    ],
+    "5월|5.27": [
+        "에벤에셀 13:00", "에벤에셀 13:07", "에벤에셀 13:15", "에벤에셀 13:22", "솔로몬 13:22",
+        "에벤에셀 13:30", "솔로몬 13:30", "에벤에셀 13:37", "솔로몬 13:37", "솔로몬 13:45"
+    ]
+};
 
 async function bulkRegisterExecutives() {
     const { data: members, error: memberError } = await supabaseClient
