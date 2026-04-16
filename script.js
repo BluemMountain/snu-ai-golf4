@@ -1466,6 +1466,107 @@ async function syncScoresToRecords(sessionKey) {
     } catch (e) { console.error('Venue fix failed:', e); }
 })();
 
+/**
+ * 6월 이후 조편성 시 과거 기록을 바탕으로 중복 편성을 최소화하는 로직입니다.
+ * 1. DB에서 모든 과거 조편성 데이터를 가져와 멤버간 만난 횟수를 카운트합니다.
+ * 2. 현재 신청 인원을 대상으로 무작위 셔플 후, 상호 만난 횟수의 총합(Score)을 구합니다.
+ * 3. 무작위 스왑을 통해 이 Score를 최소화하는 조를 찾아 결과로 반환합니다.
+ */
+
+async function fetchPairingHistory() {
+    try {
+        const { data, error } = await supabaseClient
+            .from('group_assignments')
+            .select('groups_data');
+        
+        if (error) throw error;
+        
+        const historyMap = {}; // { "NameA": { "NameB": count, ... } }
+        
+        data.forEach(session => {
+            const groups = session.groups_data || [];
+            groups.forEach(group => {
+                for (let i = 0; i < group.length; i++) {
+                    const p1 = group[i].trim();
+                    if (!historyMap[p1]) historyMap[p1] = {};
+                    for (let j = 0; j < group.length; j++) {
+                        if (i === j) continue;
+                        const p2 = group[j].trim();
+                        historyMap[p1][p2] = (historyMap[p1][p2] || 0) + 1;
+                    }
+                }
+            });
+        });
+        
+        return historyMap;
+    } catch (err) {
+        console.error("Error fetching pairing history:", err);
+        return {};
+    }
+}
+
+function calculateGroupingScore(groups, historyMap) {
+    let totalScore = 0;
+    groups.forEach(group => {
+        for (let i = 0; i < group.length; i++) {
+            const p1 = group[i];
+            const p1History = historyMap[p1] || {};
+            for (let j = i + 1; j < group.length; j++) {
+                const p2 = group[j];
+                totalScore += (p1History[p2] || 0);
+            }
+        }
+    });
+    return totalScore;
+}
+
+function generateOptimizedGroups(attendList, historyMap) {
+    // 1. Initial random shuffle and grouping
+    let bestGroups = splitIntoOptimalGroups(shuffleArray([...attendList]));
+    let bestScore = calculateGroupingScore(bestGroups, historyMap);
+    
+    console.log("Initial Grouping Score (Repeats):", bestScore);
+    if (bestScore === 0) return bestGroups; // Already perfect variety
+
+    // 2. Optimization Loop (Hill Climbing)
+    const iterations = 1500;
+    let currentGroups = bestGroups.map(g => [...g]);
+    
+    for (let i = 0; i < iterations; i++) {
+        // Randomly pick two groups and swap one member from each
+        const gIdx1 = Math.floor(Math.random() * currentGroups.length);
+        const gIdx2 = Math.floor(Math.random() * currentGroups.length);
+        if (gIdx1 === gIdx2) continue;
+        
+        const group1 = currentGroups[gIdx1];
+        const group2 = currentGroups[gIdx2];
+        
+        const mIdx1 = Math.floor(Math.random() * group1.length);
+        const mIdx2 = Math.floor(Math.random() * group2.length);
+        
+        // Swap
+        const name1 = group1[mIdx1];
+        const name2 = group2[mIdx2];
+        
+        group1[mIdx1] = name2;
+        group2[mIdx2] = name1;
+        
+        const currentScore = calculateGroupingScore(currentGroups, historyMap);
+        
+        if (currentScore < bestScore) {
+            bestScore = currentScore;
+            bestGroups = currentGroups.map(g => [...g]);
+        } else {
+            // Revert swap
+            group1[mIdx1] = name1;
+            group2[mIdx2] = name2;
+        }
+    }
+    
+    console.log("Final Optimized Grouping Score (Repeats):", bestScore);
+    return bestGroups;
+}
+
 async function assignGroups(mode) {
     const sessionVal = document.getElementById('group-session-select').value;
     if (!sessionVal) {
@@ -1546,9 +1647,20 @@ async function assignGroups(mode) {
             renderGroups(updatedGroups);
         } else {
             // [Initial Setup] 저장된 데이터가 전혀 없으면 새로 고침
-            const shuffled = shuffleArray(attendList);
-            const groups = splitIntoOptimalGroups(shuffled);
-            renderGroups(groups);
+            const monthNum = parseInt(month.replace(/[^0-9]/g, ''));
+            
+            // 6월~11월 사이이며 모드가 'rsvp'일 때 지능형 조편성 적용
+            if (monthNum >= 6 && monthNum <= 11 && mode === 'rsvp') {
+                console.log(`Intelligent Grouping for ${monthNum}월...`);
+                const historyMap = await fetchPairingHistory();
+                const optimizedGroups = generateOptimizedGroups(attendList, historyMap);
+                renderGroups(optimizedGroups);
+                showToast(`${monthNum}월 중복 최소화 조편성이 완료되었습니다.`);
+            } else {
+                const shuffled = shuffleArray(attendList);
+                const groups = splitIntoOptimalGroups(shuffled);
+                renderGroups(groups);
+            }
         }
     } catch (err) {
         console.error("조편성 실패:", err);
