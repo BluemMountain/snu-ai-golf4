@@ -1163,7 +1163,7 @@ async function renderPublicRSVPs() {
                 </h4>
     <div style="display: flex; flex-wrap: wrap; gap: 10px;">
         ${sponsors.sort((a, b) => {
-            const order = ['원우회', '현성호', '김대욱', '정민호', '이문형'];
+            const order = ['원우회', '현성호', '김대욱', '정민호', '이문형', '이영규', '조중규'];
             const idxA = order.indexOf(a.name);
             const idxB = order.indexOf(b.name);
             if (idxA > -1 && idxB > -1) return idxA - idxB;
@@ -2222,7 +2222,9 @@ async function renderSponsorHall(prefetchedData = null) {
                     "현성호 원우회장님 : 200만원",
                     "김대욱 골프회장님 : 100만원",
                     "정민호 골프부회장님 : 공진단 3박스(60만원 * 3 = 180만원 상당)",
-                    "이문형 원우님 : 수정방"
+                    "이문형 원우님 : 수정방",
+                    "이영규 원우님 : 전해질 500포",
+                    "조중규 원우님 : 곤약면 50Box"
                 ]
             },
             {
@@ -2277,9 +2279,10 @@ async function renderSponsorHall(prefetchedData = null) {
             }).join('');
 
             card.innerHTML = `
-                <div style="font-size: 1.2rem; color: #c5a059; font-weight: bold; margin-bottom: 10px; border-bottom: 2px solid #f0e6d2; padding-bottom: 10px; width: 100%; text-align: left;">
+                <h3 style="margin-top: 0; color: #c5a059; border-bottom: 2px solid #f0f0f0; padding-bottom: 15px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: baseline; width: 100%;">
                     ${data.title}
-                </div>
+                    <span style="font-size: 0.7rem; color: #ccc; font-weight: normal;">v6.0</span>
+                </h3>
                 <div style="width: 100%;">
                     ${listHtml}
                 </div>

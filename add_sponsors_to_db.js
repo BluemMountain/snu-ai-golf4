@@ -61,6 +61,22 @@ const newSponsors = [
         submittedat: new Date().toISOString()
     },
     {
+        name: '이영규',
+        month: '5월',
+        date: '5.27',
+        status: 'attend',
+        sponsor: '전해질 500포',
+        submittedat: new Date().toISOString()
+    },
+    {
+        name: '조중규',
+        month: '5월',
+        date: '5.27',
+        status: 'attend',
+        sponsor: '곤약면 50Box',
+        submittedat: new Date().toISOString()
+    },
+    {
         name: '김대욱',
         month: '3월',
         date: '3.25',
