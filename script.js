@@ -2228,14 +2228,11 @@ async function renderSponsorHall(prefetchedData = null) {
                 ]
             },
             {
-                title: "4월 3일 스폰서",
+                title: "4월 스폰서",
                 list: [
-                    "현성호 원우회장님 : 모듬 과일 2박스, 쌀 2포대, 김 셋트"
-                ]
-            },
-            {
-                title: "4월 22일 스폰서",
-                list: [
+                    "4월 3일",
+                    "현성호 원우회장님 : 모듬 과일 2박스, 쌀 2포대, 김 셋트",
+                    "4월 22일",
                     "김대욱 골프회장님 : 골프공",
                     "정민호 골프부회장님 : 공진단 1박스"
                 ]
@@ -2275,13 +2272,17 @@ async function renderSponsorHall(prefetchedData = null) {
                                 <span style="color: #577b2d; font-weight: bold;">${parts[1]}</span>
                             </div>`;
                 }
+                // 날짜 구분선 스타일링
+                if (item.includes('월') && item.includes('일')) {
+                    return `<div style="margin-top: 15px; margin-bottom: 8px; font-weight: bold; color: #1e3a2b; border-left: 3px solid #c5a059; padding-left: 10px; background: #fffdf8; padding-top: 5px; padding-bottom: 5px;">${item}</div>`;
+                }
                 return `<div style="margin-bottom: 8px; font-size: 1.05rem; color: #333;">${item}</div>`;
             }).join('');
 
             card.innerHTML = `
                 <h3 style="margin-top: 0; color: #c5a059; border-bottom: 2px solid #f0f0f0; padding-bottom: 15px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: baseline; width: 100%;">
                     ${data.title}
-                    <span style="font-size: 0.7rem; color: #ccc; font-weight: normal;">v6.0</span>
+                    <span style="font-size: 0.7rem; color: #ccc; font-weight: normal;">v6.1</span>
                 </h3>
                 <div style="width: 100%;">
                     ${listHtml}
