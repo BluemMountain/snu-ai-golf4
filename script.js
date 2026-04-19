@@ -2218,7 +2218,7 @@ async function renderSponsorHall(prefetchedData = null) {
             {
                 title: "5월 스폰서",
                 list: [
-                    "원우회 : 300만원",
+                    "원우회 : 600만원",
                     "현성호 원우회장님 : 200만원",
                     "김대욱 골프회장님 : 100만원",
                     "정민호 골프부회장님 : 공진단 3박스(60만원 * 3 = 180만원 상당)",
@@ -2282,7 +2282,7 @@ async function renderSponsorHall(prefetchedData = null) {
             card.innerHTML = `
                 <h3 style="margin-top: 0; color: #c5a059; border-bottom: 2px solid #f0f0f0; padding-bottom: 15px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: baseline; width: 100%;">
                     ${data.title}
-                    <span style="font-size: 0.7rem; color: #ccc; font-weight: normal;">v6.1</span>
+                    <span style="font-size: 0.7rem; color: #ccc; font-weight: normal;">v6.2</span>
                 </h3>
                 <div style="width: 100%;">
                     ${listHtml}
