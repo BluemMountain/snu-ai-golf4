@@ -233,7 +233,7 @@ function checkLogin() {
     });
 }
 
-console.log("SNU AI GOLF Script Loaded v5.5");
+console.log("SNU AI GOLF Script Loaded v6.3");
 function initRSVP() {
     const modal = document.getElementById('rsvp-modal');
     if (!modal) return; // 전용 관리자 페이지 등에서는 RSVP 로직 건너뜀
@@ -2233,8 +2233,10 @@ async function renderSponsorHall(prefetchedData = null) {
                     "4월 3일",
                     "현성호 원우회장님 : 모듬 과일 2박스, 쌀 2포대, 김 셋트",
                     "4월 22일",
-                    "김대욱 골프회장님 : 골프공",
-                    "정민호 골프부회장님 : 공진단 1박스"
+                    "김대욱 골프회장님 : 타이틀리스트 볼 6구 * 2박스<br>토비스 티 2개",
+                    "정민호 골프부회장님 : 공진단 1박스<br>에스트라 아토베리어 크림과 로션 MD 18개",
+                    "정진우 원우님 : 폴리오 마사지 기<br>핸드워시 3개",
+                    "이영규 원우님 : 전해질 200포"
                 ]
             },
             {
@@ -2269,7 +2271,7 @@ async function renderSponsorHall(prefetchedData = null) {
                 if(parts.length === 2) {
                     return `<div style="display: flex; justify-content: space-between; width: 100%; border-bottom: 1px dashed #f0f0f0; padding: 8px 0;">
                                 <span style="color: #444; font-weight: 500;">${parts[0]}</span>
-                                <span style="color: #577b2d; font-weight: bold;">${parts[1]}</span>
+                                <span style="color: #577b2d; font-weight: bold; text-align: right; line-height: 1.4;">${parts[1]}</span>
                             </div>`;
                 }
                 // 날짜 구분선 스타일링
@@ -2282,7 +2284,7 @@ async function renderSponsorHall(prefetchedData = null) {
             card.innerHTML = `
                 <h3 style="margin-top: 0; color: #c5a059; border-bottom: 2px solid #f0f0f0; padding-bottom: 15px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: baseline; width: 100%;">
                     ${data.title}
-                    <span style="font-size: 0.7rem; color: #ccc; font-weight: normal;">v6.2</span>
+                    <span style="font-size: 0.7rem; color: #ccc; font-weight: normal;">v6.3</span>
                 </h3>
                 <div style="width: 100%;">
                     ${listHtml}
