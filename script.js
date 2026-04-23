@@ -233,7 +233,7 @@ function checkLogin() {
     });
 }
 
-console.log("SNU AI GOLF Script Loaded v6.3");
+console.log("SNU AI GOLF Script Loaded v6.4");
 function initRSVP() {
     const modal = document.getElementById('rsvp-modal');
     if (!modal) return; // 전용 관리자 페이지 등에서는 RSVP 로직 건너뜀
@@ -1369,10 +1369,9 @@ function shuffleArray(array) {
 }
 
 async function syncScoresToRecords(sessionKey) {
-    if (!confirm(`'${sessionKey}'의 스코어를 상세 기록 페이지로 복사하시겠습니까 ? `)) return;
+    if (!confirm(`'${sessionKey}'의 스코어를 상세 기록 페이지(DB)로 영구 저장하시겠습니까?`)) return;
 
     try {
-        // 1. Fetch RSVPs for this session
         const [month, datePart] = sessionKey.split(' ');
         const { data: rsvps, error } = await supabaseClient
             .from('rsvps')
@@ -1387,53 +1386,56 @@ async function syncScoresToRecords(sessionKey) {
         }
 
         // 2. Parse Date into YYMMDD format
-        // Example: '2월 2.7' -> Year is current year (2026), Month 02, Day 07 -> 260207
         let yymmdd = '';
         const mMatch = month.match(/(\d+)/);
-        const dMatch = datePart.match(/(\d+\.?\d*)/);
-
-        if (mMatch && dMatch) {
+        const dArr = datePart.split('.');
+        if (mMatch && dArr.length > 0) {
             const m = mMatch[1].padStart(2, '0');
-            const dStr = dMatch[1].replace('.', ''); // 2.7 -> 27, but user wants 07 usually
-            // Correct day logic: if datePart is '2.7', it's Feb 7th
-            const dArr = datePart.split('.');
             const d = (dArr.length > 1 ? dArr[1] : dArr[0]).padStart(2, '0');
-            yymmdd = `26${m}${d} `;
+            yymmdd = `26${m}${d}`;
         } else {
-            yymmdd = prompt("기록에 사용할 날짜(YYMMDD)를 입력해주세요:", "260207");
+            yymmdd = prompt("기록에 사용할 날짜(YYMMDD)를 입력해주세요:", "260527");
             if (!yymmdd) return;
         }
 
-        // 3. Prepare Score Map
-        const scoreMap = new Map();
+        // 3. Prepare Score Map (Object for Supabase JSONB)
+        const scores_data = {};
         rsvps.forEach(r => {
             if (r.roundscore && r.roundscore.trim() !== '') {
-                scoreMap.set(r.name.trim(), r.roundscore.trim());
+                scores_data[r.name.trim()] = r.roundscore.trim();
             }
         });
 
-        // 4. Get Member Column Order from G_SCORES_RAW
-        const headerData = G_SCORES_RAW[0];
-        const memberNames = headerData.slice(3);
+        if (Object.keys(scores_data).length === 0) {
+            alert("입력된 스코어가 없습니다. 먼저 참석 현황에서 스코어를 입력해주세요.");
+            return;
+        }
 
-        // 5. Build New Record Row
-        // [count, date, venue, member1_score, member2_score, ...]
-        const addedRounds = JSON.parse(localStorage.getItem('snu_golf_added_rounds') || '[]');
-        const nextCount = (G_SCORES_RAW.length - 2) + addedRounds.length + 1;
+        // 4. Get Max Round Count from DB
+        const { data: lastScore, error: countError } = await supabaseClient
+            .from('scores')
+            .select('round_count')
+            .order('round_count', { ascending: false })
+            .limit(1);
+        
+        if (countError) throw countError;
+        const nextCount = (lastScore && lastScore.length > 0) ? lastScore[0].round_count + 1 : 1;
 
-        const defaultVenue = yymmdd.startsWith('2602') ? "소노펠리체CC in 하롱베이" : "신원CC";
-        const newRow = [nextCount.toString(), yymmdd, defaultVenue];
-        memberNames.forEach(name => {
-            newRow.push(scoreMap.get(name.trim()) || '');
-        });
+        // 5. Upsert to Supabase
+        const venue = yymmdd.startsWith('2602') ? "소노펠리체CC in 하롱베이" : "신원CC";
+        const { error: saveError } = await supabaseClient
+            .from('scores')
+            .upsert([{
+                round_count: nextCount,
+                date: yymmdd,
+                venue: venue,
+                scores_data: scores_data
+            }], { onConflict: 'round_count' });
 
-        // 6. Save to localStorage
-        addedRounds.push(newRow);
-        localStorage.setItem('snu_golf_added_rounds', JSON.stringify(addedRounds));
+        if (saveError) throw saveError;
 
-        alert(`'${yymmdd}' 스코어 기록이 성공적으로 동기화되었습니다.\n[상세 스코어 기록 관리] 페이지에서 확인하세요.`);
-
-        // Refresh table if on admin page
+        alert(`'${yymmdd}' 스코어 ${Object.keys(scores_data).length}건이 성공적으로 DB에 저장되었습니다.\n상세 페이지에서 확인하실 수 있습니다.`);
+        
         if (typeof loadAdminData === 'function') loadAdminData();
 
     } catch (err) {
@@ -2284,7 +2286,7 @@ async function renderSponsorHall(prefetchedData = null) {
             card.innerHTML = `
                 <h3 style="margin-top: 0; color: #c5a059; border-bottom: 2px solid #f0f0f0; padding-bottom: 15px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: baseline; width: 100%;">
                     ${data.title}
-                    <span style="font-size: 0.7rem; color: #ccc; font-weight: normal;">v6.3</span>
+                    <span style="font-size: 0.7rem; color: #ccc; font-weight: normal;">v6.4</span>
                 </h3>
                 <div style="width: 100%;">
                     ${listHtml}
