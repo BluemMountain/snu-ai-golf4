@@ -233,7 +233,7 @@ function checkLogin() {
     });
 }
 
-console.log("SNU AI GOLF Script Loaded v6.4");
+console.log("SNU AI GOLF Script Loaded v6.5");
 function initRSVP() {
     const modal = document.getElementById('rsvp-modal');
     if (!modal) return; // 전용 관리자 페이지 등에서는 RSVP 로직 건너뜀
@@ -870,7 +870,12 @@ async function loadAdminData() {
                     const today = new Date();
                     today.setHours(0, 0, 0, 0);
 
-                    return eventDate >= today;
+                    // 관리자 페이지에서는 지난 일주일간의 기록도 표시 (스코어 입력 등을 위해)
+                    const oneWeekAgo = new Date();
+                    oneWeekAgo.setDate(today.getDate() - 7);
+                    oneWeekAgo.setHours(0, 0, 0, 0);
+
+                    return eventDate >= oneWeekAgo;
                 }
                 return false;
             }).sort((a, b) => {
@@ -2286,7 +2291,7 @@ async function renderSponsorHall(prefetchedData = null) {
             card.innerHTML = `
                 <h3 style="margin-top: 0; color: #c5a059; border-bottom: 2px solid #f0f0f0; padding-bottom: 15px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: baseline; width: 100%;">
                     ${data.title}
-                    <span style="font-size: 0.7rem; color: #ccc; font-weight: normal;">v6.4</span>
+                    <span style="font-size: 0.7rem; color: #ccc; font-weight: normal;">v6.5</span>
                 </h3>
                 <div style="width: 100%;">
                     ${listHtml}
