@@ -195,7 +195,7 @@ async function handleLogUpload(form) {
     statusDiv.classList.remove('hidden');
 
     try {
-        let imageUrls = [];
+        let imageUrls = editId ? [...editingImageUrls] : [];
 
         // 1. Upload new photos if selected
         if (files.length > 0) {
@@ -204,9 +204,6 @@ async function handleLogUpload(form) {
                 const url = await uploadToCloudinary(files[i]);
                 imageUrls.push(url);
             }
-        } else if (editId) {
-            // Keep existing photos from backup variable if none selected during edit
-            imageUrls = editingImageUrls;
         }
 
         statusText.innerText = 'Publishing to SNU Editorial...';
