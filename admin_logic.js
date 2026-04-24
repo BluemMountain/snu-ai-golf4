@@ -81,7 +81,7 @@ async function showHandicapRanking() {
         }
 
         const [{ data: rsvps, error: rsvpError }, { data: members, error: memberError }] = await Promise.all([
-            supabaseClient.from('rsvps').select('name, score').not('score', 'is', null),
+            supabaseClient.from('rsvps').select('name, roundscore').not('roundscore', 'is', null),
             supabaseClient.from('members').select('name, h25')
         ]);
 
@@ -92,8 +92,11 @@ async function showHandicapRanking() {
         rsvps.forEach(r => {
             const name = (r.name || '').trim();
             if (!name) return;
+            const sVal = parseInt(r.roundscore);
+            if (isNaN(sVal) || sVal === 0) return;
+
             if (!memberScores[name]) memberScores[name] = [];
-            memberScores[name].push(r.score);
+            memberScores[name].push(sVal);
         });
 
         const ranking = members.map(m => {
