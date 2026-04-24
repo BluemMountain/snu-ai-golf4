@@ -965,12 +965,12 @@ async function loadAdminData() {
                         <td style="padding: 5px; border: 1px solid #ddd; text-align: center;">
                             ${item.status === 'attend' ? `<input type="text" value="${item.roundscore || ''}" onchange="updateRSVPField(${item.id}, 'roundscore', this.value)" style="width: 50px; padding: 4px; text-align: center; border: 1px solid #ddd;">` : '-'}
                         </td>
+                        <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">${stats.h26}</td>
                         <td style="padding: 5px; border: 1px solid #ddd; text-align: center;">
                             ${item.status === 'attend' ? `<input type="text" value="${item.roundaward || ''}" onchange="updateRSVPField(${item.id}, 'roundaward', this.value)" placeholder="우승 등" style="width: 80px; padding: 4px; border: 1px solid #ddd;">` : '-'}
                         </td>
-                        <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">${stats.h25}</td>
                         <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">${stats.last}</td>
-                        <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">${stats.h26}</td>
+                        <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">${stats.h25}</td>
                         <td style="padding: 10px; border: 1px solid #ddd;">${item.submittedat ? new Date(item.submittedat).toLocaleString('ko-KR') : '-'}</td>
                         <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">
                             <button onclick="deleteRSVP(${item.id})" class="edit-control" style="background: #e74c3c; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">삭제</button>
