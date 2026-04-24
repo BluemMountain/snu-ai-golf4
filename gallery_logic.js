@@ -491,21 +491,30 @@ async function fetchRoundAwards(dateStr) {
         if (error) throw error;
 
         if (data && data.length > 0) {
-            // Sort by rank if possible (e.g., [1위] should come before [2위])
+            // User Specified Order
+            const awardOrder = [
+                "메달리스트", "신페리오 우승", "롱기스트", "니어리스트", 
+                "다버디", "다파", "다보기", "다따블", "행운상"
+            ];
+
+            // Sort by awardOrder
             data.sort((a, b) => {
-                const rankA = a.roundaward.match(/\[(\d+)위\]/);
-                const rankB = b.roundaward.match(/\[(\d+)위\]/);
-                if (rankA && rankB) return parseInt(rankA[1]) - parseInt(rankB[1]);
-                return 0;
+                const getOrder = (awardStr) => {
+                    const match = awardStr.match(/(\[.*?\])?\s*(.*)/);
+                    const title = match ? match[2].trim() : awardStr.trim();
+                    const idx = awardOrder.findIndex(o => title.includes(o));
+                    return idx === -1 ? 999 : idx;
+                };
+                return getOrder(a.roundaward) - getOrder(b.roundaward);
             });
 
             awardsList.innerHTML = data.map(item => {
                 // Parse award string: "[1위] 메달리스트" -> title: "메달리스트", rank: "[1위]"
-                const match = item.roundaward.match(/(\[.*?\])\s*(.*)/);
-                const rank = match ? match[1] : "";
-                const title = match ? match[2].trim() : item.roundaward.trim();
+                const match = item.roundaward.match(/(\[.*?\])?\s*(.*)/);
+                const rank = match && match[1] ? match[1] : "";
+                const title = match && match[2] ? match[2].trim() : item.roundaward.trim();
 
-                // Clean up title if it's just a space or empty
+                // Clean up title (remove rank if it's already in the title)
                 const displayTitle = title || rank;
                 const displayName = item.name;
 
