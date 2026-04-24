@@ -83,7 +83,7 @@ async function showHandicapRanking() {
 
         const [{ data: scores, error: scoreError }, { data: members, error: memberError }] = await Promise.all([
             supabaseClient.from('scores').select('*').order('round_count', { ascending: true }),
-            supabaseClient.from('members').select('name, h25')
+            supabaseClient.from('members').select('name')
         ]);
 
         if (scoreError || memberError) throw scoreError || memberError;
@@ -113,8 +113,8 @@ async function showHandicapRanking() {
             // 2026 Handicap Calculation
             const h26 = avgScore ? ((avgScore - 72) * 0.8).toFixed(1) : "N/A";
             
-            return { name, h25: m.h25, h26, avgScore: avgScore?.toFixed(1) || "N/A", rounds: sList.length };
-        }).filter(m => m.h26 !== "N/A" || m.h25);
+            return { name, h26, avgScore: avgScore?.toFixed(1) || "N/A", rounds: sList.length };
+        }).filter(m => m.h26 !== "N/A");
 
         ranking.sort((a, b) => {
             if (a.h26 === "N/A") return 1;
