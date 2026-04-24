@@ -305,7 +305,10 @@ function openLightbox(log) {
     
     gallerySwiper = new Swiper('.swiper', {
         loop: currentGalleryImages.length > 1,
-        lazyPreloadPrevNext: 1, // Preload 1 slide before and after
+        lazyPreloadPrevNext: 1,
+        observer: true, // Resize handling for Fold
+        observeParents: true,
+        grabCursor: true,
         navigation: {
             nextEl: '#lb-next-btn',
             prevEl: '#lb-prev-btn',
