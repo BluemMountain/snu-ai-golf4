@@ -73,41 +73,47 @@ function closeStatsModal() {
 async function showHandicapRanking() {
     try {
         const year = document.getElementById('stats-year').value;
-        openStatsModal(`${year}년 핸디캡 랭킹`, '<div style="text-align:center; padding:20px;">분석 중입니다...</div>');
+        const yearPrefix = year.substring(2); // "26" for 2026
+        
+        openStatsModal(`${year}년 핸디캡 랭킹`, '<div style="text-align:center; padding:20px;">공식 스코어 기반 분석 중...</div>');
 
-        // Check if supabaseClient is ready
         if (typeof supabaseClient === 'undefined') {
-            throw new Error('데이터베이스 연결 준비가 되지 않았습니다. 잠시 후 다시 시도해 주세요.');
+            throw new Error('데이터베이스 연결 준비가 되지 않았습니다.');
         }
 
-        const [{ data: rsvps, error: rsvpError }, { data: members, error: memberError }] = await Promise.all([
-            supabaseClient.from('rsvps').select('name, roundscore').not('roundscore', 'is', null),
+        const [{ data: scores, error: scoreError }, { data: members, error: memberError }] = await Promise.all([
+            supabaseClient.from('scores').select('*').order('round_count', { ascending: true }),
             supabaseClient.from('members').select('name, h25')
         ]);
 
-        if (rsvpError || memberError) throw rsvpError || memberError;
+        if (scoreError || memberError) throw scoreError || memberError;
 
-        // Aggregate scores by member
+        // Aggregate scores from JSONB field in 'scores' table
         const memberScores = {};
-        rsvps.forEach(r => {
-            const name = (r.name || '').trim();
-            if (!name) return;
-            const sVal = parseInt(r.roundscore);
-            if (isNaN(sVal) || sVal === 0) return;
+        scores.forEach(s => {
+            // Filter by year prefix (YYMMDD format)
+            if (s.date && !s.date.toString().startsWith(yearPrefix)) return;
+            if (s.round_count === 0) return; // Skip baseline
 
-            if (!memberScores[name]) memberScores[name] = [];
-            memberScores[name].push(sVal);
+            const data = s.scores_data || {};
+            Object.entries(data).forEach(([name, val]) => {
+                const sVal = parseInt(val);
+                if (isNaN(sVal) || sVal <= 0) return;
+                const n = name.trim();
+                if (!memberScores[n]) memberScores[n] = [];
+                memberScores[n].push(sVal);
+            });
         });
 
         const ranking = members.map(m => {
             const name = (m.name || '').trim();
-            const scores = memberScores[name] || [];
-            const avgScore = scores.length > 0 ? scores.reduce((a, b) => a + b, 0) / scores.length : null;
+            const sList = memberScores[name] || [];
+            const avgScore = sList.length > 0 ? sList.reduce((a, b) => a + b, 0) / sList.length : null;
             
             // 2026 Handicap Calculation
             const h26 = avgScore ? ((avgScore - 72) * 0.8).toFixed(1) : "N/A";
             
-            return { name, h25: m.h25, h26, avgScore: avgScore?.toFixed(1) || "N/A", rounds: scores.length };
+            return { name, h25: m.h25, h26, avgScore: avgScore?.toFixed(1) || "N/A", rounds: sList.length };
         }).filter(m => m.h26 !== "N/A" || m.h25);
 
         ranking.sort((a, b) => {
