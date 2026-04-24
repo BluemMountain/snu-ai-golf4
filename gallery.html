@@ -12,10 +12,12 @@
         href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700&family=Noto+Sans+KR:wght@300;400;500;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap"
         rel="stylesheet">
     <!-- CSS -->
-    <link rel="stylesheet" href="style.css?v=4.2">
-    <link rel="stylesheet" href="gallery_magazine.css?v=1.1">
+    <link rel="stylesheet" href="style.css?v=4.3">
+    <link rel="stylesheet" href="gallery_magazine.css?v=1.2">
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Swiper.js CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
 </head>
 
 <body class="magazine-body">
@@ -116,48 +118,71 @@
     <div id="lightbox-modal" class="magazine-lightbox">
         <div class="lightbox-close">&times;</div>
         <div class="lightbox-content">
-            <div class="lightbox-image-container">
-                <button class="lb-nav lb-prev" id="lb-prev-btn"><i class="fas fa-chevron-left"></i></button>
-                <div class="lb-gallery-main">
-                    <img id="lb-image" src="" alt="Large View">
+            <!-- Left Side: Image Slider -->
+            <div class="lightbox-left">
+                <div class="lightbox-image-container">
+                    <button class="lb-nav lb-prev" id="lb-prev-btn"><i class="fas fa-chevron-left"></i></button>
+                    <div class="lb-gallery-main swiper">
+                        <div class="swiper-wrapper" id="lb-swiper-wrapper">
+                            <!-- Slides will be injected via gallery_logic.js -->
+                        </div>
+                    </div>
+                    <button class="lb-nav lb-next" id="lb-next-btn"><i class="fas fa-chevron-right"></i></button>
+                    <div class="lb-counter" id="lb-counter">1 / 1</div>
                 </div>
-                <button class="lb-nav lb-next" id="lb-next-btn"><i class="fas fa-chevron-right"></i></button>
-                <div class="lb-counter" id="lb-counter">1 / 1</div>
             </div>
-            <div class="lightbox-info-panel">
-                <div class="lb-header">
-                    <span id="lb-date"></span>
-                    <h2 id="lb-location"></h2>
-                    <div class="lb-line"></div>
-                </div>
-                <div class="lb-quote-box">
-                    <p id="lb-quote"></p>
-                </div>
-                <div class="lb-details">
-                    <div class="lb-detail-item">
-                        <span class="label">WITH</span>
-                        <span id="lb-companions" class="value"></span>
-                    </div>
-                    <div class="lb-detail-item">
-                        <span class="label">WEATHER</span>
-                        <span id="lb-weather" class="value"></span>
-                    </div>
-                    <div class="lb-detail-item">
-                        <span class="label">WRITTEN BY</span>
-                        <span id="lb-user" class="value"></span>
-                    </div>
-                </div>
-                <div class="lb-footer">
-                    <button class="lb-like-btn" id="lb-like-btn">
-                        <i class="far fa-heart"></i> <span id="lb-likes">0</span>
-                    </button>
-                    <div class="lb-magazine-seal">SNU AI GOLF BOARD</div>
-                </div>
 
-                <!--수정 및 삭제 버튼 영역 -->
-                <div class="lb-admin-controls hidden" id="lb-admin-controls">
-                    <button class="lb-edit-btn" id="lb-edit-btn">EDIT</button>
-                    <button class="lb-delete-btn" id="lb-delete-btn">DELETE</button>
+            <!-- Right Side: Info & Awards Panel -->
+            <div class="lightbox-right">
+                <div class="lb-info-scroll-area">
+                    <div class="lb-header">
+                        <span id="lb-date"></span>
+                        <h2 id="lb-location"></h2>
+                        <div class="lb-line"></div>
+                    </div>
+
+                    <div class="lb-quote-box">
+                        <p id="lb-quote"></p>
+                    </div>
+
+                    <!-- Awards Section (New) -->
+                    <div id="lb-awards-section" class="lb-awards-container hidden">
+                        <div class="awards-header">
+                            <i class="fas fa-trophy"></i>
+                            <h3>AWARDS & WINNERS</h3>
+                        </div>
+                        <div id="lb-awards-list" class="awards-grid">
+                            <!-- Injected via JS -->
+                        </div>
+                    </div>
+
+                    <div class="lb-details">
+                        <div class="lb-detail-item">
+                            <span class="label">WITH</span>
+                            <span id="lb-companions" class="value"></span>
+                        </div>
+                        <div class="lb-detail-item">
+                            <span class="label">WEATHER</span>
+                            <span id="lb-weather" class="value"></span>
+                        </div>
+                        <div class="lb-detail-item">
+                            <span class="label">WRITTEN BY</span>
+                            <span id="lb-user" class="value"></span>
+                        </div>
+                    </div>
+
+                    <div class="lb-footer">
+                        <button class="lb-like-btn" id="lb-like-btn">
+                            <i class="far fa-heart"></i> <span id="lb-likes">0</span>
+                        </button>
+                        <div class="lb-magazine-seal">SNU AI GOLF BOARD</div>
+                    </div>
+
+                    <!-- Admin Controls -->
+                    <div class="lb-admin-controls hidden" id="lb-admin-controls">
+                        <button class="lb-edit-btn" id="lb-edit-btn">EDIT</button>
+                        <button class="lb-delete-btn" id="lb-delete-btn">DELETE</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -169,6 +194,7 @@
 
     <!-- Supabase & Logic Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
     <script>
         const SUPABASE_CONFIG = {
             url: 'https://qfzmwlyqezmkkxtpscik.supabase.co',
@@ -176,7 +202,7 @@
         };
     </script>
     <script src="script.js?v=4.3"></script>
-    <script src="gallery_logic.js?v=2.8"></script>
+    <script src="gallery_logic.js?v=2.9"></script>
 </body>
 
 </html>

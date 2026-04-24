@@ -14,6 +14,19 @@ let currentGalleryImages = [];
 let currentImageIndex = 0;
 let currentLogData = null; // 현재 라이트박스에 표시된 로그 데이터
 let editingImageUrls = []; // 수정 시 기존 이미지를 임시 보관할 변수
+let gallerySwiper = null; // Swiper 인스턴스
+
+/**
+ * Cloudinary URL Optimization Helper
+ */
+function getOptimizedUrl(url, width = 1200) {
+    if (!url || !url.includes('cloudinary.com')) return url;
+    // Insert transformation after /upload/
+    if (url.includes('/upload/')) {
+        return url.replace('/upload/', `/upload/f_auto,q_auto,w_${width}/`);
+    }
+    return url;
+}
 
 document.addEventListener('DOMContentLoaded', async () => {
     // Initialize Supabase if not global
@@ -72,7 +85,7 @@ function createLogCard(log) {
 
     // Support both old image_url and new image_urls (array)
     const images = log.image_urls || (log.image_url ? [log.image_url] : []);
-    const mainImg = images[0] || 'https://via.placeholder.com/800x1000?text=Editorial+Preview';
+    const mainImg = getOptimizedUrl(images[0], 600) || 'https://via.placeholder.com/800x1000?text=Editorial+Preview';
     const isMulti = images.length > 1;
 
     // Format date
@@ -158,13 +171,9 @@ function initGalleryUI() {
     };
 
     // Lightbox Controls
-    document.getElementById('lb-prev-btn').onclick = () => navigateGallery(-1);
-    document.getElementById('lb-next-btn').onclick = () => navigateGallery(1);
+    document.getElementById('lb-prev-btn').onclick = () => { if (gallerySwiper) gallerySwiper.slidePrev(); };
+    document.getElementById('lb-next-btn').onclick = () => { if (gallerySwiper) gallerySwiper.slideNext(); };
     document.querySelector('.lightbox-close').onclick = closeLightbox;
-    
-    initSwipeLogic();
-
-    // Edit/Delete in Lightbox
     document.getElementById('lb-edit-btn').onclick = () => handleLogEdit();
     document.getElementById('lb-delete-btn').onclick = () => handleLogDelete();
 
@@ -273,12 +282,43 @@ async function uploadToCloudinary(file) {
 function openLightbox(log) {
     currentLogData = log;
     const lb = document.getElementById('lightbox-modal');
+    const swiperWrapper = document.getElementById('lb-swiper-wrapper');
 
     // Support legacy and multi
     currentGalleryImages = log.image_urls || (log.image_url ? [log.image_url] : []);
     currentImageIndex = 0;
 
-    updateLightboxView();
+    // Build Swiper Slides
+    swiperWrapper.innerHTML = currentGalleryImages.map((url, idx) => `
+        <div class="swiper-slide">
+            <div class="lb-gallery-main">
+                <img src="${getOptimizedUrl(url, 1200)}" loading="lazy" alt="Gallery Image ${idx + 1}">
+                <div class="swiper-lazy-preloader swiper-lazy-preloader-white"></div>
+            </div>
+        </div>
+    `).join('');
+
+    // Initialize or Update Swiper
+    if (gallerySwiper) {
+        gallerySwiper.destroy();
+    }
+    
+    gallerySwiper = new Swiper('.swiper', {
+        loop: currentGalleryImages.length > 1,
+        lazyPreloadPrevNext: 1, // Preload 1 slide before and after
+        navigation: {
+            nextEl: '#lb-next-btn',
+            prevEl: '#lb-prev-btn',
+        },
+        on: {
+            init: function () {
+                updateCounter(this.realIndex + 1);
+            },
+            slideChange: function () {
+                updateCounter(this.realIndex + 1);
+            }
+        }
+    });
 
     document.getElementById('lb-date').innerText = log.date || new Date(log.created_at).toLocaleDateString('ko-KR');
     document.getElementById('lb-location').innerText = log.location;
@@ -291,19 +331,17 @@ function openLightbox(log) {
     const likeBtn = document.getElementById('lb-like-btn');
     likeBtn.onclick = () => handleLike(log.id);
 
+    // Fetch and display awards for this round
+    fetchRoundAwards(log.date || "");
+
     // Permission Check: Show/Hide Edit/Delete buttons
     const currentUserName = sessionStorage.getItem('snu_golf_user_name') || localStorage.getItem('snu_golf_user_name');
     const isLoggedIn = sessionStorage.getItem('snu_golf_logged_in') === 'true';
     const isAdminMode = sessionStorage.getItem('snu_golf_admin_logged_in') === 'true';
     const controls = document.getElementById('lb-admin-controls');
 
-    // If logged in as admin OR regular user matches author
     if (isAdminMode || (isLoggedIn && currentUserName === log.user_name)) {
         controls.classList.remove('hidden');
-    } else if (isLoggedIn) {
-        // Option: If we want to be more lax for testing, we could show them anyway
-        // but for now let's stick to name match.
-        controls.classList.add('hidden');
     } else {
         controls.classList.add('hidden');
     }
@@ -318,19 +356,11 @@ function openLightbox(log) {
     document.body.style.overflow = 'hidden';
 }
 
-function updateLightboxView() {
-    const imgEl = document.getElementById('lb-image');
-    imgEl.src = currentGalleryImages[currentImageIndex] || '';
-
+function updateCounter(index) {
     const counterEl = document.getElementById('lb-counter');
-    counterEl.innerText = `${currentImageIndex + 1} / ${currentGalleryImages.length}`;
-}
-
-function navigateGallery(dir) {
-    currentImageIndex += dir;
-    if (currentImageIndex < 0) currentImageIndex = currentGalleryImages.length - 1;
-    if (currentImageIndex >= currentGalleryImages.length) currentImageIndex = 0;
-    updateLightboxView();
+    if (counterEl) {
+        counterEl.innerText = `${index} / ${currentGalleryImages.length}`;
+    }
 }
 
 function closeLightbox() {
@@ -405,57 +435,95 @@ async function handleLike(logId) {
 }
 
 /**
- * Swipe and Drag Logic
+ * Fetch and display award winners for a specific round from rsvps table
  */
-let touchStartX = 0;
-let touchEndX = 0;
-const SWIPE_THRESHOLD = 50;
-
-function initSwipeLogic() {
-    const lbContainer = document.querySelector('.lightbox-image-container');
-    const lbImage = document.getElementById('lb-image');
+async function fetchRoundAwards(dateStr) {
+    const awardsSection = document.getElementById('lb-awards-section');
+    const awardsList = document.getElementById('lb-awards-list');
     
-    if (!lbContainer || !lbImage) return;
+    if (!awardsSection || !awardsList || !dateStr) {
+        if (awardsSection) awardsSection.classList.add('hidden');
+        return;
+    }
 
-    // Prevent default drag on image
-    lbImage.ondragstart = () => false;
+    // Reset UI
+    awardsSection.classList.add('hidden');
+    awardsList.innerHTML = '<div style="text-align:center; padding: 20px; color: #AAA;">Loading awards...</div>';
 
-    // Touch events for mobile
-    lbContainer.addEventListener('touchstart', e => {
-        touchStartX = e.changedTouches[0].screenX;
-    }, {passive: true});
+    try {
+        // Parse date (e.g., "2026.04.22" -> month: "4월", date: "4.22")
+        let month = "";
+        let dayPart = "";
 
-    lbContainer.addEventListener('touchend', e => {
-        touchEndX = e.changedTouches[0].screenX;
-        handleSwipe();
-    }, {passive: true});
-
-    // Mouse events for desktop
-    let isDragging = false;
-    lbContainer.addEventListener('mousedown', e => {
-        if (e.target.closest('.lb-nav') || e.target.closest('button')) return;
-        isDragging = true;
-        touchStartX = e.screenX;
-    });
-
-    window.addEventListener('mouseup', e => {
-        if (!isDragging) return;
-        isDragging = false;
-        touchEndX = e.screenX;
-        handleSwipe();
-    });
-}
-
-function handleSwipe() {
-    if (!currentGalleryImages || currentGalleryImages.length <= 1) return;
-    
-    const diff = touchStartX - touchEndX;
-    
-    if (Math.abs(diff) > SWIPE_THRESHOLD) {
-        if (diff > 0) {
-            navigateGallery(1); // Swiped left -> next
+        const parts = dateStr.split('.');
+        if (parts.length >= 3) {
+            month = parseInt(parts[1]) + "월";
+            dayPart = parseInt(parts[1]) + "." + parseInt(parts[2]);
+        } else if (parts.length === 2) {
+             // Handle "4.22" format if year is missing
+             month = parseInt(parts[0]) + "월";
+             dayPart = dateStr;
         } else {
-            navigateGallery(-1); // Swiped right -> prev
+            // Handle "4월 22일" format
+            const match = dateStr.match(/(\d+)월\s*(\d+)/);
+            if (match) {
+                month = match[1] + "월";
+                dayPart = match[1] + "." + match[2];
+            }
         }
+
+        if (!month || !dayPart) {
+            awardsSection.classList.add('hidden');
+            return;
+        }
+
+        console.log(`Fetching awards for Round: ${month} ${dayPart}`);
+
+        // Query rsvps table where roundaward is not empty
+        const { data, error } = await db
+            .from('rsvps')
+            .select('name, roundaward')
+            .eq('month', month)
+            .eq('date', dayPart)
+            .not('roundaward', 'is', null)
+            .not('roundaward', 'eq', '');
+
+        if (error) throw error;
+
+        if (data && data.length > 0) {
+            // Sort by rank if possible (e.g., [1위] should come before [2위])
+            data.sort((a, b) => {
+                const rankA = a.roundaward.match(/\[(\d+)위\]/);
+                const rankB = b.roundaward.match(/\[(\d+)위\]/);
+                if (rankA && rankB) return parseInt(rankA[1]) - parseInt(rankB[1]);
+                return 0;
+            });
+
+            awardsList.innerHTML = data.map(item => {
+                // Parse award string: "[1위] 메달리스트" -> title: "메달리스트", rank: "[1위]"
+                const match = item.roundaward.match(/(\[.*?\])\s*(.*)/);
+                const rank = match ? match[1] : "";
+                const title = match ? match[2].trim() : item.roundaward.trim();
+
+                // Clean up title if it's just a space or empty
+                const displayTitle = title || rank;
+                const displayName = item.name;
+
+                return `
+                    <div class="award-item">
+                        <span class="award-title">${displayTitle}</span>
+                        <span class="award-name">${displayName}</span>
+                    </div>
+                `;
+            }).join('');
+            
+            awardsSection.classList.remove('hidden');
+        } else {
+            awardsSection.classList.add('hidden');
+        }
+    } catch (err) {
+        console.error('Error fetching awards:', err);
+        awardsSection.classList.add('hidden');
     }
 }
+
