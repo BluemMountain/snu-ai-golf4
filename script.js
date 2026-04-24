@@ -870,12 +870,8 @@ async function loadAdminData() {
                     const today = new Date();
                     today.setHours(0, 0, 0, 0);
 
-                    // 관리자 페이지에서는 지난 일주일간의 기록도 표시 (스코어 입력 등을 위해)
-                    const oneWeekAgo = new Date();
-                    oneWeekAgo.setDate(today.getDate() - 7);
-                    oneWeekAgo.setHours(0, 0, 0, 0);
-
-                    return eventDate >= oneWeekAgo;
+                    // 관리자 페이지에서는 모든 2026년 라운드를 표시 (과거 기록 관리 및 스코어 입력을 위해)
+                    return eventDate.getFullYear() === 2026;
                 }
                 return false;
             }).sort((a, b) => {
