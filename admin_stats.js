@@ -110,8 +110,8 @@ async function showHandicapRanking() {
             const sList = memberScores[name] || [];
             const avgScore = sList.length > 0 ? sList.reduce((a, b) => a + b, 0) / sList.length : null;
             
-            // 2026 Handicap Calculation
-            const h26 = avgScore ? ((avgScore - 72) * 0.8).toFixed(1) : "N/A";
+            // USGA Handicap Differential Calculation: (Score - 72.0) * 113 / 125
+            const h26 = avgScore ? ((avgScore - 72.0) * 113 / 125).toFixed(1) : "N/A";
             
             return { name, h26, avgScore: avgScore?.toFixed(1) || "N/A", rounds: sList.length };
         }).filter(m => m.h26 !== "N/A");
@@ -123,12 +123,18 @@ async function showHandicapRanking() {
         });
 
         let html = `
+            <div style="margin-bottom:20px; padding:15px; background:#f8f9fa; border-radius:8px; font-size:0.85rem; color:#444; border-left:4px solid #577b2d; line-height:1.6;">
+                <strong>📊 핸디캡 산정 공식 (Handicap Differential)</strong><br>
+                공식 핸디캡 인덱스 디퍼렌셜 방식으로 계산하며, 신원 CC의 난이도 상수를 일반적인 평균값(Course Rating: 72.0, Slope Rating: 125)으로 적용했습니다.<br>
+                <code style="display:block; margin-top:8px; color:#1e3a2b; font-weight:bold;">Differential = ((스코어 - 72.0) × 113) ÷ 125</code>
+                <span style="color:#666; font-size:0.8rem;">* 예시: 84타일 경우 ((84 - 72.0) × 113) ÷ 125 ≈ 10.8</span>
+            </div>
             <table style="width:100%; border-collapse:collapse; margin-top:10px;">
                 <thead>
                     <tr style="background:#f4f4f4; border-bottom:2px solid #ddd;">
                         <th style="padding:10px; text-align:left;">순위</th>
                         <th style="padding:10px; text-align:left;">성함</th>
-                        <th style="padding:10px; text-align:right;">26년 핸디</th>
+                        <th style="padding:10px; text-align:right;">핸디캡 인덱스</th>
                         <th style="padding:10px; text-align:right;">평균 타수</th>
                         <th style="padding:10px; text-align:right;">라운드</th>
                     </tr>
