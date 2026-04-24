@@ -73,32 +73,40 @@ function closeStatsModal() {
 async function showHandicapRanking() {
     try {
         const year = document.getElementById('stats-year').value;
-        const [{ data: rsvps }, { data: members }] = await Promise.all([
+        openStatsModal(`${year}년 핸디캡 랭킹`, '<div style="text-align:center; padding:20px;">분석 중입니다...</div>');
+
+        // Check if supabaseClient is ready
+        if (typeof supabaseClient === 'undefined') {
+            throw new Error('데이터베이스 연결 준비가 되지 않았습니다. 잠시 후 다시 시도해 주세요.');
+        }
+
+        const [{ data: rsvps, error: rsvpError }, { data: members, error: memberError }] = await Promise.all([
             supabaseClient.from('rsvps').select('name, score').not('score', 'is', null),
             supabaseClient.from('members').select('name, h25')
         ]);
 
+        if (rsvpError || memberError) throw rsvpError || memberError;
+
         // Aggregate scores by member
         const memberScores = {};
         rsvps.forEach(r => {
-            const name = r.name.trim();
+            const name = (r.name || '').trim();
+            if (!name) return;
             if (!memberScores[name]) memberScores[name] = [];
             memberScores[name].push(r.score);
         });
 
         const ranking = members.map(m => {
-            const name = m.name.trim();
+            const name = (m.name || '').trim();
             const scores = memberScores[name] || [];
             const avgScore = scores.length > 0 ? scores.reduce((a, b) => a + b, 0) / scores.length : null;
             
-            // 2026 Handicap Calculation: (Average - 72) * 0.8 (Sample formula)
-            // If no scores, fallback to h25
+            // 2026 Handicap Calculation
             const h26 = avgScore ? ((avgScore - 72) * 0.8).toFixed(1) : "N/A";
             
             return { name, h25: m.h25, h26, avgScore: avgScore?.toFixed(1) || "N/A", rounds: scores.length };
         }).filter(m => m.h26 !== "N/A" || m.h25);
 
-        // Sort by h26 (asc), then h25 (asc)
         ranking.sort((a, b) => {
             if (a.h26 === "N/A") return 1;
             if (b.h26 === "N/A") return -1;
@@ -113,7 +121,7 @@ async function showHandicapRanking() {
                         <th style="padding:10px; text-align:left;">성함</th>
                         <th style="padding:10px; text-align:right;">26년 핸디</th>
                         <th style="padding:10px; text-align:right;">평균 타수</th>
-                        <th style="padding:10px; text-align:right;">라운드 수</th>
+                        <th style="padding:10px; text-align:right;">라운드</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -135,26 +143,29 @@ async function showHandicapRanking() {
         openStatsModal(`${year}년 핸디캡 랭킹`, html);
     } catch (err) {
         console.error('Stats error:', err);
+        openStatsModal('오류 발생', `<div style="color:red; text-align:center; padding:20px;">${err.message || '데이터를 불러오는 중 오류가 발생했습니다.'}</div>`);
     }
 }
 
 async function showSponsorSummary() {
     try {
         const year = document.getElementById('stats-year').value;
+        openStatsModal(`${year}년 스폰서 내역 요약`, '<div style="text-align:center; padding:20px;">데이터를 불러오는 중...</div>');
+
         const { data: rsvps, error } = await supabaseClient
             .from('rsvps')
-            .select('name, sponsor, month, date')
+            .select('name, sponsor, month, date, status')
             .not('sponsor', 'is', null)
             .not('sponsor', 'eq', '');
 
         if (error) throw error;
 
-        // Group by person
         const sponsors = {};
         rsvps.forEach(r => {
-            const name = r.name.trim();
+            const name = (r.name || '').trim();
+            if (!name) return;
             if (!sponsors[name]) sponsors[name] = [];
-            sponsors[name].push({ month: r.month, date: r.date, item: r.sponsor });
+            sponsors[name].push({ month: r.month, date: r.date, item: r.sponsor, isAbsent: r.status === 'absent' });
         });
 
         let html = '<div style="display:flex; flex-direction:column; gap:15px; margin-top:10px;">';
@@ -162,8 +173,13 @@ async function showSponsorSummary() {
             html += `
                 <div style="padding:15px; background:#f9f9f9; border-radius:8px; border-left:4px solid #8e44ad;">
                     <div style="font-weight:bold; color:#1e3a2b; font-size:1.1rem; margin-bottom:8px;">${name} 원우님</div>
-                    <ul style="margin:0; padding-left:20px; color:#555;">
-                        ${items.map(i => `<li><span style="color:#888;">[${i.month} ${i.date}]</span> ${i.item}</li>`).join('')}
+                    <ul style="margin:0; padding-left:20px; color:#555; line-height:1.6;">
+                        ${items.map(i => `
+                            <li>
+                                <span style="color:#888;">[${i.month} ${i.date}]</span> ${i.item}
+                                ${i.isAbsent ? '<span style="color:#e67e22; font-size:0.8rem; margin-left:8px; font-weight:bold;">(미참석)</span>' : ''}
+                            </li>
+                        `).join('')}
                     </ul>
                 </div>
             `;
@@ -175,33 +191,51 @@ async function showSponsorSummary() {
         openStatsModal(`${year}년 스폰서 내역 요약`, html);
     } catch (err) {
         console.error('Stats error:', err);
+        openStatsModal('오류 발생', `<div style="color:red; text-align:center; padding:20px;">${err.message}</div>`);
     }
 }
 
 async function showAttendanceStats() {
     try {
         const year = document.getElementById('stats-year').value;
+        openStatsModal(`${year}년 최다 참석자 통계`, '<div style="text-align:center; padding:20px;">계산 중입니다...</div>');
+
         const { data: rsvps, error } = await supabaseClient
             .from('rsvps')
-            .select('name')
+            .select('name, month, date')
             .eq('status', 'attend');
 
         if (error) throw error;
 
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
         const counts = {};
         rsvps.forEach(r => {
-            const name = r.name.trim();
+            // Filter by date (Current/Past only)
+            const monthMatch = r.month.match(/(\d+)월/);
+            const dateMatch = r.date.match(/(\d+)\.(\d+)/);
+            if (monthMatch && dateMatch) {
+                const eventDate = new Date(parseInt(year), parseInt(monthMatch[1]) - 1, parseInt(dateMatch[2]));
+                if (eventDate > today) return; // Skip future rounds
+            }
+
+            const name = (r.name || '').trim();
+            if (!name) return;
             counts[name] = (counts[name] || 0) + 1;
         });
 
         const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
 
         let html = `
-            <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap:10px; margin-top:10px;">
+            <div style="margin-bottom:15px; font-size:0.9rem; color:#666; background:#f0f7f4; padding:10px; border-radius:6px;">
+                💡 오늘(${today.toLocaleDateString()})까지 개최된 라운드 기준 통계입니다.
+            </div>
+            <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap:10px;">
                 ${sorted.map(([name, count]) => `
-                    <div style="padding:12px; background:#f0f7f4; border-radius:8px; text-align:center;">
+                    <div style="padding:12px; background:#fff; border:1px solid #e0e0e0; border-radius:8px; text-align:center; box-shadow:0 2px 4px rgba(0,0,0,0.05);">
                         <div style="font-size:1.1rem; font-weight:bold; color:#1e3a2b;">${name}</div>
-                        <div style="color:#577b2d; font-size:0.9rem;">${count}회 참석</div>
+                        <div style="color:#577b2d; font-size:0.9rem; font-weight:bold;">${count}회 참석</div>
                     </div>
                 `).join('')}
             </div>
@@ -209,6 +243,7 @@ async function showAttendanceStats() {
         openStatsModal(`${year}년 최다 참석자 통계`, html);
     } catch (err) {
         console.error('Stats error:', err);
+        openStatsModal('오류 발생', `<div style="color:red; text-align:center; padding:20px;">${err.message}</div>`);
     }
 }
 
