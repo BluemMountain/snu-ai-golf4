@@ -477,14 +477,20 @@ async function fetchRoundAwards(dateStr) {
             return;
         }
 
-        console.log(`Fetching awards for Round: ${month} ${dayPart}`);
+        // Handle March date mismatch (Gallery: 3.24, RSVP: 3.25)
+        let searchDates = [dayPart];
+        if (month === "3월" && dayPart === "3.24") {
+            searchDates.push("3.25");
+        }
 
-        // Query rsvps table where roundaward is not empty
+        console.log(`Fetching awards for Round: ${month}, Dates: ${searchDates.join(', ')}`);
+
+        // Query rsvps table
         const { data, error } = await db
             .from('rsvps')
             .select('name, roundaward')
             .eq('month', month)
-            .eq('date', dayPart)
+            .in('date', searchDates)
             .not('roundaward', 'is', null)
             .not('roundaward', 'eq', '');
 
@@ -493,16 +499,24 @@ async function fetchRoundAwards(dateStr) {
         if (data && data.length > 0) {
             // User Specified Order
             const awardOrder = [
-                "메달리스트", "신페리오 우승", "롱기스트", "니어리스트", 
-                "다버디", "다파", "다보기", "더보기", "다따블", "행운상"
+                "메달",        // 메달리스트, 메달
+                "신페리오",     // 신페리오 우승, 신페리오우승
+                "롱기스트",
+                "니어리스트", 
+                "다버디",
+                "다파",
+                "다보기",
+                "더보기",
+                "다더블",      // 다더블, 다따블
+                "다따블",
+                "행운상"
             ];
 
             // Sort by awardOrder
             data.sort((a, b) => {
                 const getOrder = (awardStr) => {
-                    const match = awardStr.match(/(\[.*?\])?\s*(.*)/);
-                    const title = match ? match[2].trim() : awardStr.trim();
-                    const idx = awardOrder.findIndex(o => title.includes(o));
+                    const normalized = awardStr.replace(/\s+/g, ""); // Remove spaces
+                    const idx = awardOrder.findIndex(keyword => normalized.includes(keyword));
                     return idx === -1 ? 999 : idx;
                 };
                 return getOrder(a.roundaward) - getOrder(b.roundaward);
