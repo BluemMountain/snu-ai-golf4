@@ -248,6 +248,40 @@
                 </div>
             </div>
 
+            <!-- Intelligence Section -->
+            <div class="admin-intelligence-section" style="background: #f0f4f8; padding: 25px; border-radius: 12px; margin-bottom: 30px; border: 1px solid #d1d9e6; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+                <h3 style="margin-top: 0; color: #1e3a2b; font-size: 1.1rem; display: flex; align-items: center; gap: 10px; margin-bottom: 20px;">
+                    <i class="fa-solid fa-brain" style="color: #577b2d;"></i> 지능형 통계 및 조건 검색
+                </h3>
+                <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 15px;">
+                    <select id="stats-year" style="padding: 10px; border: 1px solid #ccc; border-radius: 6px; background: white; font-weight: bold; color: #333;">
+                        <option value="2026">2026년</option>
+                        <option value="2025">2025년</option>
+                    </select>
+                    <div style="flex: 1; min-width: 300px; position: relative;">
+                        <input type="text" id="smart-query-input" placeholder="질문을 입력하세요 (예: 26년 핸디캡 1위, 최다 참석자, 스폰 내역)" 
+                               style="width: 100%; padding: 10px 45px 10px 15px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.95rem;">
+                        <button onclick="handleSmartQuery()" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: #577b2d; border: none; cursor: pointer; color: white; width: 32px; height: 32px; border-radius: 4px; display: flex; align-items: center; justify-content: center;">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                        </button>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <button class="cta-button" onclick="showHandicapRanking()" style="background-color: #2c3e50; font-size: 0.9rem; padding: 10px 20px;">🏆 2026 핸디캡 랭킹 확인</button>
+                    <button class="cta-button" onclick="showSponsorSummary()" style="background-color: #8e44ad; font-size: 0.9rem; padding: 10px 20px;">🎁 스폰서 내역 요약</button>
+                    <button class="cta-button" onclick="showAttendanceStats()" style="background-color: #16a085; font-size: 0.9rem; padding: 10px 20px;">📅 최다 참석자 통계</button>
+                </div>
+            </div>
+
+            <!-- Stats Results Modal -->
+            <div id="stats-result-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:10001; align-items:center; justify-content:center; backdrop-filter: blur(4px);">
+                <div style="background:white; width:90%; max-width:700px; max-height:85vh; border-radius:16px; padding:35px; position:relative; overflow-y:auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+                    <button onclick="closeStatsModal()" style="position:absolute; right:20px; top:20px; border:none; background:#f5f5f5; width:36px; height:36px; border-radius:50%; font-size:1.2rem; cursor:pointer; display:flex; align-items:center; justify-content:center;">&times;</button>
+                    <h3 id="stats-modal-title" style="margin-top:0; color:#1e3a2b; border-bottom:3px solid #577b2d; padding-bottom:15px; font-size:1.4rem;">분석 결과</h3>
+                    <div id="stats-modal-content" style="margin-top: 20px;"></div>
+                </div>
+            </div>
+
             <div class="admin-tabs">
                 <button class="tab-btn active" data-tab="tab-rsvps">참석 현황</button>
                 <button class="tab-btn" data-tab="tab-members">회원 관리</button>
