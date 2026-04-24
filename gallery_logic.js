@@ -494,7 +494,7 @@ async function fetchRoundAwards(dateStr) {
             // User Specified Order
             const awardOrder = [
                 "메달리스트", "신페리오 우승", "롱기스트", "니어리스트", 
-                "다버디", "다파", "다보기", "다따블", "행운상"
+                "다버디", "다파", "다보기", "더보기", "다따블", "행운상"
             ];
 
             // Sort by awardOrder
