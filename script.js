@@ -1164,7 +1164,7 @@ async function renderPublicRSVPs() {
                 </h4>
     <div style="display: flex; flex-wrap: wrap; gap: 10px;">
         ${sponsors.sort((a, b) => {
-            const order = ['원우회', '현성호', '김대욱', '정민호', '이문형', '이영규', '조중규'];
+            const order = ['원우회', '현성호', '김대욱', '정민호', '이문형', '이영규', '조중규', '남서우', '박청산'];
             const idxA = order.indexOf(a.name);
             const idxB = order.indexOf(b.name);
             if (idxA > -1 && idxB > -1) return idxA - idxB;
@@ -2227,7 +2227,9 @@ async function renderSponsorHall(prefetchedData = null) {
                     "정민호 골프부회장님 : 공진단 3박스(60만원 * 3 = 180만원 상당)",
                     "이문형 원우님 : 수정방",
                     "이영규 원우님 : 전해질 500포",
-                    "조중규 원우님 : 곤약면 50Box"
+                    "조중규 원우님 : 곤약면 50Box",
+                    "남서우 원우님 : 중국산 전통 고량주",
+                    "박청산 : 로지텍 무선 멀티 키보드"
                 ]
             },
             {
