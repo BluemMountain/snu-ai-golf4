@@ -233,7 +233,7 @@ function checkLogin() {
     });
 }
 
-console.log("SNU AI GOLF Script Loaded v6.6");
+console.log("SNU AI GOLF Script Loaded v6.15");
 function initRSVP() {
     const modal = document.getElementById('rsvp-modal');
     if (!modal) return; // 전용 관리자 페이지 등에서는 RSVP 로직 건너뜀
@@ -2230,7 +2230,9 @@ async function renderSponsorHall(prefetchedData = null) {
                     "조중규 사무총장님 : 곤약면 1인 1개",
                     "남서우 총무이사님 : 중국 고량주",
                     "박청산 사무부총장님 : 로지텍 무선 멀티 키보드",
-                    "정대규 원우님 : 10만원 상품권 2매"
+                    "정대규 원우님 : 10만원 상품권 2매",
+                    "김기록 원우님 : 위스키",
+                    "정지환 원우님 : 위스키"
                 ]
             },
             {
@@ -2272,6 +2274,10 @@ async function renderSponsorHall(prefetchedData = null) {
             card.style.flexDirection = 'column';
             card.style.alignItems = 'flex-start';
 
+            if (data.title === "5월 스폰서") {
+                card.style.gridColumn = "1 / -1";
+            }
+
             let listHtml = data.list.map(item => {
                 const parts = item.split(':').map(p => p.trim());
                 if(parts.length === 2) {
@@ -2290,7 +2296,7 @@ async function renderSponsorHall(prefetchedData = null) {
             card.innerHTML = `
                 <h3 style="margin-top: 0; color: #c5a059; border-bottom: 2px solid #f0f0f0; padding-bottom: 15px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: baseline; width: 100%;">
                     ${data.title}
-                    <span style="font-size: 0.7rem; color: #ccc; font-weight: normal;">v6.6</span>
+                    <span style="font-size: 0.7rem; color: #ccc; font-weight: normal;">v6.15</span>
                 </h3>
                 <div style="width: 100%;">
                     ${listHtml}
