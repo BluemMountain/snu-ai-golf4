@@ -2232,7 +2232,8 @@ async function renderSponsorHall(prefetchedData = null) {
                     "박청산 사무부총장님 : 로지텍 무선 멀티 키보드",
                     "정대규 원우님 : 10만원 상품권 2매",
                     "김기록 원우님 : 위스키",
-                    "정지환 원우님 : 위스키"
+                    "정지환 원우님 : 위스키",
+                    "박철호 골프부회장님 : 조니워커 블루 1병"
                 ]
             },
             {
@@ -2298,7 +2299,7 @@ async function renderSponsorHall(prefetchedData = null) {
             card.innerHTML = `
                 <h3 style="margin-top: 0; color: #c5a059; border-bottom: 2px solid #f0f0f0; padding-bottom: 15px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: baseline; width: 100%;">
                     ${data.title}
-                    <span style="font-size: 0.7rem; color: #ccc; font-weight: normal;">v6.16</span>
+                    <span style="font-size: 0.7rem; color: #ccc; font-weight: normal;">v6.17</span>
                 </h3>
                 <div style="${innerGridStyle}">
                     ${listHtml}
