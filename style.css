@@ -1209,8 +1209,14 @@ footer {
 /* Sponsor Hall of Fame */
 .sponsor-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    grid-template-columns: 1fr;
     gap: 20px;
+}
+
+@media (min-width: 768px) {
+    .sponsor-grid {
+        grid-template-columns: 1fr 1fr;
+    }
 }
 
 .sponsor-card {
