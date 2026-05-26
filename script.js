@@ -1015,7 +1015,9 @@ async function renderPublicRSVPs() {
         return;
     }
 
-    if (data.length === 0) {
+    const publicData = (data || []).filter(item => !item.name.includes('기부천사'));
+
+    if (publicData.length === 0) {
         container.innerHTML = '<div style="text-align:center; padding: 40px; color:#888;">아직 신청 내역이 없습니다.</div>';
         return;
     }
@@ -1028,7 +1030,7 @@ async function renderPublicRSVPs() {
         return 2;
     };
 
-    const groupedData = data.reduce((acc, item) => {
+    const groupedData = publicData.reduce((acc, item) => {
         const key = `${item.month.trim()} ${item.date.trim()}`;
         if (!acc[key]) acc[key] = [];
         acc[key].push(item);
@@ -2222,23 +2224,24 @@ async function renderSponsorHall(prefetchedData = null) {
                 title: "5월 스폰서",
                 list: [
                     "원우회 : 600만원",
+                    "현성호 원우회장님 : 200만원<br>골프볼 1인당 2더즌씩",
                     "김대욱 골프회장님 : 100만원",
-                    "박철호 골프부회장님 : 조니워커 블루 1병",
                     "정민호 골프부회장님 : 공진단 3박스(180만원 상당)",
-                    "박청산 사무부총장님 : 로지텍 무선 멀티 키보드",
-                    "김기록 원우님 : 위스키",
-                    "이문형 원우님 : 수정방",
-                    "이영규 원우님 : 전해질 데일리 워터믹스(250만원 상당)",
-                    "정대규 원우님 : 10만원 상품권 2매",
-                    "정지환 원우님 : 위스키",
-                    "남서우 총무이사님 : 중국 고량주",
-                    "현성호 원우회장님 : 200만원<br>골프볼 1인당 2더즌씩 협찬",
-                    "이성원 원우님 : 캘러웨이 파우치",
                     "조중규 사무총장님 : 곤약면 1인 1개",
-                    "Sarah Kim 원우님 : 고급 사케와 위스키",
+                    "이영규 원우님 : 전해질 데일리 워터믹스(250만원 상당)",
+                    "이문형 원우님 : 수정방",
+                    "남서우 총무이사님 : 중국 고량주",
+                    "박청산 사무부총장님 : 로지텍 무선 멀티 키보드",
+                    "정대규 원우님 : 10만원 상품권 2매",
+                    "김기록 원우님 : 위스키",
+                    "정지환 원우님 : 위스키",
+                    "박철호 골프부회장님 : 조니워커 블루 1병",
+                    "문성욱 원우님 : 샤넬화장품 2개",
+                    "Sarah Kim 원우님 : 고급 사케 및 위스키",
                     "곽노준 교수님 : 조니워커 블루 1병",
                     "이진우 총무이사님 : 디퓨져",
-                    "문성욱 원우님 : 샤넬 화장품 2개(남성용)"
+                    "이성원 원우님 : 캘러웨이 파우치",
+                    "기부천사 : 100만원"
                 ]
             },
             {
@@ -2286,9 +2289,13 @@ async function renderSponsorHall(prefetchedData = null) {
             let listHtml = data.list.map(item => {
                 const parts = item.split(':').map(p => p.trim());
                 if(parts.length === 2) {
-                    return `<div style="display: flex; justify-content: space-between; width: 100%; border-bottom: 1px dashed #f0f0f0; padding: 8px 0;">
-                                <span style="color: #444; font-weight: 500;">${parts[0]}</span>
-                                <span style="color: #577b2d; font-weight: bold; text-align: right; line-height: 1.4;">${parts[1]}</span>
+                    const isSecret = parts[0].includes('기부천사');
+                    const nameStyle = isSecret ? 'color: #fff; user-select: none;' : 'color: #444; font-weight: 500;';
+                    const valStyle = isSecret ? 'color: #fff; user-select: none;' : 'color: #577b2d; font-weight: bold; text-align: right; line-height: 1.4;';
+                    const borderStyle = isSecret ? 'border-bottom: 1px dashed #fff;' : 'border-bottom: 1px dashed #f0f0f0;';
+                    return `<div style="display: flex; justify-content: space-between; width: 100%; ${borderStyle} padding: 8px 0;">
+                                <span style="${nameStyle}">${parts[0]}</span>
+                                <span style="${valStyle}">${parts[1]}</span>
                             </div>`;
                 }
                 // 날짜 구분선 스타일링
@@ -2301,7 +2308,7 @@ async function renderSponsorHall(prefetchedData = null) {
             card.innerHTML = `
                 <h3 style="margin-top: 0; color: #c5a059; border-bottom: 2px solid #f0f0f0; padding-bottom: 15px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: baseline; width: 100%;">
                     ${data.title}
-                    <span style="font-size: 0.7rem; color: #ccc; font-weight: normal;">v6.21</span>
+                    <span style="font-size: 0.7rem; color: #ccc; font-weight: normal;">v6.22</span>
                 </h3>
                 <div style="${innerGridStyle}">
                     ${listHtml}
