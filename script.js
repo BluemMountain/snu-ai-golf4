@@ -2224,17 +2224,21 @@ async function renderSponsorHall(prefetchedData = null) {
                     "원우회 : 600만원",
                     "현성호 원우회장님 : 200만원<br>골프볼 1인당 2더즌씩 협찬",
                     "김대욱 골프회장님 : 100만원",
+                    "곽노준 교수님 : 조니워커 블루 1병",
                     "정민호 골프부회장님 : 공진단 3박스(180만원 상당)",
-                    "이문형 원우님 : 수정방",
-                    "이영규 원우님 : 전해질 데일리 워터믹스(250만원 상당)",
+                    "박철호 골프부회장님 : 조니워커 블루 1병",
                     "조중규 사무총장님 : 곤약면 1인 1개",
                     "남서우 총무이사님 : 중국 고량주",
+                    "이진우 총무이사님 : 디퓨져",
                     "박청산 사무부총장님 : 로지텍 무선 멀티 키보드",
+                    "이문형 원우님 : 수정방",
+                    "이영규 원우님 : 전해질 데일리 워터믹스(250만원 상당)",
                     "정대규 원우님 : 10만원 상품권 2매",
                     "김기록 원우님 : 위스키",
                     "정지환 원우님 : 위스키",
                     "문성욱 원우님 : 샤넬 화장품 2개(남성용)",
-                    "박철호 골프부회장님 : 조니워커 블루 1병"
+                    "Sarah Kim 원우님 : 고급 사케와 위스키",
+                    "이성원 원우님 : 캘러웨이 파우치"
                 ]
             },
             {
@@ -2297,7 +2301,7 @@ async function renderSponsorHall(prefetchedData = null) {
             card.innerHTML = `
                 <h3 style="margin-top: 0; color: #c5a059; border-bottom: 2px solid #f0f0f0; padding-bottom: 15px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: baseline; width: 100%;">
                     ${data.title}
-                    <span style="font-size: 0.7rem; color: #ccc; font-weight: normal;">v6.19</span>
+                    <span style="font-size: 0.7rem; color: #ccc; font-weight: normal;">v6.20</span>
                 </h3>
                 <div style="${innerGridStyle}">
                     ${listHtml}
