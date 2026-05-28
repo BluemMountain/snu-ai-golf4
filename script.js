@@ -233,7 +233,7 @@ function checkLogin() {
     });
 }
 
-console.log("SNU AI GOLF Script Loaded v6.23");
+console.log("SNU AI GOLF Script Loaded v6.24");
 function initRSVP() {
     const modal = document.getElementById('rsvp-modal');
     if (!modal) return; // 전용 관리자 페이지 등에서는 RSVP 로직 건너뜀
@@ -762,7 +762,12 @@ async function updateRSVPField(id, field, value) {
 
         if (error) throw error;
         console.log(`Field ${field} updated for RSVP ${id}`);
-        showToast('성공적으로 저장되었습니다.');
+
+        if (field === 'roundscore') {
+            showToast('스코어가 저장되었습니다. 상세 기록실에 반영하려면 상단 파란색 [스코어 등록 (상세 반영)] 버튼을 눌러주세요!', 5000);
+        } else {
+            showToast('성공적으로 저장되었습니다.');
+        }
 
         // 스폰서 정보가 수정된 경우 명예의 전당 즉시 갱신을 위해 데이터 재로드 유도
         if (field === 'sponsor') {
@@ -907,7 +912,7 @@ async function loadAdminData() {
                             <span>${key} (총 ${totalDisplay}명 / 참석 ${attendCount}명)</span>
                             <div style="display: flex; gap: 5px;">
                                 <button onclick="autoCalculateAwards('${key}')" class="edit-control" style="background: #c5a059; color: white; border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">자동 수상 계산</button>
-                                <button onclick="syncScoresToRecords('${key}')" class="edit-control" style="background: #2980b9; color: white; border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">스코어 등록</button>
+                                <button onclick="syncScoresToRecords('${key}')" class="edit-control" style="background: #2980b9; color: white; border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight: bold; box-shadow: 0 2px 4px rgba(41,128,185,0.4);">스코어 등록 (상세 반영)</button>
                             </div>
                         </div>
                     </td>
@@ -1372,7 +1377,7 @@ function shuffleArray(array) {
 }
 
 async function syncScoresToRecords(sessionKey) {
-    if (!confirm(`'${sessionKey}'의 스코어를 상세 기록 페이지(DB)로 영구 저장하시겠습니까?`)) return;
+    if (!confirm(`'${sessionKey}'의 현재 입력된 참석자 스코어 데이터를 '상세 스코어 기록실(DB)'로 전송하여 반영하시겠습니까?\n\n이 작업을 수행해야 상세 스코어 관리 페이지 및 연간 핸디캡 랭킹에 공식 집계됩니다.`)) return;
 
     try {
         const [month, datePart] = sessionKey.split(' ');
@@ -2325,7 +2330,7 @@ async function renderSponsorHall(prefetchedData = null) {
 /**
  * 화면 하단에 일시적인 알림 메시지를 표시합니다.
  */
-function showToast(message) {
+function showToast(message, duration = 3000) {
     // 기존 토스트 제거
     const oldToast = document.querySelector('.toast');
     if (oldToast) oldToast.remove();
@@ -2340,13 +2345,13 @@ function showToast(message) {
         toast.classList.add('show');
     }, 10);
 
-    // 3초 후 제거
+    // duration 후 제거
     setTimeout(() => {
         toast.classList.remove('show');
         setTimeout(() => {
             if (toast.parentNode) toast.parentNode.removeChild(toast);
         }, 300);
-    }, 3000);
+    }, duration);
 }
 
 window.renderSponsorHall = renderSponsorHall;
