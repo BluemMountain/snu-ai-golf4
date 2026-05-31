@@ -233,7 +233,7 @@ function checkLogin() {
     });
 }
 
-console.log("SNU AI GOLF Script Loaded v6.25");
+console.log("SNU AI GOLF Script Loaded v6.26");
 function initRSVP() {
     const modal = document.getElementById('rsvp-modal');
     if (!modal) return; // 전용 관리자 페이지 등에서는 RSVP 로직 건너뜀
@@ -2249,7 +2249,7 @@ async function renderSponsorHall(prefetchedData = null) {
                     "배태근 원우님 : 네오위즈 골프볼 6구 3박스",
                     "안원익 원우님 : 골프버디 거리측정기 3대",
                     "정진우 총무이사님 : 많~~이 (와인, 마스크 팩등 다수)",
-                    "기부천사 : 100만원"
+                    "김종세 수석부회장님 : 100만원"
                 ]
             },
             {
@@ -2316,7 +2316,7 @@ async function renderSponsorHall(prefetchedData = null) {
             card.innerHTML = `
                 <h3 style="margin-top: 0; color: #c5a059; border-bottom: 2px solid #f0f0f0; padding-bottom: 15px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: baseline; width: 100%;">
                     ${data.title}
-                    <span style="font-size: 0.7rem; color: #ccc; font-weight: normal;">v6.25</span>
+                    <span style="font-size: 0.7rem; color: #ccc; font-weight: normal;">v6.26</span>
                 </h3>
                 <div style="${innerGridStyle}">
                     ${listHtml}
