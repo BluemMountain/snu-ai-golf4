@@ -233,7 +233,7 @@ function checkLogin() {
     });
 }
 
-console.log("SNU AI GOLF Script Loaded v6.24");
+console.log("SNU AI GOLF Script Loaded v6.25");
 function initRSVP() {
     const modal = document.getElementById('rsvp-modal');
     if (!modal) return; // 전용 관리자 페이지 등에서는 RSVP 로직 건너뜀
@@ -2232,7 +2232,7 @@ async function renderSponsorHall(prefetchedData = null) {
                     "현성호 원우회장님 : 200만원<br>골프볼 1인당 2더즌씩",
                     "김대욱 골프회장님 : 100만원",
                     "정민호 골프부회장님 : 공진단 3박스(180만원 상당)",
-                    "조중규 사무총장님 : 곤약면 1인 1개",
+                    "조중규 사무총장님 : 곤약면 1인 1박스(4개입)",
                     "이영규 원우님 : 전해질 데일리 워터믹스(250만원 상당)",
                     "이문형 원우님 : 수정방",
                     "남서우 총무이사님 : 중국 고량주",
@@ -2246,6 +2246,9 @@ async function renderSponsorHall(prefetchedData = null) {
                     "곽노준 교수님 : 조니워커 블루 1병",
                     "이진우 총무이사님 : 디퓨져",
                     "이성원 원우님 : 캘러웨이 파우치",
+                    "배태근 원우님 : 네오위즈 골프볼 6구 3박스",
+                    "안원익 원우님 : 골프버디 거리측정기 3대",
+                    "정진우 총무이사님 : 많~~이 (와인, 마스크 팩등 다수)",
                     "기부천사 : 100만원"
                 ]
             },
@@ -2313,7 +2316,7 @@ async function renderSponsorHall(prefetchedData = null) {
             card.innerHTML = `
                 <h3 style="margin-top: 0; color: #c5a059; border-bottom: 2px solid #f0f0f0; padding-bottom: 15px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: baseline; width: 100%;">
                     ${data.title}
-                    <span style="font-size: 0.7rem; color: #ccc; font-weight: normal;">v6.23</span>
+                    <span style="font-size: 0.7rem; color: #ccc; font-weight: normal;">v6.25</span>
                 </h3>
                 <div style="${innerGridStyle}">
                     ${listHtml}
