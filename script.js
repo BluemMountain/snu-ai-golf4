@@ -233,7 +233,7 @@ function checkLogin() {
     });
 }
 
-console.log("SNU AI GOLF Script Loaded v6.28");
+console.log("SNU AI GOLF Script Loaded v6.29");
 function initRSVP() {
     const modal = document.getElementById('rsvp-modal');
     if (!modal) return; // 전용 관리자 페이지 등에서는 RSVP 로직 건너뜀
@@ -2226,6 +2226,14 @@ async function renderSponsorHall(prefetchedData = null) {
     try {
         const sponsorHistory = [
             {
+                title: "6월 스폰서",
+                list: [
+                    "김대욱 골프회장님 : 사과 3박스",
+                    "현성호 원우회장님 : 골프볼 2더즌 * 3박스",
+                    "박청산 사무부총장님 : 보조배터리 4개"
+                ]
+            },
+            {
                 title: "5월 스폰서",
                 list: [
                     "원우회 : 600만원",
@@ -2289,7 +2297,7 @@ async function renderSponsorHall(prefetchedData = null) {
             card.style.alignItems = 'flex-start';
 
             let innerGridStyle = 'width: 100%;';
-            if (data.title === "5월 스폰서") {
+            if (data.title === "6월 스폰서" || data.title === "5월 스폰서") {
                 card.style.gridColumn = "1 / -1";
                 innerGridStyle = 'width: 100%; display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 0 40px;';
             }
@@ -2316,7 +2324,7 @@ async function renderSponsorHall(prefetchedData = null) {
             card.innerHTML = `
                 <h3 style="margin-top: 0; color: #c5a059; border-bottom: 2px solid #f0f0f0; padding-bottom: 15px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: baseline; width: 100%;">
                     ${data.title}
-                    <span style="font-size: 0.7rem; color: #ccc; font-weight: normal;">v6.28</span>
+                    <span style="font-size: 0.7rem; color: #ccc; font-weight: normal;">v6.29</span>
                 </h3>
                 <div style="${innerGridStyle}">
                     ${listHtml}
