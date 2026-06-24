@@ -233,7 +233,7 @@ function checkLogin() {
     });
 }
 
-console.log("SNU AI GOLF Script Loaded v6.29");
+console.log("SNU AI GOLF Script Loaded v6.30");
 function initRSVP() {
     const modal = document.getElementById('rsvp-modal');
     if (!modal) return; // 전용 관리자 페이지 등에서는 RSVP 로직 건너뜀
@@ -1419,22 +1419,39 @@ async function syncScoresToRecords(sessionKey) {
             return;
         }
 
-        // 4. Get Max Round Count from DB
-        const { data: lastScore, error: countError } = await supabaseClient
+        // 4. Check if a round with the same date already exists
+        const { data: existingRound, error: existError } = await supabaseClient
             .from('scores')
             .select('round_count')
-            .order('round_count', { ascending: false })
+            .eq('date', yymmdd)
             .limit(1);
-        
-        if (countError) throw countError;
-        const nextCount = (lastScore && lastScore.length > 0) ? lastScore[0].round_count + 1 : 1;
+
+        if (existError) throw existError;
+
+        let targetCount;
+        if (existingRound && existingRound.length > 0) {
+            targetCount = existingRound[0].round_count;
+            if (!confirm(`'${yymmdd}' 날짜의 라운드 기록이 이미 존재합니다. (회차: ${targetCount})\n기존 기록에 현재 스코어 데이터를 덮어쓰시겠습니까?`)) {
+                return;
+            }
+        } else {
+            // Get Max Round Count from DB to compute next count
+            const { data: lastScore, error: countError } = await supabaseClient
+                .from('scores')
+                .select('round_count')
+                .order('round_count', { ascending: false })
+                .limit(1);
+            
+            if (countError) throw countError;
+            targetCount = (lastScore && lastScore.length > 0) ? lastScore[0].round_count + 1 : 1;
+        }
 
         // 5. Upsert to Supabase
         const venue = yymmdd.startsWith('2602') ? "소노펠리체CC in 하롱베이" : "신원CC";
         const { error: saveError } = await supabaseClient
             .from('scores')
             .upsert([{
-                round_count: nextCount,
+                round_count: targetCount,
                 date: yymmdd,
                 venue: venue,
                 scores_data: scores_data
@@ -2324,7 +2341,7 @@ async function renderSponsorHall(prefetchedData = null) {
             card.innerHTML = `
                 <h3 style="margin-top: 0; color: #c5a059; border-bottom: 2px solid #f0f0f0; padding-bottom: 15px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: baseline; width: 100%;">
                     ${data.title}
-                    <span style="font-size: 0.7rem; color: #ccc; font-weight: normal;">v6.29</span>
+                    <span style="font-size: 0.7rem; color: #ccc; font-weight: normal;">v6.30</span>
                 </h3>
                 <div style="${innerGridStyle}">
                     ${listHtml}
