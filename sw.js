@@ -1,4 +1,4 @@
-const CACHE_NAME = 'snu-ai-golf-v6.31';
+const CACHE_NAME = 'snu-ai-golf-v6.32';
 const ASSETS_TO_CACHE = [
     './',
     './index.html',

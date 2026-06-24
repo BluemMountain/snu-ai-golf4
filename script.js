@@ -233,7 +233,7 @@ function checkLogin() {
     });
 }
 
-console.log("SNU AI GOLF Script Loaded v6.31");
+console.log("SNU AI GOLF Script Loaded v6.32");
 function initRSVP() {
     const modal = document.getElementById('rsvp-modal');
     if (!modal) return; // 전용 관리자 페이지 등에서는 RSVP 로직 건너뜀
@@ -2341,7 +2341,7 @@ async function renderSponsorHall(prefetchedData = null) {
             card.innerHTML = `
                 <h3 style="margin-top: 0; color: #c5a059; border-bottom: 2px solid #f0f0f0; padding-bottom: 15px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: baseline; width: 100%;">
                     ${data.title}
-                    <span style="font-size: 0.7rem; color: #ccc; font-weight: normal;">v6.31</span>
+                    <span style="font-size: 0.7rem; color: #ccc; font-weight: normal;">v6.32</span>
                 </h3>
                 <div style="${innerGridStyle}">
                     ${listHtml}
