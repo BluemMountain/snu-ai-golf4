@@ -2,8 +2,8 @@ name: Supabase Keep Alive
 
 on:
   schedule:
-    # Runs at 21:00 UTC every day (06:00 KST)
-    - cron: '0 21 * * *'
+    # Runs at 09:00 and 21:00 UTC every day (18:00 and 06:00 KST)
+    - cron: '0 9,21 * * *'
   workflow_dispatch:
 
 jobs:
@@ -24,6 +24,6 @@ jobs:
 
       - name: Run keep-alive script
         env:
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          SUPABASE_URL: 'https://qfzmwlyqezmkkxtpscik.supabase.co'
+          SUPABASE_KEY: 'sb_publishable_mYejtROOg-2JN7z6_RlWdg_PXYSYgFi'
         run: node keep_alive.js
