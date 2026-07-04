@@ -248,8 +248,9 @@ function initRSVP() {
     // Open Modal
     cards.forEach(card => {
         card.addEventListener('click', () => {
-            const month = card.querySelector('.month').textContent;
-            const date = card.querySelector('.date').textContent;
+            const month = card.querySelector('.month').textContent.trim();
+            const dateEl = card.querySelector('.date');
+            const date = (dateEl.getAttribute('data-real-date') || dateEl.textContent).trim();
 
             const availability = getRSVPAvailability(month);
 
