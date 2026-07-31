@@ -86,40 +86,63 @@ async function showHandicapRanking() {
             supabaseClient.from('members').select('name')
         ]);
 
-        if (scoreError || memberError) throw scoreError || memberError;
-
-        // Aggregate scores from JSONB field in 'scores' table
+               // Aggregate scores from JSONB field in 'scores' table (Overall vs Shinwon CC)
         const memberScores = {};
+        const memberShinwonScores = {};
+
         scores.forEach(s => {
             // Filter by year prefix (YYMMDD format)
             if (s.date && !s.date.toString().startsWith(yearPrefix)) return;
             if (s.round_count === 0) return; // Skip baseline
 
+            const isShinwon = s.venue && s.venue.includes('신원');
             const data = s.scores_data || {};
+
             Object.entries(data).forEach(([name, val]) => {
                 const sVal = parseInt(val);
                 if (isNaN(sVal) || sVal <= 0) return;
                 const n = name.trim();
+
+                // Overall scores
                 if (!memberScores[n]) memberScores[n] = [];
                 memberScores[n].push(sVal);
+
+                // Shinwon-only scores
+                if (isShinwon) {
+                    if (!memberShinwonScores[n]) memberShinwonScores[n] = [];
+                    memberShinwonScores[n].push(sVal);
+                }
             });
         });
 
         const ranking = members.map(m => {
             const name = (m.name || '').trim();
+            
+            // Overall calculations
             const sList = memberScores[name] || [];
             const avgScore = sList.length > 0 ? sList.reduce((a, b) => a + b, 0) / sList.length : null;
+            const h26_total = avgScore ? ((avgScore - 72.0) * 113 / 125).toFixed(1) : "N/A";
             
-            // USGA Handicap Differential Calculation: (Score - 72.0) * 113 / 125
-            const h26 = avgScore ? ((avgScore - 72.0) * 113 / 125).toFixed(1) : "N/A";
+            // Shinwon calculations
+            const shinwonSList = memberShinwonScores[name] || [];
+            const shinwonAvgScore = shinwonSList.length > 0 ? shinwonSList.reduce((a, b) => a + b, 0) / shinwonSList.length : null;
+            const h26_shinwon = shinwonAvgScore ? ((shinwonAvgScore - 72.0) * 113 / 125).toFixed(1) : "N/A";
             
-            return { name, h26, avgScore: avgScore?.toFixed(1) || "N/A", rounds: sList.length };
-        }).filter(m => m.h26 !== "N/A");
+            return { 
+                name, 
+                h26_total, 
+                h26_shinwon, 
+                avgScore: avgScore?.toFixed(1) || "N/A", 
+                rounds: sList.length,
+                shinwonRounds: shinwonSList.length
+            };
+        }).filter(m => m.h26_total !== "N/A");
 
+        // Sort by overall handicap index
         ranking.sort((a, b) => {
-            if (a.h26 === "N/A") return 1;
-            if (b.h26 === "N/A") return -1;
-            return parseFloat(a.h26) - parseFloat(b.h26);
+            if (a.h26_total === "N/A") return 1;
+            if (b.h26_total === "N/A") return -1;
+            return parseFloat(a.h26_total) - parseFloat(b.h26_total);
         });
 
         let html = `
@@ -134,7 +157,8 @@ async function showHandicapRanking() {
                     <tr style="background:#f4f4f4; border-bottom:2px solid #ddd;">
                         <th style="padding:10px; text-align:left;">순위</th>
                         <th style="padding:10px; text-align:left;">성함</th>
-                        <th style="padding:10px; text-align:right;">핸디캡 인덱스</th>
+                        <th style="padding:10px; text-align:right;">핸디캡 (전체)</th>
+                        <th style="padding:10px; text-align:right;">핸디캡 (신원)</th>
                         <th style="padding:10px; text-align:right;">평균 타수</th>
                         <th style="padding:10px; text-align:right;">라운드</th>
                     </tr>
@@ -147,9 +171,10 @@ async function showHandicapRanking() {
                 <tr style="border-bottom:1px solid #eee;">
                     <td style="padding:10px;">${i + 1}</td>
                     <td style="padding:10px; font-weight:bold;">${m.name}</td>
-                    <td style="padding:10px; text-align:right; color:#577b2d; font-weight:bold;">${m.h26}</td>
+                    <td style="padding:10px; text-align:right; color:#2c3e50; font-weight:bold;">${m.h26_total}</td>
+                    <td style="padding:10px; text-align:right; color:#577b2d; font-weight:bold;">${m.h26_shinwon}</td>
                     <td style="padding:10px; text-align:right;">${m.avgScore}</td>
-                    <td style="padding:10px; text-align:right;">${m.rounds}회</td>
+                    <td style="padding:10px; text-align:right;">${m.rounds}회(신원 ${m.shinwonRounds}회)</td>
                 </tr>
             `;
         });
