@@ -1,34 +1,44 @@
-const supabase = require('./supabaseClient');
+const https = require('https');
 
 /**
- * Supabase Keep-Alive Script
- * This script performs a simple SELECT query to keep the Supabase project active.
+ * Supabase Keep-Alive Script (Lightweight REST version)
+ * This script calls Supabase REST API directly using built-in https module
+ * to avoid libuv socket closing assertions on process.exit.
  */
-async function keepAlive() {
-    console.log('Starting keep-alive query at:', new Date().toISOString());
+function keepAlive() {
+    console.log('Starting keep-alive REST query at:', new Date().toISOString());
 
-    try {
-        const { data, error } = await supabase
-            .from('members')
-            .select('*')
-            .limit(1);
-
-        if (error) {
-            console.error('Error querying Supabase:', error.message);
-            process.exit(1);
+    const url = 'https://qfzmwlyqezmkkxtpscik.supabase.co/rest/v1/members?limit=1';
+    const options = {
+        method: 'GET',
+        headers: {
+            'apikey': 'sb_publishable_mYejtROOg-2JN7z6_RlWdg_PXYSYgFi',
+            'Authorization': 'Bearer sb_publishable_mYejtROOg-2JN7z6_RlWdg_PXYSYgFi',
+            'User-Agent': 'Mozilla/5.0'
         }
+    };
 
-        console.log('Successfully queried Supabase.');
-        if (data && data.length > 0) {
-            console.log('Status: Table is accessible.');
-        } else {
-            console.log('Status: Table is accessible but empty.');
-        }
-        process.exit(0);
-    } catch (err) {
-        console.error('Unexpected error:', err.message);
+    const req = https.request(url, options, (res) => {
+        let body = '';
+        res.on('data', (chunk) => body += chunk);
+        res.on('end', () => {
+            console.log(`Successfully pinged Supabase. Response Status: ${res.statusCode}`);
+            if (res.statusCode >= 200 && res.statusCode < 300) {
+                console.log('Keep-alive ping successful!');
+                process.exit(0);
+            } else {
+                console.error(`Failed with status: ${res.statusCode}. Body: ${body}`);
+                process.exit(1);
+            }
+        });
+    });
+
+    req.on('error', (err) => {
+        console.error('Network error during keep-alive ping:', err.message);
         process.exit(1);
-    }
+    });
+
+    req.end();
 }
 
 keepAlive();
