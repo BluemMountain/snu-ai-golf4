@@ -857,13 +857,21 @@ async function loadAdminData() {
         if (rsvps.length === 0) {
             rsvpTbody.innerHTML = '<tr><td colspan="12" style="text-align:center; padding: 20px;">신청 내역이 없습니다.</td></tr>';
         } else {
-            // Group by Month/Date
-            const groupedData = rsvps.reduce((acc, item) => {
+            // Group by Month/Date (Initialize with GOLF_SCHEDULE to show empty sessions too)
+            const groupedData = {};
+            if (typeof GOLF_SCHEDULE !== 'undefined') {
+                GOLF_SCHEDULE.forEach(sched => {
+                    const key = `${sched.month.trim()} ${sched.date.trim()}`;
+                    groupedData[key] = [];
+                });
+            }
+
+            rsvps.reduce((acc, item) => {
                 const key = `${item.month.trim()} ${item.date.trim()}`;
                 if (!acc[key]) acc[key] = [];
                 acc[key].push(item);
                 return acc;
-            }, {});
+            }, groupedData);
 
             const sortedKeys = Object.keys(groupedData).filter(key => {
                 const monthMatch = key.match(/(\d+)월/);
