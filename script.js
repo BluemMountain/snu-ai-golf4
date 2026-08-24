@@ -2269,6 +2269,15 @@ async function renderSponsorHall(prefetchedData = null) {
     try {
         const sponsorHistory = [
             {
+                title: "8월 스폰서",
+                list: [
+                    "김대욱 회장님 : 30만원 상당 물품",
+                    "박철호 부회장님 : 30만원 상당 물품",
+                    "전은미 총무님 : 한정판 라면 1 set",
+                    "정대규 대표님 : 원글라스 팩와인 레드 10개 화이트 10개"
+                ]
+            },
+            {
                 title: "6월 스폰서",
                 list: [
                     "김대욱 골프회장님 : 사과 3박스",
@@ -2341,7 +2350,7 @@ async function renderSponsorHall(prefetchedData = null) {
             card.style.alignItems = 'flex-start';
 
             let innerGridStyle = 'width: 100%;';
-            if (data.title === "6월 스폰서" || data.title === "5월 스폰서") {
+            if (data.title === "8월 스폰서" || data.title === "6월 스폰서" || data.title === "5월 스폰서") {
                 card.style.gridColumn = "1 / -1";
                 innerGridStyle = 'width: 100%; display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 0 40px;';
             }
