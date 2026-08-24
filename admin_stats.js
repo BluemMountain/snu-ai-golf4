@@ -340,6 +340,137 @@ async function showAttendanceStats() {
     }
 }
 
+async function showAwardSummary() {
+    try {
+        const year = document.getElementById('stats-year').value;
+        openStatsModal(`${year}년 수상자 내역 요약`, '<div style="text-align:center; padding:20px;">데이터를 불러오는 중...</div>');
+
+        const { data: rsvps, error } = await supabaseClient
+            .from('rsvps')
+            .select('name, month, date, roundscore, roundaward, status')
+            .not('roundaward', 'is', null)
+            .not('roundaward', 'eq', '');
+
+        if (error) throw error;
+
+        // 2026년도 데이터만 필터링
+        const filteredRsvps = rsvps.filter(r => {
+            const monthMatch = r.month.match(/(\d+)월/);
+            const dateMatch = r.date.match(/(\d+)\.(\d+)/);
+            if (monthMatch && dateMatch) {
+                return true;
+            }
+            return false;
+        });
+
+        // 1. 분류 데이터 구조 정의
+        const categories = {
+            medal: { title: "🏅 역대 메달리스트", list: [], icon: "🥇" },
+            newperio: { title: "🏆 신페리오 우승", list: [], icon: "🏆" },
+            longest: { title: "🏌️ 롱기스트", list: [], icon: "🎯" },
+            nearest: { title: "⛳ 니어리스트", list: [], icon: "⛳" },
+            multishot: { title: "📊 다관왕 (다버디/다파/다보기 등)", list: [], icon: "📊" },
+            others: { title: "🎁 기타 시상 (준우승/행운상/발전상 등)", list: [], icon: "🎁" }
+        };
+
+        filteredRsvps.forEach(r => {
+            const name = (r.name || '').trim();
+            const award = (r.roundaward || '').trim();
+            const score = r.roundscore;
+            const dateStr = `${r.month} ${r.date}`;
+            
+            const item = { name, award, score, month: r.month, date: r.date, dateStr };
+
+            // 분류 매칭
+            if (award.includes('메달') || award === '메달리스트') {
+                categories.medal.list.push(item);
+            } else if (award.includes('신페리오')) {
+                categories.newperio.list.push(item);
+            } else if (award.includes('롱기스트')) {
+                // 거리 추출
+                const distMatch = award.match(/(\d+(\.\d+)?\s*(m|미터)?)/i);
+                item.extra = distMatch ? distMatch[1] : '';
+                categories.longest.list.push(item);
+            } else if (award.includes('니어리스트')) {
+                // 거리 추출
+                const distMatch = award.match(/(\d+(\.\d+)?\s*(m|미터|cm)?)/i);
+                item.extra = distMatch ? distMatch[1] : '';
+                categories.nearest.list.push(item);
+            } else if (award.includes('다버디') || award.includes('다파') || award.includes('다보기') || award.includes('다더블') || award.includes('다따블')) {
+                // 개수 추출
+                const countMatch = award.match(/(\d+\s*개)/);
+                item.extra = countMatch ? countMatch[1] : '';
+                categories.multishot.list.push(item);
+            } else {
+                categories.others.list.push(item);
+            }
+        });
+
+        // 2. 날짜 내림차순 정렬 (최신 라운드 우선)
+        const sortDesc = (list) => {
+            list.sort((a, b) => {
+                const parseDate = (item) => {
+                    const mmMatch = item.month.match(/(\d+)월/);
+                    const ddMatch = item.date.match(/(\d+)\.(\d+)/);
+                    if (mmMatch && ddMatch) {
+                        return new Date(2026, parseInt(mmMatch[1]) - 1, parseInt(ddMatch[2]));
+                    }
+                    return new Date(0);
+                };
+                return parseDate(b) - parseDate(a);
+            });
+        };
+
+        Object.keys(categories).forEach(k => sortDesc(categories[k].list));
+
+        // 3. HTML 렌더링
+        let html = '<div style="display:flex; flex-direction:column; gap:20px; margin-top:10px;">';
+
+        Object.values(categories).forEach(cat => {
+            if (cat.list.length === 0) return; // 내용이 없는 카테고리는 생략
+
+            html += `
+                <div style="padding:20px; background:#fff; border:1px solid #e0c58a; border-radius:12px; box-shadow:0 4px 12px rgba(197, 160, 89, 0.08);">
+                    <div style="font-weight:bold; color:#1e3a2b; font-size:1.15rem; margin-bottom:12px; border-bottom:2px solid #f0e6d2; padding-bottom:8px; display:flex; align-items:center; gap:8px;">
+                        <span>${cat.icon}</span>
+                        <span>${cat.title}</span>
+                    </div>
+                    <ul style="margin:0; padding-left:20px; color:#444; line-height:1.8;">
+            `;
+
+            cat.list.forEach(i => {
+                let detail = '';
+                if (cat === categories.medal || cat === categories.newperio) {
+                    detail = i.score ? `<strong>${i.score}타</strong>` : '';
+                } else if (cat === categories.longest || cat === categories.nearest || cat === categories.multishot) {
+                    const awardNameOnly = i.award.replace(/[\(\)]/g, '').replace(/\d+(\.\d+)?\s*(m|미터|cm|개)?/gi, '').trim();
+                    detail = `${awardNameOnly} ${i.extra ? `<strong style="color:#c5a059;">(${i.extra})</strong>` : ''}`;
+                } else {
+                    detail = `<strong>${i.award}</strong>`;
+                }
+
+                html += `
+                    <li style="margin-bottom:6px;">
+                        <span style="color:#888; font-size:0.85rem; margin-right:8px;">[${i.dateStr}]</span>
+                        <span style="font-weight:bold; color:#333; margin-right:6px;">${i.name}</span>
+                        <span>${detail}</span>
+                    </li>
+                `;
+            });
+
+            html += `</ul></div>`;
+        });
+
+        html += '</div>';
+
+        openStatsModal(`${year}년 수상자 내역 요약`, html);
+
+    } catch (err) {
+        console.error('Stats error:', err);
+        openStatsModal('오류 발생', `<div style="color:red; text-align:center; padding:20px;">${err.message}</div>`);
+    }
+}
+
 async function handleSmartQuery() {
     const query = document.getElementById('smart-query-input').value;
     if (!query) return;
@@ -352,8 +483,10 @@ async function handleSmartQuery() {
         showSponsorSummary();
     } else if (normalized.includes('참석') || normalized.includes('개근')) {
         showAttendanceStats();
+    } else if (normalized.includes('수상') || normalized.includes('우승') || normalized.includes('시상') || normalized.includes('롱기') || normalized.includes('니어')) {
+        showAwardSummary();
     } else {
-        alert('질문을 이해하지 못했습니다. "핸디캡", "스폰서", "참석" 등의 키워드를 포함해 주세요.');
+        alert('질문을 이해하지 못했습니다. "핸디캡", "스폰서", "참석", "수상" 등의 키워드를 포함해 주세요.');
     }
 }
 
@@ -362,4 +495,5 @@ window.handleSmartQuery = handleSmartQuery;
 window.showHandicapRanking = showHandicapRanking;
 window.showSponsorSummary = showSponsorSummary;
 window.showAttendanceStats = showAttendanceStats;
+window.showAwardSummary = showAwardSummary;
 window.closeStatsModal = closeStatsModal;
