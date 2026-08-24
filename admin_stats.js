@@ -210,6 +210,19 @@ async function showSponsorSummary() {
 
         let html = '<div style="display:flex; flex-direction:column; gap:15px; margin-top:10px;">';
         Object.entries(sponsors).forEach(([name, items]) => {
+            // 최신 날짜순 정렬 (8월 -> 6월 -> 5월 ...)
+            items.sort((a, b) => {
+                const parseDateVal = (item) => {
+                    const mmMatch = item.month.match(/(\d+)월/);
+                    const ddMatch = item.date.match(/(\d+)\.(\d+)/);
+                    if (mmMatch && ddMatch) {
+                        return new Date(2026, parseInt(mmMatch[1]) - 1, parseInt(ddMatch[2]));
+                    }
+                    return new Date(0);
+                };
+                return parseDateVal(b) - parseDateVal(a);
+            });
+
             html += `
                 <div style="padding:15px; background:#f9f9f9; border-radius:8px; border-left:4px solid #8e44ad;">
                     <div style="font-weight:bold; color:#1e3a2b; font-size:1.1rem; margin-bottom:8px;">${name} 원우님</div>
