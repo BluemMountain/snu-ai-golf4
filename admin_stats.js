@@ -208,8 +208,11 @@ async function showSponsorSummary() {
             sponsors[name].push({ month: r.month, date: r.date, item: r.sponsor, isAbsent: r.status === 'absent' });
         });
 
+        // Sort sponsors by sponsorship count descending (most active sponsor first)
+        const sortedSponsors = Object.entries(sponsors).sort((a, b) => b[1].length - a[1].length);
+
         let html = '<div style="display:flex; flex-direction:column; gap:15px; margin-top:10px;">';
-        Object.entries(sponsors).forEach(([name, items]) => {
+        sortedSponsors.forEach(([name, items]) => {
             // 최신 날짜순 정렬 (8월 -> 6월 -> 5월 ...)
             items.sort((a, b) => {
                 const parseDateVal = (item) => {
