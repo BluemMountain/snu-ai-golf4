@@ -240,15 +240,23 @@ async function showAttendanceStats() {
         const year = document.getElementById('stats-year').value;
         openStatsModal(`${year}년 최다 참석자 통계`, '<div style="text-align:center; padding:20px;">계산 중입니다...</div>');
 
-        const { data: rsvps, error } = await supabaseClient
-            .from('rsvps')
-            .select('name, month, date')
-            .eq('status', 'attend');
+        const [{ data: rsvps, error: rsvpError }, { data: scores, error: scoreError }] = await Promise.all([
+            supabaseClient.from('rsvps').select('name, month, date').eq('status', 'attend'),
+            supabaseClient.from('scores').select('month, date, venue')
+        ]);
 
-        if (error) throw error;
+        if (rsvpError || scoreError) throw rsvpError || scoreError;
 
         const today = new Date();
         today.setHours(0, 0, 0, 0);
+
+        const shinwonRoundKeys = new Set();
+        scores.forEach(s => {
+            if (s.venue && s.venue.includes('신원')) {
+                const key = `${s.month.trim()}|${s.date.trim()}`;
+                shinwonRoundKeys.add(key);
+            }
+        });
 
         const counts = {};
         rsvps.forEach(r => {
@@ -262,20 +270,30 @@ async function showAttendanceStats() {
 
             const name = (r.name || '').trim();
             if (!name) return;
-            counts[name] = (counts[name] || 0) + 1;
+
+            const isShinwon = shinwonRoundKeys.has(`${r.month.trim()}|${r.date.trim()}`);
+
+            if (!counts[name]) {
+                counts[name] = { total: 0, shinwon: 0 };
+            }
+            counts[name].total += 1;
+            if (isShinwon) {
+                counts[name].shinwon += 1;
+            }
         });
 
-        const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+        const sorted = Object.entries(counts).sort((a, b) => b[1].total - a[1].total);
 
         let html = `
             <div style="margin-bottom:15px; font-size:0.9rem; color:#666; background:#f0f7f4; padding:10px; border-radius:6px;">
                 💡 오늘(${today.toLocaleDateString()})까지 개최된 라운드 기준 통계입니다.
             </div>
             <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap:10px;">
-                ${sorted.map(([name, count]) => `
+                ${sorted.map(([name, stat]) => `
                     <div style="padding:12px; background:#fff; border:1px solid #e0e0e0; border-radius:8px; text-align:center; box-shadow:0 2px 4px rgba(0,0,0,0.05);">
                         <div style="font-size:1.1rem; font-weight:bold; color:#1e3a2b;">${name}</div>
-                        <div style="color:#577b2d; font-size:0.9rem; font-weight:bold;">${count}회 참석</div>
+                        <div style="color:#577b2d; font-size:0.9rem; font-weight:bold;">총 ${stat.total}회 참석</div>
+                        <div style="color:#666; font-size:0.8rem; margin-top:4px; font-weight:500;">(신원CC ${stat.shinwon}회)</div>
                     </div>
                 `).join('')}
             </div>
