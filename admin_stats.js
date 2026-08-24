@@ -409,10 +409,14 @@ async function showAwardSummary() {
                 const count = sortedCounts[i];
                 const names = countGroups[count].join(', ');
                 rankingHtml += `
-                    <div style="display:flex; align-items:center; font-size:1rem; border-bottom:1px solid #faf5e6; padding-bottom:6px;">
-                        <span style="font-weight:bold; color:#d35400; width:65px; display:inline-block;">${rankMedals[i]}</span>
-                        <span style="color:#555; margin-right:10px; font-weight:500;">(총 ${count}회)</span>
-                        <span style="font-weight:bold; color:#2c3e50; font-size:1.05rem;">${names}</span>
+                    <div style="display:flex; align-items:flex-start; font-size:1rem; border-bottom:1px solid #faf5e6; padding-bottom:8px; gap:10px;">
+                        <div style="flex-shrink:0; min-width:130px; white-space:nowrap;">
+                            <span style="font-weight:bold; color:#d35400; margin-right:6px;">${rankMedals[i]}</span>
+                            <span style="color:#666; font-size:0.9rem;">(총 ${count}회)</span>
+                        </div>
+                        <div style="flex:1; font-weight:bold; color:#2c3e50; font-size:1.02rem; line-height:1.4;">
+                            ${names}
+                        </div>
                     </div>
                 `;
             }
