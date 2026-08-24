@@ -538,16 +538,13 @@ async function showAwardSummary() {
             sortDesc(categories[k].list, k === 'multishot');
         });
 
-        // 4. HTML 렌더링
-        let html = rankingHtml; // 최다 수상자 랭킹 레이아웃을 가장 상단에 얹음
-        html += '<div style="display:flex; flex-direction:column; gap:20px; margin-top:10px;">';
-
-        Object.values(categories).forEach(cat => {
-            if (cat.list.length === 0) return; // 내용이 없는 카테고리는 생략
-
-            html += `
-                <div style="padding:20px; background:#fff; border:1px solid #e0c58a; border-radius:12px; box-shadow:0 4px 12px rgba(197, 160, 89, 0.08);">
-                    <div style="font-weight:bold; color:#1e3a2b; font-size:1.15rem; margin-bottom:12px; border-bottom:2px solid #f0e6d2; padding-bottom:8px; display:flex; align-items:center; gap:8px;">
+        // 4. HTML 렌더링 (최다 수상자 랭킹 + 3개 행 그리드)
+        const renderCategoryCard = (cat, isSmallFont = false) => {
+            if (cat.list.length === 0) return '';
+            
+            let cardHtml = `
+                <div style="padding:20px; background:#fff; border:1px solid #e0c58a; border-radius:12px; box-shadow:0 4px 12px rgba(197, 160, 89, 0.08); font-size: ${isSmallFont ? '0.88rem' : '1rem'};">
+                    <div style="font-weight:bold; color:#1e3a2b; font-size:${isSmallFont ? '1.05rem' : '1.15rem'}; margin-bottom:12px; border-bottom:2px solid #f0e6d2; padding-bottom:8px; display:flex; align-items:center; gap:8px;">
                         <span>${cat.icon}</span>
                         <span>${cat.title}</span>
                     </div>
@@ -565,17 +562,47 @@ async function showAwardSummary() {
                     detail = `<strong>${i.award}</strong>`;
                 }
 
-                html += `
+                cardHtml += `
                     <li style="margin-bottom:6px;">
-                        <span style="color:#888; font-size:0.85rem; margin-right:8px;">[${i.dateStr}]</span>
+                        <span style="color:#888; font-size:${isSmallFont ? '0.78rem' : '0.85rem'}; margin-right:8px;">[${i.dateStr}]</span>
                         <span style="font-weight:bold; color:#333; margin-right:6px;">${i.name}</span>
                         <span>${detail}</span>
                     </li>
                 `;
             });
 
-            html += `</ul></div>`;
-        });
+            cardHtml += `</ul></div>`;
+            return cardHtml;
+        };
+
+        let html = rankingHtml; // 최다 수상자 랭킹 레이아웃을 가장 상단에 얹음
+        const gridStyle = 'display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:15px; margin-bottom:15px;';
+
+        html += '<div style="display:flex; flex-direction:column; gap:15px; margin-top:10px;">';
+
+        // Row 1: 메달리스트 + 신페리오 우승
+        html += `
+            <div style="${gridStyle}">
+                ${renderCategoryCard(categories.medal)}
+                ${renderCategoryCard(categories.newperio)}
+            </div>
+        `;
+
+        // Row 2: 롱기스트 + 니어리스트
+        html += `
+            <div style="${gridStyle}">
+                ${renderCategoryCard(categories.longest)}
+                ${renderCategoryCard(categories.nearest)}
+            </div>
+        `;
+
+        // Row 3: 다관왕 + 기타 시상 (글자 폰트 살짝 작게)
+        html += `
+            <div style="${gridStyle}">
+                ${renderCategoryCard(categories.multishot, true)}
+                ${renderCategoryCard(categories.others, true)}
+            </div>
+        `;
 
         html += '</div>';
 
