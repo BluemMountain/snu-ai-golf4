@@ -563,7 +563,7 @@ async function showAwardSummary() {
                 }
 
                 cardHtml += `
-                    <li style="margin-bottom:6px;">
+                    <li style="margin-bottom:6px; white-space:nowrap;">
                         <span style="color:#888; font-size:${isSmallFont ? '0.78rem' : '0.85rem'}; margin-right:8px;">[${i.dateStr}]</span>
                         <span style="font-weight:bold; color:#333; margin-right:6px;">${i.name}</span>
                         <span>${detail}</span>
