@@ -262,6 +262,7 @@ async function showAttendanceStats() {
         });
 
         const counts = {};
+        const visitedRounds = new Set();
         rsvps.forEach(r => {
             // Filter by date (Current/Past only)
             const monthMatch = r.month.match(/(\d+)월/);
@@ -273,6 +274,11 @@ async function showAttendanceStats() {
 
             const name = (r.name || '').trim();
             if (!name) return;
+
+            // 동일 회원의 동일 라운드 중복 집계 방지 (스폰서 중복 레코드 등 배제)
+            const visitKey = `${name}|${r.month.trim()}|${r.date.trim()}`;
+            if (visitedRounds.has(visitKey)) return;
+            visitedRounds.add(visitKey);
 
             // RSVP의 월/일 파싱
             const rMonthMatch = r.month.match(/(\d+)월/);
