@@ -242,7 +242,7 @@ async function showAttendanceStats() {
 
         const [{ data: rsvps, error: rsvpError }, { data: scores, error: scoreError }] = await Promise.all([
             supabaseClient.from('rsvps').select('name, month, date').eq('status', 'attend'),
-            supabaseClient.from('scores').select('month, date, venue')
+            supabaseClient.from('scores').select('date, venue')
         ]);
 
         if (rsvpError || scoreError) throw rsvpError || scoreError;
@@ -253,8 +253,12 @@ async function showAttendanceStats() {
         const shinwonRoundKeys = new Set();
         scores.forEach(s => {
             if (s.venue && s.venue.includes('신원')) {
-                const key = `${s.month.trim()}|${s.date.trim()}`;
-                shinwonRoundKeys.add(key);
+                if (s.date && s.date.length === 6 && !isNaN(parseInt(s.date))) {
+                    const mm = parseInt(s.date.substring(2, 4), 10);
+                    const dd = parseInt(s.date.substring(4, 6), 10);
+                    const key = `${mm}월|${mm}.${dd}`;
+                    shinwonRoundKeys.add(key);
+                }
             }
         });
 
