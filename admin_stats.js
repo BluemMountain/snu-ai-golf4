@@ -363,6 +363,33 @@ async function showAwardSummary() {
             return false;
         });
 
+        // 정적 수상 상세 데이터 (m, 개수 등 DB에 누락된 거리/개수 정보 보정 사전)
+        const awardDetails = {
+            // 3월
+            "3월|3.25|남서우|롱기스트": "250m",
+            "3월|3.25|조중규|니어리스트": "1.5m",
+            "3월|3.25|이성원|다버디": "1개",
+            "3월|3.25|정지환|다파": "8개",
+            "3월|3.25|김도열|다보기": "12개",
+            // 4월 (4/3 회장단 라운드)
+            "4월|4.3|정민호|롱기스트": "275m",
+            "4월|4.3|김도열|니어리스트": "1m",
+            // 4월 (4/22 정기 라운드)
+            "4월|4.22|남서우|니어리스트": "1.2m", // X 남서우
+            "4월|4.22|박철호|다버디": "2개",
+            "4월|4.22|이성원|다파": "12개",
+            "4월|4.22|이영규|다보기": "13개",
+            "4월|4.22|전은미|다따블": "9개",
+            "4월|4.22|전은미|다더블": "9개",
+            // 6월
+            "6월|6.24|정지환|롱기스트": "212m",
+            "6월|6.24|전은미|니어리스트": "1.6m",
+            "6월|6.24|이문형|다파": "9개",
+            "6월|6.24|신소우|다보기": "9개",
+            "6월|6.24|정민호|다따블": "9개",
+            "6월|6.24|정민호|다더블": "9개"
+        };
+
         // 1. 분류 데이터 구조 정의
         const categories = {
             medal: { title: "🏅 역대 메달리스트", list: [], icon: "🥇" },
@@ -379,7 +406,13 @@ async function showAwardSummary() {
             const score = r.roundscore;
             const dateStr = `${r.month} ${r.date}`;
             
-            const item = { name, award, score, month: r.month, date: r.date, dateStr };
+            const item = { name, award, score, month: r.month, date: r.date, dateStr, extra: '' };
+
+            // 보정 사전 매칭 키 정의
+            const lookupKey = `${r.month.trim()}|${r.date.trim()}|${name}|${award}`;
+            if (awardDetails[lookupKey]) {
+                item.extra = awardDetails[lookupKey];
+            }
 
             // 분류 매칭
             if (award.includes('메달') || award === '메달리스트') {
@@ -387,27 +420,39 @@ async function showAwardSummary() {
             } else if (award.includes('신페리오')) {
                 categories.newperio.list.push(item);
             } else if (award.includes('롱기스트')) {
-                // 거리 추출
-                const distMatch = award.match(/(\d+(\.\d+)?\s*(m|미터)?)/i);
-                item.extra = distMatch ? distMatch[1] : '';
+                if (!item.extra) {
+                    const distMatch = award.match(/(\d+(\.\d+)?\s*(m|미터)?)/i);
+                    item.extra = distMatch ? distMatch[1] : '';
+                }
                 categories.longest.list.push(item);
             } else if (award.includes('니어리스트')) {
-                // 거리 추출
-                const distMatch = award.match(/(\d+(\.\d+)?\s*(m|미터|cm)?)/i);
-                item.extra = distMatch ? distMatch[1] : '';
+                if (!item.extra) {
+                    const distMatch = award.match(/(\d+(\.\d+)?\s*(m|미터|cm)?)/i);
+                    item.extra = distMatch ? distMatch[1] : '';
+                }
                 categories.nearest.list.push(item);
             } else if (award.includes('다버디') || award.includes('다파') || award.includes('다보기') || award.includes('다더블') || award.includes('다따블')) {
-                // 개수 추출
-                const countMatch = award.match(/(\d+\s*개)/);
-                item.extra = countMatch ? countMatch[1] : '';
+                if (!item.extra) {
+                    const countMatch = award.match(/(\d+\s*개)/);
+                    item.extra = countMatch ? countMatch[1] : '';
+                }
                 categories.multishot.list.push(item);
             } else {
                 categories.others.list.push(item);
             }
         });
 
+        // 다버디/다파/다보기 정렬 가중치 정의
+        const getAwardPriority = (awardName) => {
+            if (awardName.includes('다버디')) return 1;
+            if (awardName.includes('다파')) return 2;
+            if (awardName.includes('다보기')) return 3;
+            if (awardName.includes('다따블') || awardName.includes('다더블') || awardName.includes('다떠블')) return 4;
+            return 5;
+        };
+
         // 2. 날짜 내림차순 정렬 (최신 라운드 우선)
-        const sortDesc = (list) => {
+        const sortDesc = (list, isMultishot = false) => {
             list.sort((a, b) => {
                 const parseDate = (item) => {
                     const mmMatch = item.month.match(/(\d+)월/);
@@ -417,11 +462,20 @@ async function showAwardSummary() {
                     }
                     return new Date(0);
                 };
-                return parseDate(b) - parseDate(a);
+                const dateDiff = parseDate(b) - parseDate(a);
+                if (dateDiff !== 0) return dateDiff; // 날짜가 다르면 날짜 최신순
+
+                // 동일 날짜 시 다버디 -> 다파 -> 다보기 순서 강제
+                if (isMultishot) {
+                    return getAwardPriority(a.award) - getAwardPriority(b.award);
+                }
+                return 0;
             });
         };
 
-        Object.keys(categories).forEach(k => sortDesc(categories[k].list));
+        Object.keys(categories).forEach(k => {
+            sortDesc(categories[k].list, k === 'multishot');
+        });
 
         // 3. HTML 렌더링
         let html = '<div style="display:flex; flex-direction:column; gap:20px; margin-top:10px;">';
