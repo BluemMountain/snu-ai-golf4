@@ -250,14 +250,13 @@ async function showAttendanceStats() {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
-        const shinwonRoundKeys = new Set();
+        const shinwonRounds = [];
         scores.forEach(s => {
             if (s.venue && s.venue.includes('신원')) {
                 if (s.date && s.date.length === 6 && !isNaN(parseInt(s.date))) {
                     const mm = parseInt(s.date.substring(2, 4), 10);
                     const dd = parseInt(s.date.substring(4, 6), 10);
-                    const key = `${mm}월|${mm}.${dd}`;
-                    shinwonRoundKeys.add(key);
+                    shinwonRounds.push({ month: mm, day: dd });
                 }
             }
         });
@@ -275,7 +274,17 @@ async function showAttendanceStats() {
             const name = (r.name || '').trim();
             if (!name) return;
 
-            const isShinwon = shinwonRoundKeys.has(`${r.month.trim()}|${r.date.trim()}`);
+            // RSVP의 월/일 파싱
+            const rMonthMatch = r.month.match(/(\d+)월/);
+            const rDateMatch = r.date.match(/(\d+)\.(\d+)/);
+            let isShinwon = false;
+
+            if (rMonthMatch && rDateMatch) {
+                const rM = parseInt(rMonthMatch[1], 10);
+                const rD = parseInt(rDateMatch[2], 10);
+                // 월이 일치하고 개최일 차이가 5일 이내인 경우 동일 라운드로 판단 (일정 변동 극복)
+                isShinwon = shinwonRounds.some(sr => sr.month === rM && Math.abs(sr.day - rD) <= 5);
+            }
 
             if (!counts[name]) {
                 counts[name] = { total: 0, shinwon: 0 };
