@@ -2350,7 +2350,7 @@ async function renderSponsorHall(prefetchedData = null) {
             card.style.alignItems = 'flex-start';
 
             let innerGridStyle = 'width: 100%;';
-            if (data.title === "8월 스폰서" || data.title === "6월 스폰서" || data.title === "5월 스폰서") {
+            if (data.title === "5월 스폰서") {
                 card.style.gridColumn = "1 / -1";
                 innerGridStyle = 'width: 100%; display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 0 40px;';
             }
