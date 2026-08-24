@@ -974,18 +974,29 @@ async function loadAdminData() {
                             ${item.status === 'attend' ? ((item.iswaiting || isAutoWaiting) ? '참석대기' : '참석확정') : '불참'}
                         </td>
                         <td style="padding: 5px; border: 1px solid #ddd;">
-                            <input type="text" value="${item.sponsor || ''}" onchange="updateRSVPField(${item.id}, 'sponsor', this.value)" placeholder="스폰 내용" style="width: 100%; min-width: 80px; padding: 4px; border: 1px solid #ddd;">
+                            <input type="text" value="${item.sponsor || ''}" onchange="updateRSVPField(${item.id}, 'sponsor', this.value)" placeholder="스폰 내용" style="width: 100%; min-width: 65px; padding: 4px; border: 1px solid #ddd;">
                         </td>
                         <td style="padding: 5px; border: 1px solid #ddd; text-align: center;">
-                            ${item.status === 'attend' ? `<input type="text" value="${item.roundscore || ''}" onchange="updateRSVPField(${item.id}, 'roundscore', this.value)" style="width: 50px; padding: 4px; text-align: center; border: 1px solid #ddd;">` : '-'}
+                            ${item.status === 'attend' ? `<input type="text" value="${item.roundscore || ''}" onchange="updateRSVPField(${item.id}, 'roundscore', this.value)" style="width: 40px; padding: 4px; text-align: center; border: 1px solid #ddd;">` : '-'}
                         </td>
                         <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">${stats.h26}</td>
                         <td style="padding: 5px; border: 1px solid #ddd; text-align: center;">
-                            ${item.status === 'attend' ? `<input type="text" value="${item.roundaward || ''}" onchange="updateRSVPField(${item.id}, 'roundaward', this.value)" placeholder="우승 등" style="width: 80px; padding: 4px; border: 1px solid #ddd;">` : '-'}
+                            ${item.status === 'attend' ? `<input type="text" value="${item.roundaward || ''}" onchange="updateRSVPField(${item.id}, 'roundaward', this.value)" placeholder="우승 등" style="width: 70px; padding: 4px; border: 1px solid #ddd;">` : '-'}
                         </td>
                         <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">${stats.last}</td>
                         <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">${stats.h25}</td>
-                        <td style="padding: 10px; border: 1px solid #ddd;">${item.submittedat ? new Date(item.submittedat).toLocaleString('ko-KR') : '-'}</td>
+                        <td style="padding: 10px; border: 1px solid #ddd;">
+                            ${(() => {
+                                if (!item.submittedat) return '-';
+                                const d = new Date(item.submittedat);
+                                if (isNaN(d.getTime())) return '-';
+                                const mm = String(d.getMonth() + 1).padStart(2, '0');
+                                const dd = String(d.getDate()).padStart(2, '0');
+                                const hh = String(d.getHours()).padStart(2, '0');
+                                const min = String(d.getMinutes()).padStart(2, '0');
+                                return `${mm}.${dd} ${hh}:${min}`;
+                            })()}
+                        </td>
                         <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">
                             <button onclick="deleteRSVP(${item.id})" class="edit-control" style="background: #e74c3c; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">삭제</button>
                         </td>
