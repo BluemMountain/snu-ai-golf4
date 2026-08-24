@@ -363,6 +363,63 @@ async function showAwardSummary() {
             return false;
         });
 
+        // 1. 최다 수상자 랭킹 집계 (중복 방지 적용)
+        const awardCounts = {};
+        const visitedAwards = new Set();
+
+        filteredRsvps.forEach(r => {
+            const name = (r.name || '').trim();
+            const award = (r.roundaward || '').trim();
+            if (!name || !award) return;
+
+            // 동일 회원의 동일 날짜의 동일 시상 중복 방지
+            const key = `${name}|${r.month.trim()}|${r.date.trim()}|${award}`;
+            if (visitedAwards.has(key)) return;
+            visitedAwards.add(key);
+
+            awardCounts[name] = (awardCounts[name] || 0) + 1;
+        });
+
+        // 횟수별 그룹화 및 내림차순 정렬
+        const countGroups = {};
+        Object.entries(awardCounts).forEach(([name, count]) => {
+            if (!countGroups[count]) countGroups[count] = [];
+            countGroups[count].push(name);
+        });
+
+        const sortedCounts = Object.keys(countGroups)
+            .map(Number)
+            .sort((a, b) => b - a);
+
+        let rankingHtml = '';
+        if (sortedCounts.length > 0) {
+            rankingHtml += `
+                <div style="padding:22px; background:#fffdf5; border:2px solid #f1c40f; border-radius:12px; box-shadow:0 6px 16px rgba(241, 196, 15, 0.08); margin-bottom:25px;">
+                    <div style="font-weight:bold; color:#d35400; font-size:1.2rem; margin-bottom:15px; display:flex; align-items:center; gap:8px; border-bottom:2px dashed #f5e3a8; padding-bottom:8px;">
+                        <span>🏆</span>
+                        <span>2026년 최다 수상자 랭킹 (Top 3)</span>
+                    </div>
+                    <div style="display:flex; flex-direction:column; gap:12px;">
+            `;
+
+            const rankMedals = ["🥇 1위", "🥈 2위", "🥉 3위"];
+            const limit = Math.min(sortedCounts.length, 3);
+
+            for (let i = 0; i < limit; i++) {
+                const count = sortedCounts[i];
+                const names = countGroups[count].join(', ');
+                rankingHtml += `
+                    <div style="display:flex; align-items:center; font-size:1rem; border-bottom:1px solid #faf5e6; padding-bottom:6px;">
+                        <span style="font-weight:bold; color:#d35400; width:65px; display:inline-block;">${rankMedals[i]}</span>
+                        <span style="color:#555; margin-right:10px; font-weight:500;">(총 ${count}회)</span>
+                        <span style="font-weight:bold; color:#2c3e50; font-size:1.05rem;">${names}</span>
+                    </div>
+                `;
+            }
+
+            rankingHtml += `</div></div>`;
+        }
+
         // 정적 수상 상세 데이터 (m, 개수 등 DB에 누락된 거리/개수 정보 보정 사전)
         const awardDetails = {
             // 3월
@@ -390,7 +447,7 @@ async function showAwardSummary() {
             "6월|6.24|정민호|다더블": "9개"
         };
 
-        // 1. 분류 데이터 구조 정의
+        // 2. 분류 데이터 구조 정의
         const categories = {
             medal: { title: "🏅 역대 메달리스트", list: [], icon: "🥇" },
             newperio: { title: "🏆 신페리오 우승", list: [], icon: "🏆" },
@@ -431,7 +488,7 @@ async function showAwardSummary() {
                     item.extra = distMatch ? distMatch[1] : '';
                 }
                 categories.nearest.list.push(item);
-            } else if (award.includes('다버디') || award.includes('다파') || award.includes('다보기') || award.includes('다더블') || award.includes('다따블')) {
+            } else if (award.includes('다버디') || award.includes('다파') || award.includes('다보기') || award.includes('다더블') || award.includes('다따블') || award.includes('다떠블')) {
                 if (!item.extra) {
                     const countMatch = award.match(/(\d+\s*개)/);
                     item.extra = countMatch ? countMatch[1] : '';
@@ -451,7 +508,7 @@ async function showAwardSummary() {
             return 5;
         };
 
-        // 2. 날짜 내림차순 정렬 (최신 라운드 우선)
+        // 3. 날짜 내림차순 정렬 (최신 라운드 우선)
         const sortDesc = (list, isMultishot = false) => {
             list.sort((a, b) => {
                 const parseDate = (item) => {
@@ -477,8 +534,9 @@ async function showAwardSummary() {
             sortDesc(categories[k].list, k === 'multishot');
         });
 
-        // 3. HTML 렌더링
-        let html = '<div style="display:flex; flex-direction:column; gap:20px; margin-top:10px;">';
+        // 4. HTML 렌더링
+        let html = rankingHtml; // 최다 수상자 랭킹 레이아웃을 가장 상단에 얹음
+        html += '<div style="display:flex; flex-direction:column; gap:20px; margin-top:10px;">';
 
         Object.values(categories).forEach(cat => {
             if (cat.list.length === 0) return; // 내용이 없는 카테고리는 생략
