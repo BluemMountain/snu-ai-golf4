@@ -2278,73 +2278,108 @@ async function renderSponsorHall(prefetchedData = null) {
     if (!container) return;
 
     try {
-        const sponsorHistory = [
-            {
-                title: "8월 스폰서",
-                list: [
-                    "김대욱 회장님 : 30만원 상당 물품",
-                    "박철호 부회장님 : 30만원 상당 물품",
-                    "전은미 총무님 : 한정판 라면 1 set",
-                    "정대규 대표님 : 원글라스 팩와인 레드 10개 화이트 10개"
-                ]
-            },
-            {
-                title: "6월 스폰서",
-                list: [
-                    "김대욱 골프회장님 : 사과 3박스",
-                    "현성호 원우회장님 : 골프볼 2더즌 * 3박스",
-                    "박청산 사무부총장님 : 보조배터리 4개",
-                    "전은미 총무님 : 쌀 2포대"
-                ]
-            },
-            {
-                title: "5월 스폰서",
-                list: [
-                    "원우회 : 600만원",
-                    "현성호 원우회장님 : 200만원<br>골프볼 1인당 2더즌씩",
-                    "김대욱 골프회장님 : 100만원",
-                    "정민호 골프부회장님 : 공진단 3박스(180만원 상당)",
-                    "조중규 사무총장님 : 곤약면 1인 1박스(4개입)",
-                    "이영규 원우님 : 전해질 데일리 워터믹스<br>(250만원 상당)",
-                    "이문형 원우님 : 수정방",
-                    "남서우 총무이사님 : 중국 고량주",
-                    "박청산 사무부총장님 : 로지텍 무선 멀티 키보드",
-                    "정대규 원우님 : 10만원 상품권 2매",
-                    "김기록 원우님 : 위스키",
-                    "정지환 원우님 : 위스키",
-                    "박철호 골프부회장님 : 조니워커 블루 1병",
-                    "문성욱 원우님 : 샤넬화장품 2개",
-                    "Sarah Kim 원우님 : 고급 사케 및 위스키",
-                    "곽노준 교수님 : 조니워커 블루 1병",
-                    "이진우 총무이사님 : 디퓨져",
-                    "이성원 원우님 : 캘러웨이 파우치",
-                    "배태근 원우님 : 네오위즈 골프볼 6구 3박스",
-                    "안원익 원우님 : 골프버디 거리측정기 3대",
-                    "정진우 총무이사님 : 많~~이<br>(로얄살루트32년, 와인, 마스크팩 등 다수)",
-                    "김종세 수석부회장님 : 100만원"
-                ]
-            },
-            {
-                title: "4월 스폰서",
-                list: [
-                    "4월 3일",
-                    "현성호 원우회장님 : 모듬 과일 2박스, 쌀 2포대, 김 셋트",
-                    "4월 22일",
-                    "김대욱 골프회장님 : 타이틀리스트 볼 6구 * 2박스<br>토비스 티 2개",
-                    "정민호 골프부회장님 : 공진단 1박스<br>에스트라 아토베리어 크림과 로션 MD 18개",
-                    "정진우 원우님 : 폴리오 마사지 기<br>핸드워시 3개",
-                    "이영규 원우님 : 전해질 200포"
-                ]
-            },
-            {
-                title: "3월 스폰서",
-                list: [
-                    "김대욱 골프회장님 : 사과 3박스",
-                    "박철호 골프부회장님 : 사과 3박스",
-                    "정진우 원우님 : 10만원 상품권 3장, 인형 2개"
-                ]
+        // 1. Supabase에서 스폰서 데이터 가져오기
+        const { data: rsvps, error } = await supabaseClient
+            .from('rsvps')
+            .select('name, month, date, sponsor, status')
+            .not('sponsor', 'is', null)
+            .not('sponsor', 'eq', '');
+
+        if (error) throw error;
+
+        // 2. 직책 및 영문 표기 매핑 사전
+        const getSponsorTitle = (name) => {
+            const trimmed = (name || '').trim();
+            if (trimmed === '김대욱') return '회장님';
+            if (trimmed === '박철호') return '부회장님';
+            if (trimmed === '전은미') return '총무님';
+            if (trimmed === '정대규') return '대표님';
+            if (trimmed === '현성호') return '원우회장님';
+            if (trimmed === '조중규') return '사무총장님';
+            if (trimmed === '박청산') return '사무부총장님';
+            if (trimmed === '남서우') return '총무이사님';
+            if (trimmed === '이진우') return '총무이사님';
+            if (trimmed === '정진우') return '총무이사님';
+            if (trimmed === '곽노준') return '교수님';
+            return '원우님';
+        };
+
+        const displayNameMap = {
+            "김인숙": "Sarah Kim"
+        };
+
+        // 3. 월별 데이터 그룹화
+        const monthlySponsors = {};
+        
+        rsvps.forEach(r => {
+            const m = r.month.trim();
+            if (!monthlySponsors[m]) monthlySponsors[m] = [];
+            
+            const rawName = (r.name || '').trim();
+            const displayName = displayNameMap[rawName] || rawName;
+            const title = getSponsorTitle(rawName);
+            const formattedItem = `${displayName} ${title} : ${r.sponsor}`;
+            
+            monthlySponsors[m].push({
+                date: r.date.trim(),
+                text: formattedItem,
+                isAbsent: r.status === 'absent'
+            });
+        });
+
+        // 4. 월별 카드 조립 (기존 하드코딩 데이터를 동적 데이터로 마이그레이션)
+        const sponsorHistory = [];
+        const monthsInOrder = ["8월", "6월", "5월", "4월", "3월"];
+
+        monthsInOrder.forEach(m => {
+            const items = monthlySponsors[m] || [];
+            const list = [];
+
+            if (m === "5월") {
+                // 5월에만 존재했던 특별 협찬 항목 (원우회)
+                list.push("원우회 : 600만원");
+                items.sort((a, b) => {
+                    if (a.text.includes('현성호')) return -1;
+                    if (b.text.includes('현성호')) return 1;
+                    return 0;
+                });
+                items.forEach(i => list.push(i.text));
+            } else if (m === "4월") {
+                // 4월은 날짜별(4.3 vs 4.22)로 나누어서 구분선과 함께 조립
+                const r3 = items.filter(i => i.date === '4.3');
+                const r22 = items.filter(i => i.date === '4.22');
+
+                if (r3.length > 0) {
+                    list.push("4월 3일");
+                    r3.forEach(i => list.push(i.text));
+                }
+                if (r22.length > 0) {
+                    list.push("4월 22일");
+                    r22.forEach(i => list.push(i.text));
+                }
+            } else {
+                // 일반 월 (8월, 6월, 3월)
+                items.sort((a, b) => {
+                    const getRank = (txt) => {
+                        if (txt.includes('회장님')) return 1;
+                        if (txt.includes('부회장님')) return 2;
+                        if (txt.includes('총무님')) return 3;
+                        if (txt.includes('사무부총장님')) return 4;
+                        if (txt.includes('대표님')) return 5;
+                        return 6;
+                    };
+                    return getRank(a.text) - getRank(b.text);
+                });
+                items.forEach(i => list.push(i.text));
             }
-        ];
+
+            if (list.length > 0) {
+                sponsorHistory.push({
+                    title: `${m} 스폰서`,
+                    list: list
+                });
+            }
+        });
 
         container.innerHTML = '';
 
@@ -2378,7 +2413,6 @@ async function renderSponsorHall(prefetchedData = null) {
                                 <span style="${valStyle}">${parts[1]}</span>
                             </div>`;
                 }
-                // 날짜 구분선 스타일링
                 if (item.includes('월') && item.includes('일')) {
                     return `<div style="margin-top: 15px; margin-bottom: 8px; font-weight: bold; color: #1e3a2b; border-left: 3px solid #c5a059; padding-left: 10px; background: #fffdf8; padding-top: 5px; padding-bottom: 5px;">${item}</div>`;
                 }
