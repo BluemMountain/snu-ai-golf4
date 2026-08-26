@@ -1211,8 +1211,9 @@ async function renderPublicRSVPs() {
         container.appendChild(monthDiv);
     });
 
-    // 명예의 전당 렌더링 추가 (가져온 전체 데이터를 재사용하여 속도 최적화)
+    // 명예의 전당 및 스폰서 렌더링 추가 (가져온 전체 데이터를 재사용하여 속도 최적화)
     renderSponsorHall(data);
+    renderAwardsHall(data);
 }
 
 function parseCSV(text) {
@@ -2278,14 +2279,19 @@ async function renderSponsorHall(prefetchedData = null) {
     if (!container) return;
 
     try {
-        // 1. Supabase에서 스폰서 데이터 가져오기
-        const { data: rsvps, error } = await supabaseClient
-            .from('rsvps')
-            .select('name, month, date, sponsor, status')
-            .not('sponsor', 'is', null)
-            .not('sponsor', 'eq', '');
-
-        if (error) throw error;
+        // 1. Supabase에서 스폰서 데이터 가져오기 (Prefetched 데이터 재활용 지원)
+        let rsvps = prefetchedData;
+        if (!rsvps) {
+            const { data, error } = await supabaseClient
+                .from('rsvps')
+                .select('name, month, date, sponsor, status')
+                .not('sponsor', 'is', null)
+                .not('sponsor', 'eq', '');
+            if (error) throw error;
+            rsvps = data;
+        } else {
+            rsvps = rsvps.filter(r => (r.sponsor || '').trim() !== '');
+        }
 
         // 2. 직책 및 영문 표기 매핑 사전
         const getSponsorTitle = (name) => {
@@ -2437,6 +2443,190 @@ async function renderSponsorHall(prefetchedData = null) {
 }
 
 /**
+ * 모든 RSVP 데이터를 분석하여 수상 정보를 집계하고 명예의 전당 섹션에 렌더링합니다.
+ */
+async function renderAwardsHall(prefetchedData = null) {
+    const container = document.getElementById('awards-hall-container');
+    if (!container) return;
+
+    try {
+        // 1. Prefetched 데이터가 없으면 Supabase에서 직접 가져옴
+        let rsvps = prefetchedData;
+        if (!rsvps) {
+            const { data, error } = await supabaseClient
+                .from('rsvps')
+                .select('*');
+            if (error) throw error;
+            rsvps = data;
+        }
+
+        // 2. 수상 내역이 있는 데이터만 필터링
+        const awardRsvps = rsvps.filter(r => (r.roundaward || '').trim() !== '');
+
+        // 3. 월/일 기준으로 라운드 그룹화
+        const rounds = {};
+        awardRsvps.forEach(r => {
+            const key = `${r.month.trim()}|${r.date.trim()}`;
+            if (!rounds[key]) rounds[key] = [];
+            rounds[key].push(r);
+        });
+
+        // 4. 라운드 날짜별 정렬 (최신 라운드가 맨 위로 오도록 내림차순 정렬)
+        const sortedRoundKeys = Object.keys(rounds).sort((a, b) => {
+            const parseK = (k) => {
+                const parts = k.split('|');
+                const mm = parts[0].match(/(\d+)월/);
+                const dd = parts[1].match(/\.(\d+)/);
+                if (mm && dd) {
+                    return new Date(2026, parseInt(mm[1]) - 1, parseInt(dd[1]));
+                }
+                return new Date(0);
+            };
+            return parseK(b) - parseK(a);
+        });
+
+        // 5. 수상 상세 보정 딕셔너리
+        const awardDetails = {
+            // 3월
+            "3월|3.25|박철호|메달리스트": "81",
+            "3월|3.25|박청산|신페리오 우승": "84/HD12/72",
+            "3월|3.25|남서우|롱기스트": "250m",
+            "3월|3.25|조중규|니어리스트": "1.5m",
+            "3월|3.25|이성원|다버디": "1",
+            "3월|3.25|정지환|다파": "8",
+            "3월|3.25|김도열|다보기": "12",
+            // 4월 3일
+            "4월|4.3|최정훈|메달리스트": "73",
+            "4월|4.3|김대욱|신페리오 우승": "87",
+            "4월|4.3|정민호|롱기스트": "275m",
+            "4월|4.3|김도열|니어리스트": "1m",
+            // 4월 22일
+            "4월|4.22|남서우|메달리스트": "77",
+            "4월|4.22|곽노준|신페리오 우승": "80/7.2/72.8",
+            "4월|4.22|남서우|니어리스트": "1.2",
+            "4월|4.22|박철호|다버디": "2",
+            "4월|4.22|이성원|다파": "12",
+            "4월|4.22|이영규|다보기": "13",
+            "4월|4.22|전은미|다따블": "9",
+            "4월|4.22|전은미|다더블": "9",
+            // 5월
+            "5월|5.27|박철호|메달리스트": "76",
+            "5월|5.27|남서우|신페리오 우승": "76",
+            // 6월
+            "6월|6.24|박청산|메달리스트": "82",
+            "6월|6.24|김대욱|신페리오 우승": "84",
+            "6월|6.24|정지환|롱기스트": "212 (박청산 230)",
+            "6월|6.24|전은미|니어리스트": "1.6",
+            "6월|6.24|이문형|다파": "9",
+            "6월|6.24|신소우|다보기": "9",
+            "6월|6.24|정민호|다따블": "9"
+        };
+
+        const getAwardDisplayPriority = (award) => {
+            const a = award.trim();
+            if (a.includes('메달')) return 1;
+            if (a.includes('신페리오 우승')) return 2;
+            if (a.includes('준우승')) return 3;
+            if (a.includes('롱기스트')) return 4;
+            if (a.includes('니어리스트')) return 5;
+            if (a.includes('다버디')) return 6;
+            if (a.includes('다파')) return 7;
+            if (a.includes('다보기')) return 8;
+            if (a.includes('다더블') || a.includes('다따블') || a.includes('다떠블')) return 9;
+            return 10;
+        };
+
+        const getRoundTitle = (month, date) => {
+            const m = month.trim();
+            const d = date.trim();
+            if (m === "5월") return "2026년 5월 원우회장 배 골프대회 수상";
+            if (d.includes('.')) {
+                const parts = d.split('.');
+                if (parts.length === 2) {
+                    const day = parts[1];
+                    if (m === "4월" && day === "3") {
+                        return "2026년 4월 3일 회장단 라운드 수상";
+                    }
+                }
+            }
+            return `2026년 ${m} 정기 라운드 수상`;
+        };
+
+        container.innerHTML = '';
+
+        // 6. 각 라운드별로 동적 카드 생성 및 추가
+        sortedRoundKeys.forEach(key => {
+            const parts = key.split('|');
+            const month = parts[0];
+            const date = parts[1];
+            const roundRsvps = rounds[key];
+
+            const roundTitle = getRoundTitle(month, date);
+
+            const listItems = [];
+            roundRsvps.forEach(r => {
+                const awards = r.roundaward.split(',').map(a => a.trim());
+                awards.forEach(award => {
+                    if (!award) return;
+
+                    const lookupKey = `${month}|${date}|${r.name.trim()}|${award}`;
+                    let detailVal = '';
+                    if (awardDetails[lookupKey]) {
+                        detailVal = awardDetails[lookupKey];
+                    } else {
+                        if (award.includes('메달') || award.includes('신페리오')) {
+                            detailVal = r.roundscore ? `${r.roundscore}` : '';
+                        }
+                    }
+
+                    listItems.push({
+                        name: r.name.trim(),
+                        award: award,
+                        detail: detailVal
+                    });
+                });
+            });
+
+            listItems.sort((a, b) => getAwardDisplayPriority(a.award) - getAwardDisplayPriority(b.award));
+
+            const card = document.createElement('div');
+            card.className = 'honor-card fade-in-up';
+            card.style.background = '#fff';
+            card.style.padding = '25px';
+            card.style.borderRadius = '15px';
+            card.style.border = '1px solid #e0c58a';
+            card.style.boxShadow = '0 4px 15px rgba(197, 160, 89, 0.1)';
+            card.style.marginTop = '20px';
+
+            let listHtml = listItems.map(item => {
+                const detailText = item.detail ? ` <span style="font-size: 0.8rem; color: #999;">(${item.detail})</span>` : '';
+                return `
+                    <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed #f0f0f0; padding-bottom: 4px; gap: 10px; white-space: nowrap;">
+                        <span style="color: #666;">${item.award}</span>
+                        <span><strong style="color: #333;">${item.name}</strong>${detailText}</span>
+                    </div>
+                `;
+            }).join('');
+
+            card.innerHTML = `
+                <div style="font-size: 0.9rem; color: #c5a059; font-weight: bold; margin-bottom: 12px; border-bottom: 1px solid #f0e6d2; padding-bottom: 8px;">
+                    ${roundTitle}
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px 20px; font-size: 0.95rem;">
+                    ${listHtml}
+                </div>
+            `;
+
+            container.appendChild(card);
+        });
+
+    } catch (err) {
+        console.error('Error rendering awards hall:', err);
+        container.innerHTML = '<div style="text-align:center; padding: 40px; color:red;">수상 내역을 불러오는 중 오류가 발생했습니다.</div>';
+    }
+}
+
+/**
  * 화면 하단에 일시적인 알림 메시지를 표시합니다.
  */
 function showToast(message, duration = 3000) {
@@ -2464,4 +2654,5 @@ function showToast(message, duration = 3000) {
 }
 
 window.renderSponsorHall = renderSponsorHall;
+window.renderAwardsHall = renderAwardsHall;
 window.showToast = showToast;
