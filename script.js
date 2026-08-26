@@ -2612,7 +2612,7 @@ async function renderAwardsHall(prefetchedData = null) {
                 <div style="font-size: 0.9rem; color: #c5a059; font-weight: bold; margin-bottom: 12px; border-bottom: 1px solid #f0e6d2; padding-bottom: 8px;">
                     ${roundTitle}
                 </div>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px 20px; font-size: 0.95rem;">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 8px 20px; font-size: 0.95rem;">
                     ${listHtml}
                 </div>
             `;
