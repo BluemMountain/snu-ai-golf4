@@ -337,18 +337,25 @@ async function showAttendanceStats() {
             }
         });
 
-        const sorted = Object.entries(counts).sort((a, b) => b[1].total - a[1].total);
+        const sorted = Object.entries(counts).sort((a, b) => {
+            // 1차: 신원CC 참석 횟수 내림차순
+            if (b[1].shinwon !== a[1].shinwon) {
+                return b[1].shinwon - a[1].shinwon;
+            }
+            // 2차: 한글 가나다순 오름차순
+            return a[0].localeCompare(b[0], 'ko');
+        });
 
         let html = `
             <div style="margin-bottom:15px; font-size:0.9rem; color:#666; background:#f0f7f4; padding:10px; border-radius:6px;">
                 💡 오늘(${today.toLocaleDateString()})까지 개최된 라운드 기준 통계입니다.
             </div>
-            <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap:10px;">
+            <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap:10px;">
                 ${sorted.map(([name, stat]) => `
                     <div style="padding:12px; background:#fff; border:1px solid #e0e0e0; border-radius:8px; text-align:center; box-shadow:0 2px 4px rgba(0,0,0,0.05);">
-                        <div style="font-size:1.1rem; font-weight:bold; color:#1e3a2b;">${name}</div>
-                        <div style="color:#577b2d; font-size:0.9rem; font-weight:bold;">총 ${stat.total}회 참석</div>
-                        <div style="color:#666; font-size:0.8rem; margin-top:4px; font-weight:500;">(신원CC ${stat.shinwon}회)</div>
+                        <div style="font-size:1.1rem; font-weight:bold; color:#1e3a2b; margin-bottom:4px;">${name}</div>
+                        <div style="color:#577b2d; font-size:0.95rem; font-weight:bold;">신원CC ${stat.shinwon}회 참석</div>
+                        <div style="color:#777; font-size:0.78rem; margin-top:4px;">원우 골프 행사 총 ${stat.total}회 참석</div>
                     </div>
                 `).join('')}
             </div>
