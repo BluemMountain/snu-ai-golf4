@@ -424,13 +424,13 @@ async function showAwardSummary() {
                 <div style="padding:22px; background:#fffdf5; border:2px solid #f1c40f; border-radius:12px; box-shadow:0 6px 16px rgba(241, 196, 15, 0.08); margin-bottom:25px;">
                     <div style="font-weight:bold; color:#d35400; font-size:1.2rem; margin-bottom:15px; display:flex; align-items:center; gap:8px; border-bottom:2px dashed #f5e3a8; padding-bottom:8px;">
                         <span>🏆</span>
-                        <span>2026년 최다 수상자 랭킹 (Top 3)</span>
+                        <span>2026년 최다 수상자 랭킹 (Top 5)</span>
                     </div>
                     <div style="display:flex; flex-direction:column; gap:12px;">
             `;
 
-            const rankMedals = ["🥇 1위", "🥈 2위", "🥉 3위"];
-            const limit = Math.min(sortedCounts.length, 3);
+            const rankMedals = ["🥇 1위", "🥈 2위", "🥉 3위", "4위", "5위"];
+            const limit = Math.min(sortedCounts.length, 5);
 
             for (let i = 0; i < limit; i++) {
                 const count = sortedCounts[i];
