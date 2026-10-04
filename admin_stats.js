@@ -532,6 +532,8 @@ async function showAwardSummary() {
 
         const medalWinnerSet = new Set();
         const newperioWinnerSet = new Set();
+        const longestWinnerSet = new Set();
+        const nearestWinnerSet = new Set();
 
         Object.entries(roundGroups).forEach(([key, items]) => {
             // 메달리스트 1위 후보 찾기 (2위, 3위 등 명시적 2위 이하 제외)
@@ -559,6 +561,30 @@ async function showAwardSummary() {
             if (newperioCandidates.length > 0) {
                 newperioWinnerSet.add(newperioCandidates[0]);
             }
+
+            // 롱기스트 1위 후보 찾기 (2위, 3위 등 명시적 2위 이하 제외)
+            const longestCandidates = items.filter(i => {
+                const a = i.award.replace(/\s+/g, '');
+                if (!a.includes('롱기스트') && !a.includes('롱기')) return false;
+                if (a.includes('2위') || a.includes('2등') || a.includes('3위') || a.includes('3등')) return false;
+                return true;
+            });
+
+            if (longestCandidates.length > 0) {
+                longestWinnerSet.add(longestCandidates[0]);
+            }
+
+            // 니어리스트 1위 후보 찾기 (2위, 3위 등 명시적 2위 이하 제외)
+            const nearestCandidates = items.filter(i => {
+                const a = i.award.replace(/\s+/g, '');
+                if (!a.includes('니어리스트') && !a.includes('니어')) return false;
+                if (a.includes('2위') || a.includes('2등') || a.includes('3위') || a.includes('3등')) return false;
+                return true;
+            });
+
+            if (nearestCandidates.length > 0) {
+                nearestWinnerSet.add(nearestCandidates[0]);
+            }
         });
 
         // 2-3. 카테고리 분배
@@ -570,13 +596,13 @@ async function showAwardSummary() {
                 categories.medal.list.push(item);
             } else if (newperioWinnerSet.has(item)) {
                 categories.newperio.list.push(item);
-            } else if (aClean.includes('롱기스트') || aClean.includes('롱기')) {
+            } else if (longestWinnerSet.has(item)) {
                 if (!item.extra) {
                     const distMatch = award.match(/(\d+(\.\d+)?\s*(m|미터)?)/i);
                     item.extra = distMatch ? distMatch[1] : '';
                 }
                 categories.longest.list.push(item);
-            } else if (aClean.includes('니어리스트') || aClean.includes('니어')) {
+            } else if (nearestWinnerSet.has(item)) {
                 if (!item.extra) {
                     const distMatch = award.match(/(\d+(\.\d+)?\s*(m|미터|cm)?)/i);
                     item.extra = distMatch ? distMatch[1] : '';
@@ -589,7 +615,7 @@ async function showAwardSummary() {
                 }
                 categories.multishot.list.push(item);
             } else {
-                // 메달리스트 2위/3위, 신페리오 2등/3등, 준우승, 기타 시상은 전부 '기타 시상'으로 배정
+                // 메달 2위/3위, 신페리오 2등/3등, 롱기 2위, 니어 2위, 준우승, 기타 시상은 전부 '기타 시상'으로 배정
                 categories.others.list.push(item);
             }
         });
