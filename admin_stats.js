@@ -355,7 +355,7 @@ async function showAttendanceStats() {
                     <div style="padding:12px; background:#fff; border:1px solid #e0e0e0; border-radius:8px; text-align:center; box-shadow:0 2px 4px rgba(0,0,0,0.05);">
                         <div style="font-size:1.1rem; font-weight:bold; color:#1e3a2b; margin-bottom:4px;">${name}</div>
                         <div style="color:#577b2d; font-size:0.95rem; font-weight:bold;">신원CC ${stat.shinwon}회 참석</div>
-                        <div style="color:#777; font-size:0.78rem; margin-top:4px;">원우 골프 행사 총 <span style="color:#e74c3c; font-weight:bold;">${stat.total}</span>회 참석</div>
+                        <div style="color:#777; font-size:0.78rem; margin-top:4px;">원우 골프 행사 총 <span style="color:#e74c3c; font-weight:bold; font-size:1.05rem; margin:0 2px;">${stat.total}</span>회 참석</div>
                     </div>
                 `).join('')}
             </div>
