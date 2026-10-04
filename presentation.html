@@ -373,63 +373,194 @@
         <img id="lightbox-img" src="" alt="Full view">
     </div>
 
-    <script src="script.js?v=6.79"></script>
     <script>
-        let logsData = [];
+        // Embedded Fallback Data for 100% Instant Zero-Delay Loading
+        const EMBEDDED_LOGS = [
+          {
+            "id": "c77f1e6e-8a51-4288-b7d5-9b3f454b36d2",
+            "date": "2025.12.17",
+            "location": "여의도 증권사 사무실",
+            "quote": "26년을 위한 골프회 임원 회의.",
+            "image_urls": ["https://res.cloudinary.com/dbbz6xmot/image/upload/v1776935543/tbg5cfoi6dhcooovfukl.jpg"]
+          },
+          {
+            "id": "568c4a1f-b54f-4a8c-876d-97a26b0a6704",
+            "date": "2026.02.05",
+            "location": "cruise",
+            "quote": "cruise",
+            "image_urls": ["https://res.cloudinary.com/dbbz6xmot/image/upload/v1771325272/g6acksnhinb8bukwnyqp.jpg"]
+          },
+          {
+            "id": "1e0ec71e-20ac-46bf-8ab1-c06128028204",
+            "date": "2026.02.06",
+            "location": "소노펠리체CC in 하이퐁",
+            "quote": "테스트",
+            "image_urls": ["https://res.cloudinary.com/dbbz6xmot/image/upload/v1771424549/olh9klsof7jwaluvucpr.jpg"]
+          },
+          {
+            "id": "af558d36-bbea-4d77-8bac-67af95247ecd",
+            "date": "2026.02.07",
+            "location": "소노펠리체CC in 하이퐁",
+            "quote": "베트남 하이퐁 워크샾",
+            "image_urls": [
+              "https://res.cloudinary.com/dbbz6xmot/image/upload/v1771327731/fnwccmp6nr4tykdpbzow.jpg",
+              "https://res.cloudinary.com/dbbz6xmot/image/upload/v1771327733/g3jt52bhkypzqailh31v.jpg",
+              "https://res.cloudinary.com/dbbz6xmot/image/upload/v1771327735/smpniv7bvnn1etsklkmv.jpg",
+              "https://res.cloudinary.com/dbbz6xmot/image/upload/v1771327738/jf1zs4puaz1uavqpkdrj.jpg",
+              "https://res.cloudinary.com/dbbz6xmot/image/upload/v1771327739/zxyky013cmodh5jm6oht.jpg",
+              "https://res.cloudinary.com/dbbz6xmot/image/upload/v1771327741/rdolvfefxqqhybiht86s.jpg",
+              "https://res.cloudinary.com/dbbz6xmot/image/upload/v1771327742/q4qkfjchwizmakqwlzbx.jpg",
+              "https://res.cloudinary.com/dbbz6xmot/image/upload/v1771327745/rhzzu1qd7zh9gtdrh7xm.jpg",
+              "https://res.cloudinary.com/dbbz6xmot/image/upload/v1771327748/e1venybheziv6ehfum0p.jpg",
+              "https://res.cloudinary.com/dbbz6xmot/image/upload/v1771327750/fqlpveqiqlnlv89nrpt3.jpg",
+              "https://res.cloudinary.com/dbbz6xmot/image/upload/v1771327753/cnlcrqm3vsr0whx7yztu.jpg",
+              "https://res.cloudinary.com/dbbz6xmot/image/upload/v1771327757/sqle4qmtprwixavlux89.jpg",
+              "https://res.cloudinary.com/dbbz6xmot/image/upload/v1771327760/wywfvv8ydcz1kcgpossh.jpg",
+              "https://res.cloudinary.com/dbbz6xmot/image/upload/v1771327764/nmfvuovzpnf0wmgbdd6o.jpg",
+              "https://res.cloudinary.com/dbbz6xmot/image/upload/v1771327766/uiy3q18kk0lky863qnsr.jpg",
+              "https://res.cloudinary.com/dbbz6xmot/image/upload/v1771327767/u6gn0i8srxx2kq1nemxi.jpg"
+            ]
+          },
+          {
+            "id": "8963bc05-ea1f-4082-87b5-5d04574f9a6d",
+            "date": "2026.03.24",
+            "location": "신원CC",
+            "quote": "3월 월례회",
+            "image_urls": [
+              "https://res.cloudinary.com/dbbz6xmot/image/upload/v1774537292/dxnm1ft6hbcj7ffbpal3.jpg",
+              "https://res.cloudinary.com/dbbz6xmot/image/upload/v1774537294/iir6mbdxhupjtcrs5biu.jpg",
+              "https://res.cloudinary.com/dbbz6xmot/image/upload/v1774537296/ddgbcrss8xy71urkcglq.jpg",
+              "https://res.cloudinary.com/dbbz6xmot/image/upload/v1774537297/vfrseoicnztdocxi5btr.jpg",
+              "https://res.cloudinary.com/dbbz6xmot/image/upload/v1774537300/iudgo25shgnhqqifq8h8.jpg"
+            ]
+          },
+          {
+            "id": "de5e5e60-eaf9-46d3-89d4-39de4a244c94",
+            "date": "2026.04.03",
+            "location": "아시아나cc",
+            "quote": "회장단 라운드 for 5/27 원우회장 배 골프대회 준비 ",
+            "image_urls": [
+              "https://res.cloudinary.com/dbbz6xmot/image/upload/v1775266462/imnleoiv4dd086p71xvm.jpg",
+              "https://res.cloudinary.com/dbbz6xmot/image/upload/v1775266464/eyzpt3s6syrb6tqu9pxq.jpg"
+            ]
+          },
+          {
+            "id": "8e83bf18-54ca-4d6e-8fad-e906c2cf522d",
+            "date": "2026.04.22",
+            "location": "신원CC",
+            "quote": "4월 월례회",
+            "image_urls": [
+              "https://res.cloudinary.com/dbbz6xmot/image/upload/v1776913490/tuphdyt8px6syflnvmgz.jpg",
+              "https://res.cloudinary.com/dbbz6xmot/image/upload/v1776935051/uxthu3dalj6zodpi2mft.jpg"
+            ]
+          },
+          {
+            "id": "cc2a1dfd-015f-4df3-8510-3b5bfc4586b7",
+            "date": "2026.05.27",
+            "location": "신원CC",
+            "quote": "5월 월례회. 웜우회장 배 골대회",
+            "image_urls": [
+              "https://res.cloudinary.com/dbbz6xmot/image/upload/v1780584632/jsolxx1zhnan4nwvnthz.jpg",
+              "https://res.cloudinary.com/dbbz6xmot/image/upload/v1780584633/p9qr3mikverz6mcdf3ed.jpg"
+            ]
+          },
+          {
+            "id": "16be369f-2389-47c6-be08-ed9e00d1e6c8",
+            "date": "2026.06.24",
+            "location": "신원CC",
+            "quote": "6월 월례회",
+            "image_urls": [
+              "https://res.cloudinary.com/dbbz6xmot/image/upload/v1782310177/qunbax6vfz3kbezvartm.jpg",
+              "https://res.cloudinary.com/dbbz6xmot/image/upload/v1782310179/gxntx4kfw0bxagbc2ryw.jpg"
+            ]
+          },
+          {
+            "id": "b8ea4d4e-d777-4ef1-9f25-94dd187be584",
+            "date": "2026.07.10",
+            "location": "스마트KU",
+            "quote": "T&T",
+            "image_urls": [
+              "https://res.cloudinary.com/dbbz6xmot/image/upload/v1787569069/ffot2da3yrod4bowgyak.jpg",
+              "https://res.cloudinary.com/dbbz6xmot/image/upload/v1787569071/wcnzdk9244vnskd1giyl.jpg"
+            ]
+          },
+          {
+            "id": "c39e633b-41bb-4589-a045-74ac81b984ec",
+            "date": "2026.07.22",
+            "location": "베어크리크 크리크 코스",
+            "quote": "7월 벙개 라운딩",
+            "image_urls": [
+              "https://res.cloudinary.com/dbbz6xmot/image/upload/v1787568673/pmpt8byntghuhhfe9n9n.jpg",
+              "https://res.cloudinary.com/dbbz6xmot/image/upload/v1787568677/sjmlvxo6ydiaqslflarf.jpg"
+            ]
+          },
+          {
+            "id": "df67fec3-b6f2-4616-aeb1-c0cb4274df88",
+            "date": "2026.09.30",
+            "location": "신원CC",
+            "quote": "9월 월례회 ",
+            "image_urls": [
+              "https://res.cloudinary.com/dbbz6xmot/image/upload/v1790895651/hm4tkvwtq3giqqyerolf.jpg",
+              "https://res.cloudinary.com/dbbz6xmot/image/upload/v1790895652/cmqngwheskock5aqqmrz.jpg"
+            ]
+          }
+        ];
+
+        let logsData = EMBEDDED_LOGS;
         let currentIndex = 0;
         let autoPlayTimer = null;
         let isPlaying = false;
 
-        document.addEventListener('DOMContentLoaded', async () => {
-            await fetchLogs();
+        document.addEventListener('DOMContentLoaded', () => {
+            // Render embedded data INSTANTLY (0 ms delay)
+            initSlides(EMBEDDED_LOGS);
             setupKeyboard();
+
+            // Try dynamic fetch in background to sync any newly added round logs
+            fetchLogsDynamic();
         });
 
-        const SUPABASE_URL = 'https://qfzmwlyqezmkkxtpscik.supabase.co';
-        const SUPABASE_KEY = 'sb_publishable_mYejtROOg-2JN7z6_RlWdg_PXYSYgFi';
+        function initSlides(data) {
+            data.forEach(log => {
+                let dStr = (log.date || '').replace(/\./g, '-').replace(/\s+/g, '');
+                if (dStr.length === 8 && !dStr.includes('-')) {
+                    dStr = `${dStr.substring(0, 4)}-${dStr.substring(4, 6)}-${dStr.substring(6, 8)}`;
+                }
+                const parts = dStr.split('-');
+                if (parts.length === 3) {
+                    log.normalizedDate = `${parts[0]}-${parts[1].padStart(2, '0')}-${parts[2].padStart(2, '0')}`;
+                } else {
+                    log.normalizedDate = dStr;
+                }
+            });
 
-        async function fetchLogs() {
+            logsData = data.sort((a, b) => a.normalizedDate.localeCompare(b.normalizedDate));
+            renderTimeline();
+            renderSlides();
+            showSlide(currentIndex);
+        }
+
+        async function fetchLogsDynamic() {
             try {
-                let client = window.supabaseClient;
-                if (!client && window.supabase && typeof window.supabase.createClient === 'function') {
-                    client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-                }
-
-                if (!client) {
-                    throw new Error("Supabase SDK is not loaded.");
-                }
-
-                const { data, error } = await client
-                    .from('round_logs')
-                    .select('*');
-
-                if (error) throw error;
-
-                // Sort chronologically
-                data.forEach(log => {
-                    let dStr = (log.date || '').replace(/\./g, '-').replace(/\s+/g, '');
-                    if (dStr.length === 8 && !dStr.includes('-')) {
-                        dStr = `${dStr.substring(0, 4)}-${dStr.substring(4, 6)}-${dStr.substring(6, 8)}`;
+                const SUPABASE_URL = 'https://qfzmwlyqezmkkxtpscik.supabase.co';
+                const SUPABASE_KEY = 'sb_publishable_mYejtROOg-2JN7z6_RlWdg_PXYSYgFi';
+                
+                if (window.supabase && typeof window.supabase.createClient === 'function') {
+                    const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                    const { data, error } = await client.from('round_logs').select('*');
+                    if (!error && data && data.length > 0) {
+                        const clean = data.map(l => ({
+                            id: l.id,
+                            date: l.date,
+                            location: l.location,
+                            quote: l.quote || l.title || '',
+                            image_urls: l.image_urls || (l.image_url ? [l.image_url] : [])
+                        }));
+                        initSlides(clean);
                     }
-                    const parts = dStr.split('-');
-                    if (parts.length === 3) {
-                        log.normalizedDate = `${parts[0]}-${parts[1].padStart(2, '0')}-${parts[2].padStart(2, '0')}`;
-                    } else {
-                        log.normalizedDate = dStr;
-                    }
-                });
-
-                logsData = data.sort((a, b) => a.normalizedDate.localeCompare(b.normalizedDate));
-                renderTimeline();
-                renderSlides();
-                showSlide(0);
+                }
             } catch (err) {
-                console.error("Fetch Error:", err);
-                document.getElementById('slides-container').innerHTML = `
-                    <div style="text-align:center; color:#e74c3c; padding: 40px;">
-                        데이터를 불러오는 중 오류가 발생했습니다. 다시 시도해주세요.
-                    </div>
-                `;
+                console.log("Background fetch info:", err);
             }
         }
 
