@@ -2526,17 +2526,45 @@ async function renderAwardsHall(prefetchedData = null) {
         };
 
         const getAwardDisplayPriority = (award) => {
-            const a = award.trim();
-            if (a.includes('메달')) return 1;
-            if (a.includes('신페리오 우승')) return 2;
-            if (a.includes('준우승')) return 3;
-            if (a.includes('롱기스트')) return 4;
-            if (a.includes('니어리스트')) return 5;
-            if (a.includes('다버디')) return 6;
-            if (a.includes('다파')) return 7;
-            if (a.includes('다보기')) return 8;
-            if (a.includes('다더블') || a.includes('다따블') || a.includes('다떠블')) return 9;
-            return 10;
+            const a = (award || '').replace(/\s+/g, '');
+            
+            // 1. 메달리스트 (1위 / 2위 / 3위)
+            if (a.includes('메달')) {
+                if (a.includes('2위') || a.includes('2등')) return 2;
+                if (a.includes('3위') || a.includes('3등')) return 3;
+                return 1; // 1위 / 기본 메달리스트
+            }
+            
+            // 2. 신페리오 (우승 / 준우승 / 2등 / 3등)
+            if (a.includes('신페리오') || a.includes('준우승')) {
+                if (a.includes('2등') || a.includes('2위') || a.includes('준우승')) return 4.2;
+                if (a.includes('3등') || a.includes('3위')) return 4.3;
+                return 4; // 신페리오 우승
+            }
+            
+            // 3. 롱기스트
+            if (a.includes('롱기스트') || a.includes('롱기')) return 5;
+            
+            // 4. 니어리스트 (1위 / 2위)
+            if (a.includes('니어리스트') || a.includes('니어')) {
+                if (a.includes('2위') || a.includes('2등')) return 6.2;
+                return 6;
+            }
+            
+            // 5. 다버디
+            if (a.includes('다버디')) return 7;
+            
+            // 6. 다파
+            if (a.includes('다파')) return 8;
+            
+            // 7. 다보기
+            if (a.includes('다보기')) return 9;
+            
+            // 8. 다따블
+            if (a.includes('다더블') || a.includes('다따블') || a.includes('다떠블')) return 10;
+            
+            // 9. 그 외 상 (고생상, 행운상, 패션퀸, 똑바로, 발전상 등)
+            return 11;
         };
 
         const getRoundTitle = (month, date) => {
