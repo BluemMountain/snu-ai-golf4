@@ -139,11 +139,14 @@ async function showHandicapRanking() {
             };
         }).filter(m => m.h26_total !== "N/A");
 
-        // Sort by overall handicap index
+        // Sort primarily by Shinwon handicap index (if N/A, fallback to overall handicap index)
         ranking.sort((a, b) => {
-            if (a.h26_total === "N/A") return 1;
-            if (b.h26_total === "N/A") return -1;
-            return parseFloat(a.h26_total) - parseFloat(b.h26_total);
+            const getVal = (m) => {
+                if (m.h26_shinwon !== "N/A") return parseFloat(m.h26_shinwon);
+                if (m.h26_total !== "N/A") return parseFloat(m.h26_total);
+                return 999;
+            };
+            return getVal(a) - getVal(b);
         });
 
         let html = `
