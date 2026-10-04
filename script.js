@@ -2412,14 +2412,22 @@ async function renderSponsorHall(prefetchedData = null) {
 
             let listHtml = data.list.map(item => {
                 const parts = item.split(':').map(p => p.trim());
-                if(parts.length === 2) {
-                    const isSecret = parts[0].includes('기부천사');
-                    const nameStyle = isSecret ? 'color: #fff; user-select: none;' : 'color: #444; font-weight: 500;';
+                if(parts.length >= 2) {
+                    const name = parts[0];
+                    const val = parts.slice(1).join(':').trim();
+                    const isSecret = name.includes('기부천사');
+                    const nameStyle = isSecret ? 'color: #fff; user-select: none;' : 'color: #444; font-weight: 500; white-space: nowrap; flex-shrink: 0; padding-right: 15px;';
                     const valStyle = isSecret ? 'color: #fff; user-select: none;' : 'color: #577b2d; font-weight: bold; text-align: right; line-height: 1.4;';
                     const borderStyle = isSecret ? 'border-bottom: 1px dashed #fff;' : 'border-bottom: 1px dashed #f0f0f0;';
-                    return `<div style="display: flex; justify-content: space-between; width: 100%; ${borderStyle} padding: 8px 0;">
-                                <span style="${nameStyle}">${parts[0]}</span>
-                                <span style="${valStyle}">${parts[1]}</span>
+
+                    let formattedVal = val;
+                    if (val.includes('고급화장품 5세트')) {
+                        formattedVal = val.replace(', 고급화장품 5세트', '<br>고급화장품 5세트');
+                    }
+
+                    return `<div style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%; ${borderStyle} padding: 8px 0;">
+                                <span style="${nameStyle}">${name}</span>
+                                <span style="${valStyle}">${formattedVal}</span>
                             </div>`;
                 }
                 if (item.includes('월') && item.includes('일')) {
