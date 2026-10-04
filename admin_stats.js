@@ -139,14 +139,28 @@ async function showHandicapRanking() {
             };
         }).filter(m => m.h26_total !== "N/A");
 
-        // Sort primarily by Shinwon handicap index (if N/A, fallback to overall handicap index)
+        // Sort by 3-tier tiebreakers: 1) Shinwon Handicap ASC, 2) Overall Handicap ASC, 3) Name Korean Alphabetical ASC
         ranking.sort((a, b) => {
-            const getVal = (m) => {
-                if (m.h26_shinwon !== "N/A") return parseFloat(m.h26_shinwon);
-                if (m.h26_total !== "N/A") return parseFloat(m.h26_total);
-                return 999;
-            };
-            return getVal(a) - getVal(b);
+            const getVal = (v) => (v !== "N/A" ? parseFloat(v) : 999);
+
+            const shinwonA = getVal(a.h26_shinwon);
+            const shinwonB = getVal(b.h26_shinwon);
+
+            // 1차 기준: 핸디캡(신원) 오름차순
+            if (shinwonA !== shinwonB) {
+                return shinwonA - shinwonB;
+            }
+
+            // 2차 기준: 핸디캡(전체) 오름차순
+            const totalA = getVal(a.h26_total);
+            const totalB = getVal(b.h26_total);
+
+            if (totalA !== totalB) {
+                return totalA - totalB;
+            }
+
+            // 3차 기준: 성함 한글 가나다순 오름차순
+            return a.name.localeCompare(b.name, 'ko');
         });
 
         let html = `
