@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2026 SNU AI GOLF | 11월 납회식 추억 슬라이드쇼</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Supabase JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root {
+            --bg-dark: #0f1e16;
+            --card-bg: #182b20;
+            --accent-gold: #f1c40f;
+            --accent-green: #2ecc71;
+            --text-light: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        /* Top Header Navigation */
+        .header-nav {
+            background: rgba(15, 30, 22, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(241, 196, 15, 0.2);
+            padding: 12px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+        }
+
+        .header-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: bold;
+            color: var(--accent-gold);
+            font-size: 1.1rem;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .btn-nav {
+            background: rgba(255, 255, 255, 0.08);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 8px 14px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 0.88rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-nav:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: var(--accent-gold);
+            color: var(--accent-gold);
+        }
+
+        .btn-pptx {
+            background: linear-gradient(135deg, #d35400, #e67e22);
+            color: #fff;
+            border: none;
+            font-weight: bold;
+            box-shadow: 0 4px 12px rgba(211, 84, 0, 0.4);
+        }
+
+        .btn-pptx:hover {
+            background: linear-gradient(135deg, #e67e22, #f39c12);
+            color: #fff;
+            transform: translateY(-1px);
+        }
+
+        /* Timeline Bar */
+        .timeline-bar {
+            margin-top: 60px;
+            background: rgba(0, 0, 0, 0.4);
+            padding: 10px 16px;
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            scrollbar-width: thin;
+        }
+
+        .timeline-item {
+            flex-shrink: 0;
+            padding: 6px 14px;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-muted);
+            font-size: 0.82rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+            white-space: nowrap;
+        }
+
+        .timeline-item:hover, .timeline-item.active {
+            background: rgba(241, 196, 15, 0.15);
+            color: var(--accent-gold);
+            border-color: rgba(241, 196, 15, 0.5);
+            font-weight: bold;
+        }
+
+        /* Main Presentation Container */
+        .slides-wrapper {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            position: relative;
+        }
+
+        .slide-card {
+            width: 100%;
+            max-width: 1200px;
+            background: var(--card-bg);
+            border-radius: 16px;
+            border: 1px solid rgba(241, 196, 15, 0.15);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+            padding: 24px;
+            display: none;
+            flex-direction: column;
+            gap: 16px;
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        .slide-card.active {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.98); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        /* Slide Header */
+        .slide-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 12px;
+        }
+
+        .slide-date-loc {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1rem;
+            color: var(--accent-gold);
+            font-weight: 500;
+        }
+
+        .slide-title {
+            font-family: 'Noto Serif KR', serif;
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin-top: 4px;
+        }
+
+        .slide-count {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            background: rgba(255, 255, 255, 0.05);
+            padding: 4px 10px;
+            border-radius: 12px;
+        }
+
+        /* Image Display Area */
+        .photo-gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 12px;
+            max-height: 560px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+
+        .photo-item {
+            position: relative;
+            border-radius: 10px;
+            overflow: hidden;
+            background: #000;
+            aspect-ratio: 4 / 3;
+            cursor: pointer;
+        }
+
+        .photo-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s;
+        }
+
+        .photo-item:hover img {
+            transform: scale(1.04);
+        }
+
+        /* Bottom Controls Bar */
+        .controls-bar {
+            background: rgba(15, 30, 22, 0.95);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 14px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            bottom: 0;
+            z-index: 90;
+        }
+
+        .controls-center {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .ctrl-btn {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 1.1rem;
+            transition: all 0.2s;
+        }
+
+        .ctrl-btn:hover {
+            background: var(--accent-gold);
+            color: #000;
+            border-color: var(--accent-gold);
+        }
+
+        .slide-indicator {
+            font-size: 0.95rem;
+            color: var(--accent-gold);
+            font-weight: bold;
+            min-width: 80px;
+            text-align: center;
+        }
+
+        /* Lightbox Modal */
+        .lightbox-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.92);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .lightbox-modal img {
+            max-width: 90vw;
+            max-height: 85vh;
+            border-radius: 8px;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.8);
+        }
+
+        .lightbox-close {
+            position: absolute;
+            top: 20px;
+            right: 25px;
+            color: #fff;
+            font-size: 2rem;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Top Navigation -->
+    <header class="header-nav">
+        <div class="header-title">
+            <i class="fas fa-trophy"></i>
+            <span>SNU AI GOLF | 11월 납회식 추억 슬라이드</span>
+        </div>
+        <div class="header-actions">
+            <a href="2026_SNU_AI_GOLF_Memories.pptx" download class="btn-nav btn-pptx">
+                <i class="fas fa-file-powerpoint"></i> PPTX 다운로드
+            </a>
+            <a href="gallery.html" class="btn-nav">
+                <i class="fas fa-images"></i> 갤러리로 이동
+            </a>
+            <a href="index.html" class="btn-nav">
+                <i class="fas fa-home"></i> 홈
+            </a>
+        </div>
+    </header>
+
+    <!-- Timeline Navigation Bar -->
+    <nav id="timeline-bar" class="timeline-bar"></nav>
+
+    <!-- Main Slides Container -->
+    <main class="slides-wrapper">
+        <div id="slides-container" style="width: 100%; display: flex; justify-content: center;">
+            <div style="text-align:center; padding: 60px; color: #888;">
+                <i class="fas fa-spinner fa-spin fa-2x"></i>
+                <p style="margin-top: 12px;">추억의 슬라이드를 불러오는 중입니다...</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Bottom Controls -->
+    <footer class="controls-bar">
+        <div style="font-size: 0.85rem; color: var(--text-muted);">
+            ⌨️ 키보드 방향키(←/→) 또는 스페이스바로 이동 가능
+        </div>
+
+        <div class="controls-center">
+            <button class="ctrl-btn" onclick="prevSlide()" title="이전 슬라이드"><i class="fas fa-chevron-left"></i></button>
+            <button class="ctrl-btn" id="play-btn" onclick="toggleAutoPlay()" title="자동 재생"><i class="fas fa-play"></i></button>
+            <span id="slide-indicator" class="slide-indicator">1 / 12</span>
+            <button class="ctrl-btn" onclick="nextSlide()" title="다음 슬라이드"><i class="fas fa-chevron-right"></i></button>
+        </div>
+
+        <div>
+            <button class="btn-nav" onclick="toggleFullScreen()" title="전체 화면">
+                <i class="fas fa-expand"></i> 전체 화면
+            </button>
+        </div>
+    </footer>
+
+    <!-- Lightbox Modal -->
+    <div id="lightbox-modal" class="lightbox-modal" onclick="closeLightbox()">
+        <span class="lightbox-close">&times;</span>
+        <img id="lightbox-img" src="" alt="Full view">
+    </div>
+
+    <script src="script.js?v=6.79"></script>
+    <script>
+        let logsData = [];
+        let currentIndex = 0;
+        let autoPlayTimer = null;
+        let isPlaying = false;
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            await fetchLogs();
+            setupKeyboard();
+        });
+
+        async function fetchLogs() {
+            try {
+                const client = window.supabaseClient;
+                if (!client) {
+                    throw new Error("Supabase Client is not initialized.");
+                }
+
+                const { data, error } = await client
+                    .from('round_logs')
+                    .select('*');
+
+                if (error) throw error;
+
+                // Sort chronologically
+                data.forEach(log => {
+                    let dStr = (log.date || '').replace(/\./g, '-').replace(/\s+/g, '');
+                    if (dStr.length === 8 && !dStr.includes('-')) {
+                        dStr = `${dStr.substring(0, 4)}-${dStr.substring(4, 6)}-${dStr.substring(6, 8)}`;
+                    }
+                    const parts = dStr.split('-');
+                    if (parts.length === 3) {
+                        log.normalizedDate = `${parts[0]}-${parts[1].padStart(2, '0')}-${parts[2].padStart(2, '0')}`;
+                    } else {
+                        log.normalizedDate = dStr;
+                    }
+                });
+
+                logsData = data.sort((a, b) => a.normalizedDate.localeCompare(b.normalizedDate));
+                renderTimeline();
+                renderSlides();
+                showSlide(0);
+            } catch (err) {
+                console.error("Fetch Error:", err);
+                document.getElementById('slides-container').innerHTML = `
+                    <div style="text-align:center; color:#e74c3c; padding: 40px;">
+                        데이터를 불러오는 중 오류가 발생했습니다. 다시 시도해주세요.
+                    </div>
+                `;
+            }
+        }
+
+        function renderTimeline() {
+            const bar = document.getElementById('timeline-bar');
+            bar.innerHTML = '';
+            logsData.forEach((log, idx) => {
+                const item = document.createElement('div');
+                item.className = `timeline-item ${idx === 0 ? 'active' : ''}`;
+                item.textContent = `${log.date} ${log.location}`;
+                item.onclick = () => showSlide(idx);
+                bar.appendChild(item);
+            });
+        }
+
+        function renderSlides() {
+            const container = document.getElementById('slides-container');
+            container.innerHTML = '';
+
+            logsData.forEach((log, idx) => {
+                const card = document.createElement('div');
+                card.className = `slide-card ${idx === 0 ? 'active' : ''}`;
+                card.id = `slide-${idx}`;
+
+                const images = log.image_urls || (log.image_url ? [log.image_url] : []);
+                const quote = log.quote || log.title || '';
+
+                let galleryHtml = '';
+                images.forEach(url => {
+                    galleryHtml += `
+                        <div class="photo-item" onclick="openLightbox('${url}')">
+                            <img src="${url}" alt="Round Photo" loading="lazy">
+                        </div>
+                    `;
+                });
+
+                card.innerHTML = `
+                    <div class="slide-header">
+                        <div>
+                            <div class="slide-date-loc">
+                                <span>📅 ${log.date}</span>
+                                <span>📍 ${log.location}</span>
+                            </div>
+                            <h2 class="slide-title">${quote || log.location + ' 라운드 기록'}</h2>
+                        </div>
+                        <div class="slide-count">
+                            <i class="fas fa-camera"></i> ${images.length}장의 추억
+                        </div>
+                    </div>
+                    <div class="photo-gallery-grid">
+                        ${galleryHtml}
+                    </div>
+                `;
+
+                container.appendChild(card);
+            });
+        }
+
+        function showSlide(index) {
+            if (index < 0) index = logsData.length - 1;
+            if (index >= logsData.length) index = 0;
+            currentIndex = index;
+
+            document.querySelectorAll('.slide-card').forEach((el, i) => {
+                el.classList.toggle('active', i === currentIndex);
+            });
+
+            document.querySelectorAll('.timeline-item').forEach((el, i) => {
+                el.classList.toggle('active', i === currentIndex);
+                if (i === currentIndex) {
+                    el.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+                }
+            });
+
+            document.getElementById('slide-indicator').textContent = `${currentIndex + 1} / ${logsData.length}`;
+        }
+
+        function nextSlide() { showSlide(currentIndex + 1); }
+        function prevSlide() { showSlide(currentIndex - 1); }
+
+        function toggleAutoPlay() {
+            const btn = document.getElementById('play-btn');
+            if (isPlaying) {
+                clearInterval(autoPlayTimer);
+                isPlaying = false;
+                btn.innerHTML = '<i class="fas fa-play"></i>';
+            } else {
+                isPlaying = true;
+                btn.innerHTML = '<i class="fas fa-pause"></i>';
+                autoPlayTimer = setInterval(() => nextSlide(), 5000);
+            }
+        }
+
+        function toggleFullScreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+            } else {
+                if (document.exitFullscreen) document.exitFullscreen();
+            }
+        }
+
+        function setupKeyboard() {
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'ArrowRight' || e.key === ' ') {
+                    nextSlide();
+                } else if (e.key === 'ArrowLeft') {
+                    prevSlide();
+                } else if (e.key === 'f' || e.key === 'F') {
+                    toggleFullScreen();
+                }
+            });
+        }
+
+        function openLightbox(url) {
+            document.getElementById('lightbox-img').src = url;
+            document.getElementById('lightbox-modal').style.display = 'flex';
+        }
+
+        function closeLightbox() {
+            document.getElementById('lightbox-modal').style.display = 'none';
+        }
+    </script>
+</body>
+
+</html>
