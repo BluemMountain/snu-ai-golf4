@@ -1191,7 +1191,7 @@ async function renderPublicRSVPs() {
                 </h4>
     <div style="display: flex; flex-wrap: wrap; gap: 10px;">
         ${sponsors.sort((a, b) => {
-            const order = ['원우회', '현성호', '김대욱', '정민호', '이문형', '이영규', '조중규', '남서우', '박청산'];
+            const order = ['김대욱', '정민호', '박철호', '전은미', '현성호', '원우회', '골프회', '이문형', '이영규', '조중규', '남서우', '박청산'];
             const idxA = order.indexOf(a.name);
             const idxB = order.indexOf(b.name);
             if (idxA > -1 && idxB > -1) return idxA - idxB;
@@ -2296,7 +2296,9 @@ async function renderSponsorHall(prefetchedData = null) {
         // 2. 직책 및 영문 표기 매핑 사전
         const getSponsorTitle = (name) => {
             const trimmed = (name || '').trim();
+            if (trimmed === '골프회' || trimmed === '원우회') return '';
             if (trimmed === '김대욱') return '회장님';
+            if (trimmed === '정민호') return '부회장님';
             if (trimmed === '박철호') return '부회장님';
             if (trimmed === '전은미') return '총무님';
             if (trimmed === '정대규') return '대표님';
@@ -2324,7 +2326,7 @@ async function renderSponsorHall(prefetchedData = null) {
             const rawName = (r.name || '').trim();
             const displayName = displayNameMap[rawName] || rawName;
             const title = getSponsorTitle(rawName);
-            const formattedItem = `${displayName} ${title} : ${r.sponsor}`;
+            const formattedItem = `${displayName}${title ? ' ' + title : ''} : ${r.sponsor}`;
             
             monthlySponsors[m].push({
                 date: r.date.trim(),
@@ -2335,7 +2337,7 @@ async function renderSponsorHall(prefetchedData = null) {
 
         // 4. 월별 카드 조립 (기존 하드코딩 데이터를 동적 데이터로 마이그레이션)
         const sponsorHistory = [];
-        const monthsInOrder = ["8월", "6월", "5월", "4월", "3월"];
+        const monthsInOrder = ["9월", "8월", "6월", "5월", "4월", "3월"];
 
         monthsInOrder.forEach(m => {
             const items = monthlySponsors[m] || [];
@@ -2364,7 +2366,7 @@ async function renderSponsorHall(prefetchedData = null) {
                     r22.forEach(i => list.push(i.text));
                 }
             } else {
-                // 일반 월 (8월, 6월, 3월)
+                // 일반 월 (9월, 8월, 6월, 3월)
                 items.sort((a, b) => {
                     const getRank = (txt) => {
                         if (txt.includes('회장님')) return 1;
@@ -2372,6 +2374,7 @@ async function renderSponsorHall(prefetchedData = null) {
                         if (txt.includes('총무님')) return 3;
                         if (txt.includes('사무부총장님')) return 4;
                         if (txt.includes('대표님')) return 5;
+                        if (txt.startsWith('골프회') || txt.startsWith('원우회')) return 10;
                         return 6;
                     };
                     return getRank(a.text) - getRank(b.text);
