@@ -286,46 +286,43 @@
 
     <section id="honors" class="section-padding protected-section" style="background-color: #fdfdfd;">
         <div class="container fade-in-on-scroll">
-            <div style="display: flex; flex-wrap: wrap; gap: 40px;">
-                <!-- Hall of Fame -->
-                <div class="honor-block" style="flex: 1.3; min-width: 320px;">
-                    <div class="section-header" style="text-align: left; margin-bottom: 25px;">
-                        <h2 style="font-size: 1.8rem; color: #1e3a2b;">🏆 명예의 전당</h2>
-                        <div class="divider" style="margin: 10px 0; width: 60px;"></div>
-                    </div>
-                    <div class="honor-card"
-                        style="background: #fff; padding: 25px; border-radius: 15px; border: 1px solid #e0c58a; box-shadow: 0 4px 15px rgba(197, 160, 89, 0.1);">
-                        <div style="font-size: 0.9rem; color: #c5a059; font-weight: bold; margin-bottom: 5px;">2025년 시즌
-                        </div>
-                        <div style="font-size: 1.2rem; font-weight: bold; color: #333;">연간 우승: <span
-                                style="color: #577b2d;">신소우</span> 원우님</div>
-                        <div style="font-size: 0.95rem; color: #666; margin-top: 5px;">최종 성적: -3.3 (핸디캡 대비)</div>
-                    </div>
-                    
-                    <!-- 2026년 수상자 카드들이 동적으로 이곳에 들어옵니다 -->
-                    <div id="awards-hall-container">
-                        <div class="loading-spinner">수상 내역을 불러오는 중입니다...</div>
-                    </div>
+            <!-- 1. 명예의 전당 블록 (상단 배치) -->
+            <div class="honor-block" style="margin-bottom: 60px;">
+                <div class="section-header" style="text-align: left; margin-bottom: 25px;">
+                    <h2 style="font-size: 1.8rem; color: #1e3a2b;">🏆 명예의 전당</h2>
+                    <div class="divider" style="margin: 10px 0; width: 60px;"></div>
                 </div>
+                
+                <!-- 2025년 시즌 연간 우승자 (제일 위) -->
+                <div class="honor-card"
+                    style="background: #fff; padding: 25px; border-radius: 15px; border: 1px solid #e0c58a; box-shadow: 0 4px 15px rgba(197, 160, 89, 0.1); margin-bottom: 20px;">
+                    <div style="font-size: 0.9rem; color: #c5a059; font-weight: bold; margin-bottom: 5px;">2025년 시즌</div>
+                    <div style="font-size: 1.2rem; font-weight: bold; color: #333;">연간 우승: <span style="color: #577b2d;">신소우</span> 원우님</div>
+                    <div style="font-size: 0.95rem; color: #666; margin-top: 5px;">최종 성적: -3.3 (핸디캡 대비)</div>
+                </div>
+                
+                <!-- 2026년 수상자 카드들이 최근월부터 양 옆(2열 그리드)으로 배치됩니다 -->
+                <div id="awards-hall-container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 20px;">
+                    <div class="loading-spinner">수상 내역을 불러오는 중입니다...</div>
+                </div>
+            </div>
 
-                <!-- Yearly Board -->
-                <div class="board-block" style="flex: 1; min-width: 300px;">
-                    <div class="section-header" style="text-align: left; margin-bottom: 25px;">
-                        <h2 style="font-size: 1.8rem; color: #1e3a2b;">👥 년도별 임원진</h2>
-                        <div class="divider" style="margin: 10px 0; width: 60px;"></div>
-                    </div>
+            <!-- 2. 년도별 임원진 블록 (명예의 전당 아래로 분리 배치) -->
+            <div class="board-block">
+                <div class="section-header" style="text-align: left; margin-bottom: 25px;">
+                    <h2 style="font-size: 1.8rem; color: #1e3a2b;">👥 년도별 임원진</h2>
+                    <div class="divider" style="margin: 10px 0; width: 60px;"></div>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
                     <div class="board-card"
-                        style="background: #f8fcf9; padding: 25px; border-radius: 15px; border: 1px solid #d1e7dd; margin-bottom: 20px;">
+                        style="background: #f8fcf9; padding: 25px; border-radius: 15px; border: 1px solid #d1e7dd;">
                         <div
                             style="font-size: 1.1rem; font-weight: bold; color: #1e3a2b; margin-bottom: 12px; border-bottom: 1px solid #d1e7dd; padding-bottom: 8px;">
                             2026년도</div>
                         <div style="display: flex; flex-direction: column; gap: 8px;">
-                            <div><span style="font-weight: bold; color: #577b2d; margin-right: 10px;">회장</span> 김대욱
-                            </div>
-                            <div><span style="font-weight: bold; color: #577b2d; margin-right: 10px;">부회장</span> 박철호,
-                                정민호</div>
-                            <div><span style="font-weight: bold; color: #577b2d; margin-right: 10px;">총무</span> 박청산,
-                                심민선, 전은미</div>
+                            <div><span style="font-weight: bold; color: #577b2d; margin-right: 10px;">회장</span> 김대욱</div>
+                            <div><span style="font-weight: bold; color: #577b2d; margin-right: 10px;">부회장</span> 박철호, 정민호</div>
+                            <div><span style="font-weight: bold; color: #577b2d; margin-right: 10px;">총무</span> 박청산, 심민선, 전은미</div>
                         </div>
                     </div>
                     <div class="board-card"
@@ -334,12 +331,9 @@
                             style="font-size: 1.1rem; font-weight: bold; color: #1e3a2b; margin-bottom: 12px; border-bottom: 1px solid #d1e7dd; padding-bottom: 8px;">
                             2025년도</div>
                         <div style="display: flex; flex-direction: column; gap: 8px;">
-                            <div><span style="font-weight: bold; color: #577b2d; margin-right: 10px;">회장</span> 송원득
-                            </div>
-                            <div><span style="font-weight: bold; color: #577b2d; margin-right: 10px;">부회장</span> 김대욱,
-                                박철호</div>
-                            <div><span style="font-weight: bold; color: #577b2d; margin-right: 10px;">총무</span> 박청산,
-                                심민선, 이용환</div>
+                            <div><span style="font-weight: bold; color: #577b2d; margin-right: 10px;">회장</span> 송원득</div>
+                            <div><span style="font-weight: bold; color: #577b2d; margin-right: 10px;">부회장</span> 김대욱, 박철호</div>
+                            <div><span style="font-weight: bold; color: #577b2d; margin-right: 10px;">총무</span> 박청산, 심민선, 이용환</div>
                         </div>
                     </div>
                 </div>
@@ -445,8 +439,8 @@
 
     <!-- Supabase JS -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="script.js?v=6.65"></script>
+    <script src="script.js?v=6.66"></script>
 </body>
 
-</html><!-- trigger redeploy: 2026-10-04 19:37 -->
-<!-- force update v6.65 -->
+</html><!-- trigger redeploy: 2026-10-04 19:47 -->
+<!-- force update v6.66 -->

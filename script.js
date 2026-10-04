@@ -2599,7 +2599,7 @@ async function renderAwardsHall(prefetchedData = null) {
             card.style.borderRadius = '15px';
             card.style.border = '1px solid #e0c58a';
             card.style.boxShadow = '0 4px 15px rgba(197, 160, 89, 0.1)';
-            card.style.marginTop = '20px';
+            card.style.marginTop = '0px';
 
             let listHtml = listItems.map(item => {
                 const detailText = item.detail ? ` <span style="font-size: 0.8rem; color: #999;">(${item.detail})</span>` : '';
