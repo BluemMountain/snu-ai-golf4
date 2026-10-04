@@ -1191,7 +1191,7 @@ async function renderPublicRSVPs() {
                 </h4>
     <div style="display: flex; flex-wrap: wrap; gap: 10px;">
         ${sponsors.sort((a, b) => {
-            const order = ['김대욱', '정민호', '박철호', '전은미', '현성호', '원우회', '골프회', '이문형', '이영규', '조중규', '남서우', '박청산'];
+            const order = ['골프회', '원우회', '김대욱', '정민호', '박철호', '전은미', '현성호', '이문형', '이영규', '조중규', '남서우', '박청산'];
             const idxA = order.indexOf(a.name);
             const idxB = order.indexOf(b.name);
             if (idxA > -1 && idxB > -1) return idxA - idxB;
@@ -2369,12 +2369,12 @@ async function renderSponsorHall(prefetchedData = null) {
                 // 일반 월 (9월, 8월, 6월, 3월)
                 items.sort((a, b) => {
                     const getRank = (txt) => {
+                        if (txt.startsWith('골프회') || txt.startsWith('원우회')) return 0;
                         if (txt.includes('회장님')) return 1;
                         if (txt.includes('부회장님')) return 2;
                         if (txt.includes('총무님')) return 3;
                         if (txt.includes('사무부총장님')) return 4;
                         if (txt.includes('대표님')) return 5;
-                        if (txt.startsWith('골프회') || txt.startsWith('원우회')) return 10;
                         return 6;
                     };
                     return getRank(a.text) - getRank(b.text);
