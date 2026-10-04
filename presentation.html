@@ -385,11 +385,18 @@
             setupKeyboard();
         });
 
+        const SUPABASE_URL = 'https://qfzmwlyqezmkkxtpscik.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_mYejtROOg-2JN7z6_RlWdg_PXYSYgFi';
+
         async function fetchLogs() {
             try {
-                const client = window.supabaseClient;
+                let client = window.supabaseClient;
+                if (!client && window.supabase && typeof window.supabase.createClient === 'function') {
+                    client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                }
+
                 if (!client) {
-                    throw new Error("Supabase Client is not initialized.");
+                    throw new Error("Supabase SDK is not loaded.");
                 }
 
                 const { data, error } = await client
