@@ -488,44 +488,108 @@ async function showAwardSummary() {
             others: { title: "🎁 기타 시상 (준우승/행운상/발전상 등)", list: [], icon: "🎁" }
         };
 
+        // 2-1. 전체 시상 항목 파싱 및 배열 전개
+        const allAwardItems = [];
         filteredRsvps.forEach(r => {
             const name = (r.name || '').trim();
-            const award = (r.roundaward || '').trim();
-            const score = r.roundscore;
-            const dateStr = `${r.month} ${r.date}`;
-            
-            const item = { name, award, score, month: r.month, date: r.date, dateStr, extra: '' };
+            const rawAwards = (r.roundaward || '').split(',').map(a => a.trim());
+            const scoreVal = r.roundscore ? parseInt(r.roundscore, 10) : 999;
+            const month = r.month.trim();
+            const date = r.date.trim();
+            const dateStr = `${month} ${date}`;
 
-            // 보정 사전 매칭 키 정의
-            const lookupKey = `${r.month.trim()}|${r.date.trim()}|${name}|${award}`;
-            if (awardDetails[lookupKey]) {
-                item.extra = awardDetails[lookupKey];
+            rawAwards.forEach(award => {
+                if (!award) return;
+
+                const item = {
+                    name,
+                    award,
+                    score: r.roundscore,
+                    scoreNum: isNaN(scoreVal) ? 999 : scoreVal,
+                    month,
+                    date,
+                    dateStr,
+                    extra: ''
+                };
+
+                // 보정 사전 매칭 키 정의
+                const lookupKey = `${month}|${date}|${name}|${award}`;
+                if (awardDetails[lookupKey]) {
+                    item.extra = awardDetails[lookupKey];
+                }
+
+                allAwardItems.push(item);
+            });
+        });
+
+        // 2-2. 라운드별(month|date) 메달리스트 최저타 1등 & 신페리오 1등 우승자 정밀 선발
+        const roundGroups = {};
+        allAwardItems.forEach(item => {
+            const key = `${item.month}|${item.date}`;
+            if (!roundGroups[key]) roundGroups[key] = [];
+            roundGroups[key].push(item);
+        });
+
+        const medalWinnerSet = new Set();
+        const newperioWinnerSet = new Set();
+
+        Object.entries(roundGroups).forEach(([key, items]) => {
+            // 메달리스트 1위 후보 찾기 (2위, 3위 등 명시적 2위 이하 제외)
+            const medalCandidates = items.filter(i => {
+                const a = i.award.replace(/\s+/g, '');
+                if (!a.includes('메달')) return false;
+                if (a.includes('2위') || a.includes('2등') || a.includes('3위') || a.includes('3등')) return false;
+                return true;
+            });
+
+            if (medalCandidates.length > 0) {
+                // 스코어가 가장 낮은 최저타 1명 선발
+                medalCandidates.sort((a, b) => a.scoreNum - b.scoreNum);
+                medalWinnerSet.add(medalCandidates[0]);
             }
 
-            // 분류 매칭
-            if (award.includes('메달') || award === '메달리스트') {
+            // 신페리오 우승 1위 후보 찾기 (2등, 3등, 준우승 등 제외)
+            const newperioCandidates = items.filter(i => {
+                const a = i.award.replace(/\s+/g, '');
+                if (!a.includes('신페리오')) return false;
+                if (a.includes('2등') || a.includes('2위') || a.includes('3등') || a.includes('3위') || a.includes('준우승')) return false;
+                return true;
+            });
+
+            if (newperioCandidates.length > 0) {
+                newperioWinnerSet.add(newperioCandidates[0]);
+            }
+        });
+
+        // 2-3. 카테고리 분배
+        allAwardItems.forEach(item => {
+            const award = item.award;
+            const aClean = award.replace(/\s+/g, '');
+
+            if (medalWinnerSet.has(item)) {
                 categories.medal.list.push(item);
-            } else if (award.includes('신페리오')) {
+            } else if (newperioWinnerSet.has(item)) {
                 categories.newperio.list.push(item);
-            } else if (award.includes('롱기스트')) {
+            } else if (aClean.includes('롱기스트') || aClean.includes('롱기')) {
                 if (!item.extra) {
                     const distMatch = award.match(/(\d+(\.\d+)?\s*(m|미터)?)/i);
                     item.extra = distMatch ? distMatch[1] : '';
                 }
                 categories.longest.list.push(item);
-            } else if (award.includes('니어리스트')) {
+            } else if (aClean.includes('니어리스트') || aClean.includes('니어')) {
                 if (!item.extra) {
                     const distMatch = award.match(/(\d+(\.\d+)?\s*(m|미터|cm)?)/i);
                     item.extra = distMatch ? distMatch[1] : '';
                 }
                 categories.nearest.list.push(item);
-            } else if (award.includes('다버디') || award.includes('다파') || award.includes('다보기') || award.includes('다더블') || award.includes('다따블') || award.includes('다떠블')) {
+            } else if (aClean.includes('다버디') || aClean.includes('다파') || aClean.includes('다보기') || aClean.includes('다더블') || aClean.includes('다따블') || aClean.includes('다떠블')) {
                 if (!item.extra) {
                     const countMatch = award.match(/(\d+\s*개)/);
                     item.extra = countMatch ? countMatch[1] : '';
                 }
                 categories.multishot.list.push(item);
             } else {
+                // 메달리스트 2위/3위, 신페리오 2등/3등, 준우승, 기타 시상은 전부 '기타 시상'으로 배정
                 categories.others.list.push(item);
             }
         });
