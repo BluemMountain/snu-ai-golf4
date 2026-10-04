@@ -133,6 +133,7 @@ async function showHandicapRanking() {
                 h26_total, 
                 h26_shinwon, 
                 avgScore: avgScore?.toFixed(1) || "N/A", 
+                shinwonAvgScore: shinwonAvgScore?.toFixed(1) || "N/A",
                 rounds: sList.length,
                 shinwonRounds: shinwonSList.length
             };
@@ -157,8 +158,9 @@ async function showHandicapRanking() {
                     <tr style="background:#f4f4f4; border-bottom:2px solid #ddd;">
                         <th style="padding:10px; text-align:left;">순위</th>
                         <th style="padding:10px; text-align:left;">성함</th>
-                        <th style="padding:10px; text-align:right;">핸디캡 (전체)</th>
                         <th style="padding:10px; text-align:right;">핸디캡 (신원)</th>
+                        <th style="padding:10px; text-align:right;">핸디캡 (전체)</th>
+                        <th style="padding:10px; text-align:right;">평균 타수 (신원)</th>
                         <th style="padding:10px; text-align:right;">평균 타수</th>
                         <th style="padding:10px; text-align:right;">라운드</th>
                     </tr>
@@ -171,8 +173,9 @@ async function showHandicapRanking() {
                 <tr style="border-bottom:1px solid #eee;">
                     <td style="padding:10px;">${i + 1}</td>
                     <td style="padding:10px; font-weight:bold;">${m.name}</td>
-                    <td style="padding:10px; text-align:right; color:#2c3e50; font-weight:bold;">${m.h26_total}</td>
                     <td style="padding:10px; text-align:right; color:#577b2d; font-weight:bold;">${m.h26_shinwon}</td>
+                    <td style="padding:10px; text-align:right; color:#2c3e50; font-weight:bold;">${m.h26_total}</td>
+                    <td style="padding:10px; text-align:right; color:#577b2d; font-weight:bold;">${m.shinwonAvgScore}</td>
                     <td style="padding:10px; text-align:right;">${m.avgScore}</td>
                     <td style="padding:10px; text-align:right;">${m.rounds}회(신원 ${m.shinwonRounds}회)</td>
                 </tr>
