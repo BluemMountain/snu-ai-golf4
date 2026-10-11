@@ -1468,7 +1468,10 @@ async function syncScoresToRecords(sessionKey) {
         }
 
         // 5. Upsert to Supabase
-        const venue = yymmdd.startsWith('2602') ? "소노펠리체CC in 하롱베이" : "신원CC";
+        let venue = "신원CC";
+        if (yymmdd.startsWith('2602')) venue = "소노펠리체CC in 하롱베이";
+        else if (yymmdd === "260403") venue = "아시아나CC 서코스";
+        else if (yymmdd === "261011") venue = "샴발라CC";
         const { error: saveError } = await supabaseClient
             .from('scores')
             .upsert([{

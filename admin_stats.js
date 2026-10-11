@@ -95,7 +95,7 @@ async function showHandicapRanking() {
             if (s.date && !s.date.toString().startsWith(yearPrefix)) return;
             if (s.round_count === 0) return; // Skip baseline
 
-            const isShinwon = s.venue && s.venue.includes('신원');
+            const isShinwon = s.venue && s.venue.includes('신원') && s.date !== '261011';
             const data = s.scores_data || {};
 
             Object.entries(data).forEach(([name, val]) => {
@@ -288,7 +288,7 @@ async function showAttendanceStats() {
 
         const shinwonRounds = [];
         scores.forEach(s => {
-            if (s.venue && s.venue.includes('신원')) {
+            if (s.venue && s.venue.includes('신원') && s.date !== '261011') {
                 if (s.date && s.date.length === 6 && !isNaN(parseInt(s.date))) {
                     const mm = parseInt(s.date.substring(2, 4), 10);
                     const dd = parseInt(s.date.substring(4, 6), 10);
