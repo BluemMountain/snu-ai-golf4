@@ -142,6 +142,8 @@ function initGalleryUI() {
             }
             // Reset for new entry
             form.reset();
+            const modalHeader = document.querySelector('#upload-modal .modal-magazine-header h2');
+            if (modalHeader) modalHeader.innerText = 'New Entry';
             document.getElementById('log-edit-id').value = '';
             document.getElementById('submit-log').innerText = 'PUBLISH TO LOG';
             fileDisplay.classList.add('hidden');
@@ -337,16 +339,10 @@ function openLightbox(log) {
     // Fetch and display awards for this round
     fetchRoundAwards(log.date || "");
 
-    // Permission Check: Show/Hide Edit/Delete buttons
-    const currentUserName = sessionStorage.getItem('snu_golf_user_name') || localStorage.getItem('snu_golf_user_name');
-    const isLoggedIn = sessionStorage.getItem('snu_golf_logged_in') === 'true';
-    const isAdminMode = sessionStorage.getItem('snu_golf_admin_logged_in') === 'true';
+    // Edit/Delete Controls (Always available)
     const controls = document.getElementById('lb-admin-controls');
-
-    if (isAdminMode || (isLoggedIn && currentUserName === log.user_name)) {
+    if (controls) {
         controls.classList.remove('hidden');
-    } else {
-        controls.classList.add('hidden');
     }
 
     // Show/Hide Nav Buttons
@@ -398,6 +394,15 @@ function handleLogEdit() {
 
     // Backup existing images BEFORE closing lightbox
     editingImageUrls = currentLogData.image_urls || (currentLogData.image_url ? [currentLogData.image_url] : []);
+
+    const modalHeader = document.querySelector('#upload-modal .modal-magazine-header h2');
+    if (modalHeader) modalHeader.innerText = 'Edit Entry (기록 수정)';
+
+    const fileDisplay = document.getElementById('file-count-display');
+    if (fileDisplay) {
+        fileDisplay.innerText = `기존 사진 ${editingImageUrls.length}장 유지됨 (추가 사진 선택 가능)`;
+        fileDisplay.classList.remove('hidden');
+    }
 
     closeLightbox();
     modal.style.display = 'block';
