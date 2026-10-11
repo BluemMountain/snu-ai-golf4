@@ -2585,12 +2585,18 @@ async function renderAwardsHall(prefetchedData = null) {
             const m = month.trim();
             const d = date.trim();
             if (m === "5월") return "2026년 5월 원우회장 배 골프대회 수상";
+            if (m === "10월" && (d === "10.11" || d === "11")) {
+                return "2026년 10월 주말 라운드 수상";
+            }
             if (d.includes('.')) {
                 const parts = d.split('.');
                 if (parts.length === 2) {
                     const day = parts[1];
                     if (m === "4월" && day === "3") {
                         return "2026년 4월 3일 회장단 라운드 수상";
+                    }
+                    if (m === "10월" && day === "11") {
+                        return "2026년 10월 주말 라운드 수상";
                     }
                 }
             }
