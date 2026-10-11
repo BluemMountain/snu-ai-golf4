@@ -177,6 +177,8 @@ function initGalleryUI() {
     document.getElementById('lb-next-btn').onclick = () => { if (gallerySwiper) gallerySwiper.slideNext(); };
     document.querySelector('.lightbox-close').onclick = closeLightbox;
     document.getElementById('lb-edit-btn').onclick = () => handleLogEdit();
+    const topEditBtn = document.getElementById('lb-top-edit-btn');
+    if (topEditBtn) topEditBtn.onclick = () => handleLogEdit();
     document.getElementById('lb-delete-btn').onclick = () => handleLogDelete();
 
     // Form Submit

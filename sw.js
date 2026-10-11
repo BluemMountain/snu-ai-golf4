@@ -1,4 +1,4 @@
-const CACHE_NAME = 'snu-ai-golf-v6.88';
+const CACHE_NAME = 'snu-ai-golf-v6.89';
 const ASSETS_TO_CACHE = [
     './',
     './index.html',
@@ -47,10 +47,10 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
     const url = new URL(event.request.url);
     const isNavigation = event.request.mode === 'navigate';
-    const isMainJsOrCss = url.pathname.endsWith('script.js') || url.pathname.endsWith('style.css');
+    const isJsOrCss = url.pathname.endsWith('.js') || url.pathname.endsWith('.css');
 
-    // HTML 파일 및 메인 스크립트/스타일시트는 Network-First 정책을 적용하여 캐시 고착을 근본적으로 해결
-    if (isNavigation || isMainJsOrCss) {
+    // HTML 파일 및 모든 JS/CSS는 Network-First 정책을 적용하여 캐시 고착을 근본적으로 해결
+    if (isNavigation || isJsOrCss) {
         event.respondWith(
             fetch(event.request)
                 .then((response) => {
