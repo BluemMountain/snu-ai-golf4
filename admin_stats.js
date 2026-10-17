@@ -277,23 +277,33 @@ async function showAttendanceStats() {
         openStatsModal(`${year}년 최다 참석자 통계`, '<div style="text-align:center; padding:20px;">계산 중입니다...</div>');
 
         const [{ data: rsvps, error: rsvpError }, { data: scores, error: scoreError }] = await Promise.all([
-            supabaseClient.from('rsvps').select('name, month, date').eq('status', 'attend'),
-            supabaseClient.from('scores').select('date, venue')
+            supabaseClient.from('rsvps').select('name, month, date, roundscore').eq('status', 'attend'),
+            supabaseClient.from('scores').select('date, venue, scores_data, round_count')
         ]);
 
         if (rsvpError || scoreError) throw rsvpError || scoreError;
 
         const today = new Date();
         today.setHours(0, 0, 0, 0);
+        const yearPrefix = year.slice(-2);
 
-        const shinwonRounds = [];
+        // 상세 스코어 기록 관리(scores 테이블)에 등록된 라운드 및 실제 스코어 보유자 추출
+        const scoreRounds = [];
         scores.forEach(s => {
-            if (s.venue && s.venue.includes('신원') && s.date !== '261011') {
-                if (s.date && s.date.length === 6 && !isNaN(parseInt(s.date))) {
-                    const mm = parseInt(s.date.substring(2, 4), 10);
-                    const dd = parseInt(s.date.substring(4, 6), 10);
-                    shinwonRounds.push({ month: mm, day: dd });
-                }
+            if (s.round_count === 0) return;
+            if (s.date && s.date.length === 6 && s.date.startsWith(yearPrefix) && !isNaN(parseInt(s.date))) {
+                const mm = parseInt(s.date.substring(2, 4), 10);
+                const dd = parseInt(s.date.substring(4, 6), 10);
+                const isShinwon = s.venue && s.venue.includes('신원') && s.date !== '261011';
+                const data = s.scores_data || {};
+                const validPlayers = new Set();
+                Object.entries(data).forEach(([n, val]) => {
+                    const sVal = parseInt(val);
+                    if (!isNaN(sVal) && sVal > 0) {
+                        validPlayers.add(n.trim());
+                    }
+                });
+                scoreRounds.push({ month: mm, day: dd, isShinwon, validPlayers });
             }
         });
 
@@ -309,14 +319,14 @@ async function showAttendanceStats() {
             }
 
             const name = (r.name || '').trim();
-            if (!name) return;
+            if (!name || name === '골프회') return;
 
             // 동일 회원의 동일 라운드 중복 집계 방지 (스폰서 중복 레코드 등 배제)
             const visitKey = `${name}|${r.month.trim()}|${r.date.trim()}`;
             if (visitedRounds.has(visitKey)) return;
             visitedRounds.add(visitKey);
 
-            // RSVP의 월/일 파싱
+            // RSVP의 월/일 파싱 및 실제 스코어 존재 여부 검증
             const rMonthMatch = r.month.match(/(\d+)월/);
             const rDateMatch = r.date.match(/(\d+)\.(\d+)/);
             let isShinwon = false;
@@ -324,8 +334,14 @@ async function showAttendanceStats() {
             if (rMonthMatch && rDateMatch) {
                 const rM = parseInt(rMonthMatch[1], 10);
                 const rD = parseInt(rDateMatch[2], 10);
-                // 월이 일치하고 개최일 차이가 5일 이내인 경우 동일 라운드로 판단 (일정 변동 극복)
-                isShinwon = shinwonRounds.some(sr => sr.month === rM && Math.abs(sr.day - rD) <= 5);
+                // 상세 스코어 테이블에 해당 라운드가 등록되어 있는 경우, 스코어가 없으면 불참으로 간주하여 제외
+                const matchedScoreRound = scoreRounds.find(sr => sr.month === rM && Math.abs(sr.day - rD) <= 5);
+                if (matchedScoreRound) {
+                    if (!matchedScoreRound.validPlayers.has(name)) {
+                        return; // 스코어 기록이 없으므로 참석 카운트 제외
+                    }
+                    isShinwon = matchedScoreRound.isShinwon;
+                }
             }
 
             if (!counts[name]) {
@@ -342,7 +358,11 @@ async function showAttendanceStats() {
             if (b[1].shinwon !== a[1].shinwon) {
                 return b[1].shinwon - a[1].shinwon;
             }
-            // 2차: 한글 가나다순 오름차순
+            // 2차: 전체 행사 참석 횟수 내림차순
+            if (b[1].total !== a[1].total) {
+                return b[1].total - a[1].total;
+            }
+            // 3차: 한글 가나다순 오름차순
             return a[0].localeCompare(b[0], 'ko');
         });
 
