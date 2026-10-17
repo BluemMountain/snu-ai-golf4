@@ -2491,6 +2491,10 @@ async function renderAwardsHall(prefetchedData = null) {
             rounds[key].push(r);
         });
 
+        // 10월 정기 라운드(10.28) 및 11월 납회식(11.25) 시상 칸이 항상 표시되도록 초기화
+        if (!rounds["10월|10.28"]) rounds["10월|10.28"] = [];
+        if (!rounds["11월|11.25"]) rounds["11월|11.25"] = [];
+
         // 4. 라운드 날짜별 정렬 (최신 라운드가 맨 위로 오도록 내림차순 정렬)
         const sortedRoundKeys = Object.keys(rounds).sort((a, b) => {
             const parseK = (k) => {
@@ -2544,6 +2548,11 @@ async function renderAwardsHall(prefetchedData = null) {
 
         const getAwardDisplayPriority = (award) => {
             const a = (award || '').replace(/\s+/g, '');
+
+            // 0. 개근상 / 연간 우승 / 준우승
+            if (a.includes('개근')) return 0.1;
+            if (a === '우승') return 0.2;
+            if (a === '준우승') return 0.3;
             
             // 1. 메달리스트 (1위 / 2위 / 3위)
             if (a.includes('메달')) {
@@ -2587,7 +2596,8 @@ async function renderAwardsHall(prefetchedData = null) {
         const getRoundTitle = (month, date) => {
             const m = month.trim();
             const d = date.trim();
-            if (m === "5월") return "2026년 5월 원우회장 배 골프대회 수상";
+            if (m === "5월") return "2026년 5월 원우회장(현성호) 배 골프대회 수상";
+            if (m === "11월") return "2026년 11월 골프회장(김대욱) 배 골프대회 및 납회식 수상";
             if (m === "10월" && (d === "10.11" || d === "11")) {
                 return "2026년 10월 주말 라운드 수상";
             }
@@ -2604,6 +2614,16 @@ async function renderAwardsHall(prefetchedData = null) {
                 }
             }
             return `2026년 ${m} 정기 라운드 수상`;
+        };
+
+        // 예정된 라운드 기본 시상 항목 템플릿
+        const defaultAwardTemplates = {
+            "10월|10.28": [
+                "메달리스트", "신페리오 우승", "롱기스트", "니어리스트", "다버디", "다파", "다보기"
+            ],
+            "11월|11.25": [
+                "개근상", "우승", "준우승", "메달리스트", "신페리오 우승", "신페리오 준우승", "롱기스트", "니어리스트", "다버디", "다파", "다보기"
+            ]
         };
 
         container.innerHTML = '';
@@ -2641,7 +2661,18 @@ async function renderAwardsHall(prefetchedData = null) {
                 });
             });
 
-            listItems.sort((a, b) => getAwardDisplayPriority(a.award) - getAwardDisplayPriority(b.award));
+            // 수상 데이터가 아직 없는 예정 라운드는 기본 시상 항목을 빈칸으로 표시
+            if (listItems.length === 0 && defaultAwardTemplates[key]) {
+                defaultAwardTemplates[key].forEach(awardName => {
+                    listItems.push({
+                        name: '',
+                        award: `${awardName} :`,
+                        detail: ''
+                    });
+                });
+            } else {
+                listItems.sort((a, b) => getAwardDisplayPriority(a.award) - getAwardDisplayPriority(b.award));
+            }
 
             const card = document.createElement('div');
             card.className = 'honor-card fade-in-up';
