@@ -2303,7 +2303,7 @@ async function renderSponsorHall(prefetchedData = null) {
         }
 
         // 2. 직책 및 영문 표기 매핑 사전
-        const getSponsorTitle = (name, month) => {
+        const getSponsorTitle = (name) => {
             const trimmed = (name || '').trim();
             if (trimmed === '골프회' || trimmed === '원우회') return '';
             if (trimmed === '김대욱') return '회장님';
@@ -2313,7 +2313,7 @@ async function renderSponsorHall(prefetchedData = null) {
             if (trimmed === '정대규') return '대표님';
             if (trimmed === '현성호') return '원우회장님';
             if (trimmed === '조중규') return '사무총장님';
-            if (trimmed === '박청산') return (month === '10월' || month === '11월') ? '총무님' : '사무부총장님';
+            if (trimmed === '박청산') return '사무부총장님';
             if (trimmed === '남서우') return '총무이사님';
             if (trimmed === '이진우') return '총무이사님';
             if (trimmed === '정진우') return '총무이사님';
@@ -2334,7 +2334,7 @@ async function renderSponsorHall(prefetchedData = null) {
             
             const rawName = (r.name || '').trim();
             const displayName = displayNameMap[rawName] || rawName;
-            const title = getSponsorTitle(rawName, m);
+            const title = getSponsorTitle(rawName);
             const formattedItem = `${displayName}${title ? ' ' + title : ''} : ${r.sponsor}`;
             
             monthlySponsors[m].push({
