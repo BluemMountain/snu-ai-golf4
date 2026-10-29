@@ -2638,10 +2638,17 @@ async function renderAwardsHall(prefetchedData = null) {
             const roundTitle = getRoundTitle(month, date);
 
             const listItems = [];
+            const perfectAttendanceNames = [];
+
             roundRsvps.forEach(r => {
                 const awards = r.roundaward.split(',').map(a => a.trim());
                 awards.forEach(award => {
                     if (!award) return;
+
+                    if (award === '개근상') {
+                        perfectAttendanceNames.push(r.name.trim());
+                        return;
+                    }
 
                     const lookupKey = `${month}|${date}|${r.name.trim()}|${award}`;
                     let detailVal = '';
@@ -2661,18 +2668,38 @@ async function renderAwardsHall(prefetchedData = null) {
                 });
             });
 
-            // 수상 데이터가 아직 없는 예정 라운드는 기본 시상 항목을 빈칸으로 표시
-            if (listItems.length === 0 && defaultAwardTemplates[key]) {
-                defaultAwardTemplates[key].forEach(awardName => {
-                    listItems.push({
-                        name: '',
-                        award: `${awardName} :`,
-                        detail: ''
-                    });
+            if (perfectAttendanceNames.length > 0) {
+                const preferredOrder = ['현성호', '김대욱', '박철호', '박청산', '전은미'];
+                perfectAttendanceNames.sort((a, b) => {
+                    const idxA = preferredOrder.indexOf(a);
+                    const idxB = preferredOrder.indexOf(b);
+                    if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+                    if (idxA !== -1) return -1;
+                    if (idxB !== -1) return 1;
+                    return a.localeCompare(b, 'ko');
                 });
-            } else {
-                listItems.sort((a, b) => getAwardDisplayPriority(a.award) - getAwardDisplayPriority(b.award));
+                listItems.push({
+                    name: perfectAttendanceNames.join(', '),
+                    award: '개근상',
+                    detail: ''
+                });
             }
+
+            // 예정 라운드 템플릿 중 아직 수상자가 등록되지 않은 항목도 빈칸으로 함께 표시
+            if (defaultAwardTemplates[key]) {
+                const existingAwards = new Set(listItems.map(i => i.award.replace(/\s*:\s*$/, '').trim()));
+                defaultAwardTemplates[key].forEach(awardName => {
+                    if (!existingAwards.has(awardName)) {
+                        listItems.push({
+                            name: '',
+                            award: `${awardName} :`,
+                            detail: ''
+                        });
+                    }
+                });
+            }
+
+            listItems.sort((a, b) => getAwardDisplayPriority(a.award) - getAwardDisplayPriority(b.award));
 
             const card = document.createElement('div');
             card.className = 'honor-card fade-in-up';
@@ -2685,10 +2712,14 @@ async function renderAwardsHall(prefetchedData = null) {
 
             let listHtml = listItems.map(item => {
                 const detailText = item.detail ? ` <span style="font-size: 0.8rem; color: #999;">(${item.detail})</span>` : '';
+                const isWide = item.award === '개근상' && item.name.includes(',');
+                const rowStyle = isWide
+                    ? 'grid-column: 1 / -1; display: flex; justify-content: space-between; border-bottom: 1px dashed #f0f0f0; padding-bottom: 4px; gap: 10px;'
+                    : 'display: flex; justify-content: space-between; border-bottom: 1px dashed #f0f0f0; padding-bottom: 4px; gap: 10px; white-space: nowrap;';
                 return `
-                    <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed #f0f0f0; padding-bottom: 4px; gap: 10px; white-space: nowrap;">
-                        <span style="color: #666;">${item.award}</span>
-                        <span><strong style="color: #333;">${item.name}</strong>${detailText}</span>
+                    <div style="${rowStyle}">
+                        <span style="color: #666; flex-shrink: 0;">${item.award}</span>
+                        <span style="text-align: right;"><strong style="color: #333;">${item.name}</strong>${detailText}</span>
                     </div>
                 `;
             }).join('');
