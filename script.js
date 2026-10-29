@@ -1133,7 +1133,8 @@ async function renderPublicRSVPs() {
         list.style.gridTemplateColumns = 'repeat(auto-fill, minmax(280px, 1fr))';
         list.style.gap = '15px';
 
-        items.forEach((item, idx) => {
+        const cardItems = items.filter(i => i.status === 'attend' || i.status === 'absent');
+        cardItems.forEach((item, idx) => {
             const stats = getMemberStats(item.name);
             const card = document.createElement('div');
             card.className = 'public-rsvp-card';
