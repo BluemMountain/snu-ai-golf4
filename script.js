@@ -2309,7 +2309,7 @@ async function renderSponsorHall(prefetchedData = null) {
             if (trimmed === '김대욱') return '회장님';
             if (trimmed === '정민호') return '부회장님';
             if (trimmed === '박철호') return '부회장님';
-            if (trimmed === '전은미') return '총무님';
+            if (trimmed === '전은미' || trimmed === '심민선') return '총무님';
             if (trimmed === '정대규') return '대표님';
             if (trimmed === '현성호') return '원우회장님';
             if (trimmed === '조중규') return '사무총장님';
