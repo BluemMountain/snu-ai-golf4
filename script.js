@@ -1192,7 +1192,9 @@ async function renderPublicRSVPs() {
                 </h4>
     <div style="display: flex; flex-wrap: wrap; gap: 10px;">
         ${sponsors.sort((a, b) => {
-            const order = ['골프회', '원우회', '김대욱', '정민호', '박철호', '전은미', '현성호', '이문형', '이영규', '조중규', '남서우', '박청산'];
+            const order = key.startsWith('11월')
+                ? ['골프회', '원우회', '김대욱', '박철호', '정민호', '박청산', '정진우', '심민선', '이문형', '정대규', '전은미']
+                : ['골프회', '원우회', '김대욱', '정민호', '박철호', '전은미', '현성호', '이문형', '이영규', '조중규', '남서우', '박청산'];
             const idxA = order.indexOf(a.name);
             const idxB = order.indexOf(b.name);
             if (idxA > -1 && idxB > -1) return idxA - idxB;
@@ -2375,13 +2377,23 @@ async function renderSponsorHall(prefetchedData = null) {
                     list.push("4월 22일");
                     r22.forEach(i => list.push(i.text));
                 }
+            } else if (m === "11월") {
+                const novOrder = ['골프회', '원우회', '김대욱', '박철호', '정민호', '박청산', '정진우', '심민선', '이문형', '정대규', '전은미'];
+                items.sort((a, b) => {
+                    const getIdx = (txt) => {
+                        const idx = novOrder.findIndex(name => txt.startsWith(name));
+                        return idx === -1 ? 999 : idx;
+                    };
+                    return getIdx(a.text) - getIdx(b.text);
+                });
+                items.forEach(i => list.push(i.text));
             } else {
-                // 일반 월 (9월, 8월, 6월, 3월)
+                // 일반 월 (10월, 9월, 8월, 6월, 3월)
                 items.sort((a, b) => {
                     const getRank = (txt) => {
                         if (txt.startsWith('골프회') || txt.startsWith('원우회')) return 0;
-                        if (txt.includes('회장님')) return 1;
                         if (txt.includes('부회장님')) return 2;
+                        if (txt.includes('회장님')) return 1;
                         if (txt.includes('총무님')) return 3;
                         if (txt.includes('사무부총장님')) return 4;
                         if (txt.includes('대표님')) return 5;
