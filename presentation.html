@@ -13,10 +13,12 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Supabase JS -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
         :root {
-            --bg-dark: #09130d;
-            --card-bg: #122218;
+            --bg-dark: #07110b;
+            --card-bg: rgba(16, 32, 23, 0.85);
             --accent-gold: #f1c40f;
             --accent-amber: #d35400;
             --text-light: #f8fafc;
@@ -37,21 +39,38 @@
             height: 100vh;
             display: flex;
             flex-direction: column;
-            overflow: hidden; /* Absolutely no page scrollbars */
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Ambient Blurred Backdrop */
+        #ambient-backdrop {
+            position: fixed;
+            top: -10%;
+            left: -10%;
+            width: 120%;
+            height: 120%;
+            background-size: cover;
+            background-position: center;
+            filter: blur(55px) brightness(0.28) saturate(1.4);
+            z-index: 0;
+            transition: background-image 0.9s ease-in-out;
+            pointer-events: none;
         }
 
         /* Top Header Navigation */
         .header-nav {
-            background: rgba(9, 19, 13, 0.95);
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid rgba(241, 196, 15, 0.2);
+            background: rgba(7, 17, 11, 0.88);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(241, 196, 15, 0.22);
             padding: 10px 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            height: 54px;
+            height: 56px;
             flex-shrink: 0;
             z-index: 100;
+            position: relative;
         }
 
         .header-title {
@@ -61,22 +80,23 @@
             font-weight: bold;
             color: var(--accent-gold);
             font-size: 1.05rem;
+            text-shadow: 0 2px 8px rgba(241, 196, 15, 0.25);
         }
 
         .header-actions {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
         }
 
         .btn-nav {
             background: rgba(255, 255, 255, 0.08);
             color: #fff;
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.18);
             padding: 6px 12px;
             border-radius: 8px;
             text-decoration: none;
-            font-size: 0.85rem;
+            font-size: 0.84rem;
             cursor: pointer;
             transition: all 0.2s;
             display: inline-flex;
@@ -84,8 +104,8 @@
             gap: 6px;
         }
 
-        .btn-nav:hover {
-            background: rgba(255, 255, 255, 0.2);
+        .btn-nav:hover, .btn-nav.active {
+            background: rgba(241, 196, 15, 0.2);
             border-color: var(--accent-gold);
             color: var(--accent-gold);
         }
@@ -101,11 +121,30 @@
         .btn-pptx:hover {
             background: linear-gradient(135deg, #e67e22, #f39c12);
             color: #fff;
+            transform: translateY(-1px);
+        }
+
+        /* Autoplay Progress Bar */
+        .progress-container {
+            width: 100%;
+            height: 3px;
+            background: rgba(255, 255, 255, 0.06);
+            z-index: 100;
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        #autoplay-progress {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #d35400, #f1c40f);
+            transition: width 0.1s linear;
         }
 
         /* Timeline Navigation Bar */
         .timeline-bar {
-            background: rgba(0, 0, 0, 0.5);
+            background: rgba(0, 0, 0, 0.55);
+            backdrop-filter: blur(8px);
             padding: 8px 16px;
             display: flex;
             gap: 8px;
@@ -113,13 +152,15 @@
             border-bottom: 1px solid rgba(255, 255, 255, 0.08);
             flex-shrink: 0;
             scrollbar-width: thin;
+            z-index: 95;
+            position: relative;
         }
 
         .timeline-item {
             flex-shrink: 0;
-            padding: 5px 12px;
-            border-radius: 16px;
-            background: rgba(255, 255, 255, 0.05);
+            padding: 5px 13px;
+            border-radius: 18px;
+            background: rgba(255, 255, 255, 0.06);
             color: var(--text-muted);
             font-size: 0.8rem;
             cursor: pointer;
@@ -129,36 +170,39 @@
         }
 
         .timeline-item:hover, .timeline-item.active {
-            background: rgba(241, 196, 15, 0.15);
+            background: rgba(241, 196, 15, 0.18);
             color: var(--accent-gold);
-            border-color: rgba(241, 196, 15, 0.5);
+            border-color: rgba(241, 196, 15, 0.55);
             font-weight: bold;
+            box-shadow: 0 2px 10px rgba(241, 196, 15, 0.15);
         }
 
-        /* Main Presentation Canvas (Zero Scrollbars) */
+        /* Main Presentation Canvas */
         .slides-wrapper {
             flex: 1;
             display: flex;
             justify-content: center;
             align-items: center;
-            padding: 12px;
+            padding: 12px 18px;
             position: relative;
             overflow: hidden;
+            z-index: 10;
         }
 
         .slide-card {
             width: 100%;
             height: 100%;
-            max-width: 1280px;
+            max-width: 1320px;
             background: var(--card-bg);
-            border-radius: 14px;
-            border: 1px solid rgba(241, 196, 15, 0.18);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
-            padding: 16px 20px;
+            backdrop-filter: blur(16px);
+            border-radius: 16px;
+            border: 1px solid rgba(241, 196, 15, 0.22);
+            box-shadow: 0 16px 48px rgba(0, 0, 0, 0.75);
+            padding: 16px 22px;
             display: none;
             flex-direction: column;
             gap: 10px;
-            overflow: hidden; /* Guaranteed no card scrollbar */
+            overflow: hidden;
         }
 
         .slide-card.active {
@@ -170,7 +214,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.12);
             padding-bottom: 8px;
             flex-shrink: 0;
         }
@@ -179,14 +223,14 @@
             display: flex;
             align-items: center;
             gap: 10px;
-            font-size: 0.95rem;
+            font-size: 0.92rem;
             color: var(--accent-gold);
             font-weight: 500;
         }
 
         .slide-title {
             font-family: 'Noto Serif KR', serif;
-            font-size: 1.35rem;
+            font-size: 1.38rem;
             font-weight: 700;
             color: #ffffff;
             margin-top: 2px;
@@ -195,20 +239,26 @@
             text-overflow: ellipsis;
         }
 
+        .slide-header-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
         .slide-count-badge {
-            font-size: 0.82rem;
+            font-size: 0.84rem;
             color: var(--accent-gold);
-            background: rgba(241, 196, 15, 0.1);
-            border: 1px solid rgba(241, 196, 15, 0.3);
-            padding: 4px 12px;
-            border-radius: 12px;
+            background: rgba(241, 196, 15, 0.12);
+            border: 1px solid rgba(241, 196, 15, 0.35);
+            padding: 5px 13px;
+            border-radius: 14px;
             font-weight: bold;
             display: flex;
             align-items: center;
             gap: 6px;
         }
 
-        /* Photo Stage Display (Single Photo Focused) */
+        /* Photo Stage Display */
         .photo-stage-container {
             flex: 1;
             display: flex;
@@ -228,20 +278,21 @@
             justify-content: center;
             position: relative;
             overflow: hidden;
+            padding: 4px;
         }
 
         .main-photo-wrapper img {
             max-width: 100%;
             max-height: 100%;
-            object-fit: contain; /* Preserves natural aspect ratio & focus without cropping or scrollbars */
+            object-fit: contain;
             border-radius: 10px;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.7);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
             cursor: zoom-in;
-            transition: transform 0.2s ease-out;
+            transition: opacity 0.35s ease, transform 5s ease-out;
         }
 
-        .main-photo-wrapper img:hover {
-            transform: scale(1.01);
+        .main-photo-wrapper img.ken-burns {
+            transform: scale(1.035);
         }
 
         /* Photo Sub-Navigation Overlay Arrows */
@@ -249,17 +300,17 @@
             position: absolute;
             top: 50%;
             transform: translateY(-50%);
-            background: rgba(0, 0, 0, 0.6);
+            background: rgba(0, 0, 0, 0.65);
             color: #fff;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            width: 44px;
-            height: 44px;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            width: 46px;
+            height: 46px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            font-size: 1.1rem;
+            font-size: 1.15rem;
             transition: all 0.2s;
             z-index: 10;
         }
@@ -268,10 +319,61 @@
             background: var(--accent-gold);
             color: #000;
             border-color: var(--accent-gold);
+            transform: translateY(-50%) scale(1.08);
         }
 
-        .photo-sub-btn.left { left: 12px; }
-        .photo-sub-btn.right { right: 12px; }
+        .photo-sub-btn.left { left: 14px; }
+        .photo-sub-btn.right { right: 14px; }
+
+        /* Grid Drawer Overlay for All Photos in Event */
+        .grid-drawer {
+            display: none;
+            position: absolute;
+            inset: 0;
+            background: rgba(10, 22, 15, 0.96);
+            z-index: 30;
+            padding: 16px;
+            overflow-y: auto;
+            border-radius: 10px;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 10px;
+            align-content: start;
+        }
+
+        .grid-drawer.open {
+            display: grid;
+        }
+
+        .grid-drawer-item {
+            aspect-ratio: 4/3;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 2px solid transparent;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .grid-drawer-item.active, .grid-drawer-item:hover {
+            border-color: var(--accent-gold);
+            transform: scale(1.03);
+        }
+
+        .grid-drawer-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .grid-drawer-num {
+            position: absolute;
+            bottom: 4px;
+            right: 6px;
+            background: rgba(0,0,0,0.7);
+            color: #fff;
+            font-size: 0.72rem;
+            padding: 1px 6px;
+            border-radius: 6px;
+        }
 
         /* Thumbnails Strip */
         .thumbnail-strip {
@@ -280,18 +382,18 @@
             padding-top: 8px;
             overflow-x: auto;
             width: 100%;
-            justify-content: center;
+            justify-content: flex-start;
             flex-shrink: 0;
-            max-height: 70px;
-            scrollbar-width: none;
+            max-height: 64px;
+            scrollbar-width: thin;
         }
 
         .thumb-item {
-            width: 65px;
-            height: 50px;
+            width: 66px;
+            height: 48px;
             border-radius: 6px;
             overflow: hidden;
-            opacity: 0.5;
+            opacity: 0.45;
             cursor: pointer;
             border: 2px solid transparent;
             transition: all 0.2s;
@@ -301,7 +403,7 @@
         .thumb-item.active, .thumb-item:hover {
             opacity: 1;
             border-color: var(--accent-gold);
-            transform: scale(1.05);
+            transform: scale(1.06);
         }
 
         .thumb-item img {
@@ -312,35 +414,37 @@
 
         /* Bottom Controls Bar */
         .controls-bar {
-            background: rgba(9, 19, 13, 0.95);
+            background: rgba(7, 17, 11, 0.92);
+            backdrop-filter: blur(10px);
             border-top: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 10px 20px;
+            padding: 8px 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            height: 56px;
+            height: 54px;
             flex-shrink: 0;
-            z-index: 90;
+            z-index: 95;
+            position: relative;
         }
 
         .controls-center {
             display: flex;
             align-items: center;
-            gap: 16px;
+            gap: 12px;
         }
 
         .ctrl-btn {
             background: rgba(255, 255, 255, 0.1);
             color: #fff;
             border: 1px solid rgba(255, 255, 255, 0.2);
-            width: 40px;
-            height: 40px;
+            width: 38px;
+            height: 38px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            font-size: 1.05rem;
+            font-size: 1rem;
             transition: all 0.2s;
         }
 
@@ -351,11 +455,26 @@
         }
 
         .slide-indicator {
-            font-size: 0.92rem;
+            font-size: 0.9rem;
             color: var(--accent-gold);
             font-weight: bold;
-            min-width: 90px;
+            min-width: 95px;
             text-align: center;
+        }
+
+        .speed-select {
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--text-light);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            padding: 4px 8px;
+            font-size: 0.8rem;
+            cursor: pointer;
+        }
+
+        .speed-select option {
+            background: #122218;
+            color: #fff;
         }
 
         /* Lightbox Modal */
@@ -366,18 +485,18 @@
             left: 0;
             width: 100vw;
             height: 100vh;
-            background: rgba(0, 0, 0, 0.94);
+            background: rgba(0, 0, 0, 0.95);
             z-index: 1000;
             justify-content: center;
             align-items: center;
         }
 
         .lightbox-modal img {
-            max-width: 94vw;
-            max-height: 90vh;
+            max-width: 95vw;
+            max-height: 92vh;
             object-fit: contain;
             border-radius: 8px;
-            box-shadow: 0 0 35px rgba(0, 0, 0, 0.9);
+            box-shadow: 0 0 40px rgba(0, 0, 0, 0.9);
         }
 
         .lightbox-close {
@@ -392,6 +511,9 @@
 </head>
 
 <body>
+    <!-- Ambient Blurred Backdrop -->
+    <div id="ambient-backdrop"></div>
+
     <!-- Top Navigation -->
     <header class="header-nav">
         <div class="header-title">
@@ -399,17 +521,28 @@
             <span>SNU AI GOLF | 11월 납회식 추억 슬라이드</span>
         </div>
         <div class="header-actions">
+            <button class="btn-nav" onclick="fireConfetti()" title="축하 팡파레 효과">
+                🎉 축하 효과
+            </button>
+            <button class="btn-nav" id="grid-toggle-btn" onclick="toggleGridDrawer()" title="현재 행사 사진 모아보기">
+                <i class="fas fa-th"></i> 모아보기
+            </button>
             <a href="2026_SNU_AI_GOLF_Memories.pptx" download class="btn-nav btn-pptx">
                 <i class="fas fa-file-powerpoint"></i> PPTX 다운로드
             </a>
             <a href="gallery.html" class="btn-nav">
-                <i class="fas fa-images"></i> 갤러리로 이동
+                <i class="fas fa-images"></i> 갤러리
             </a>
             <a href="index.html" class="btn-nav">
                 <i class="fas fa-home"></i> 홈
             </a>
         </div>
     </header>
+
+    <!-- Autoplay Progress Bar -->
+    <div class="progress-container">
+        <div id="autoplay-progress"></div>
+    </div>
 
     <!-- Timeline Navigation Bar -->
     <nav id="timeline-bar" class="timeline-bar"></nav>
@@ -423,19 +556,26 @@
 
     <!-- Bottom Controls -->
     <footer class="controls-bar">
-        <div style="font-size: 0.82rem; color: var(--text-muted);">
-            ⌨️ 방향키(←/→) 또는 스페이스바로 사진 넘기기
+        <div style="font-size: 0.8rem; color: var(--text-muted); display: flex; align-items: center; gap: 10px;">
+            <span>⌨️ 방향키(←/→) · 스페이스바</span>
+            <select id="speed-select" class="speed-select" onchange="changeSpeed(this.value)" title="자동 재생 간격">
+                <option value="2500">⚡ 빠름 (2.5초)</option>
+                <option value="4000" selected>🎬 보통 (4초)</option>
+                <option value="6000">☕ 여유 (6초)</option>
+            </select>
         </div>
 
         <div class="controls-center">
-            <button class="ctrl-btn" onclick="prevStep()" title="이전 사진/행사"><i class="fas fa-chevron-left"></i></button>
+            <button class="ctrl-btn" onclick="prevEvent()" title="이전 행사"><i class="fas fa-step-backward"></i></button>
+            <button class="ctrl-btn" onclick="prevStep()" title="이전 사진"><i class="fas fa-chevron-left"></i></button>
             <button class="ctrl-btn" id="play-btn" onclick="toggleAutoPlay()" title="자동 슬라이드쇼"><i class="fas fa-play"></i></button>
-            <span id="slide-indicator" class="slide-indicator">1 / 12</span>
-            <button class="ctrl-btn" onclick="nextStep()" title="다음 사진/행사"><i class="fas fa-chevron-right"></i></button>
+            <span id="slide-indicator" class="slide-indicator">1 / 14</span>
+            <button class="ctrl-btn" onclick="nextStep()" title="다음 사진"><i class="fas fa-chevron-right"></i></button>
+            <button class="ctrl-btn" onclick="nextEvent()" title="다음 행사"><i class="fas fa-step-forward"></i></button>
         </div>
 
         <div>
-            <button class="btn-nav" onclick="toggleFullScreen()" title="전체 화면">
+            <button class="btn-nav" onclick="toggleFullScreen()" title="전체 화면 (F)">
                 <i class="fas fa-expand"></i> 전체 화면
             </button>
         </div>
@@ -448,149 +588,437 @@
     </div>
 
     <script>
-        // Embedded Fallback Data for 100% Instant 0ms Rendering
+        // Embedded Complete Data for 100% Instant 0ms Rendering (Includes all 284 photos across 14 events)
         const EMBEDDED_LOGS = [
-          {
-            "id": "c77f1e6e-8a51-4288-b7d5-9b3f454b36d2",
-            "date": "2025.12.17",
-            "location": "여의도 증권사 사무실",
-            "quote": "26년을 위한 골프회 임원 회의.",
-            "image_urls": ["https://res.cloudinary.com/dbbz6xmot/image/upload/v1776935543/tbg5cfoi6dhcooovfukl.jpg"]
-          },
-          {
-            "id": "568c4a1f-b54f-4a8c-876d-97a26b0a6704",
-            "date": "2026.02.05",
-            "location": "cruise",
-            "quote": "cruise",
-            "image_urls": ["https://res.cloudinary.com/dbbz6xmot/image/upload/v1771325272/g6acksnhinb8bukwnyqp.jpg"]
-          },
-          {
-            "id": "1e0ec71e-20ac-46bf-8ab1-c06128028204",
-            "date": "2026.02.06",
-            "location": "소노펠리체CC in 하이퐁",
-            "quote": "테스트",
-            "image_urls": ["https://res.cloudinary.com/dbbz6xmot/image/upload/v1771424549/olh9klsof7jwaluvucpr.jpg"]
-          },
-          {
-            "id": "af558d36-bbea-4d77-8bac-67af95247ecd",
-            "date": "2026.02.07",
-            "location": "소노펠리체CC in 하이퐁",
-            "quote": "베트남 하이퐁 워크샾",
-            "image_urls": [
-              "https://res.cloudinary.com/dbbz6xmot/image/upload/v1771327731/fnwccmp6nr4tykdpbzow.jpg",
-              "https://res.cloudinary.com/dbbz6xmot/image/upload/v1771327733/g3jt52bhkypzqailh31v.jpg",
-              "https://res.cloudinary.com/dbbz6xmot/image/upload/v1771327735/smpniv7bvnn1etsklkmv.jpg",
-              "https://res.cloudinary.com/dbbz6xmot/image/upload/v1771327738/jf1zs4puaz1uavqpkdrj.jpg",
-              "https://res.cloudinary.com/dbbz6xmot/image/upload/v1771327739/zxyky013cmodh5jm6oht.jpg",
-              "https://res.cloudinary.com/dbbz6xmot/image/upload/v1771327741/rdolvfefxqqhybiht86s.jpg",
-              "https://res.cloudinary.com/dbbz6xmot/image/upload/v1771327742/q4qkfjchwizmakqwlzbx.jpg",
-              "https://res.cloudinary.com/dbbz6xmot/image/upload/v1771327745/rhzzu1qd7zh9gtdrh7xm.jpg",
-              "https://res.cloudinary.com/dbbz6xmot/image/upload/v1771327748/e1venybheziv6ehfum0p.jpg",
-              "https://res.cloudinary.com/dbbz6xmot/image/upload/v1771327750/fqlpveqiqlnlv89nrpt3.jpg",
-              "https://res.cloudinary.com/dbbz6xmot/image/upload/v1771327753/cnlcrqm3vsr0whx7yztu.jpg",
-              "https://res.cloudinary.com/dbbz6xmot/image/upload/v1771327757/sqle4qmtprwixavlux89.jpg",
-              "https://res.cloudinary.com/dbbz6xmot/image/upload/v1771327760/wywfvv8ydcz1kcgpossh.jpg",
-              "https://res.cloudinary.com/dbbz6xmot/image/upload/v1771327764/nmfvuovzpnf0wmgbdd6o.jpg",
-              "https://res.cloudinary.com/dbbz6xmot/image/upload/v1771327766/uiy3q18kk0lky863qnsr.jpg",
-              "https://res.cloudinary.com/dbbz6xmot/image/upload/v1771327767/u6gn0i8srxx2kq1nemxi.jpg"
-            ]
-          },
-          {
-            "id": "8963bc05-ea1f-4082-87b5-5d04574f9a6d",
-            "date": "2026.03.24",
-            "location": "신원CC",
-            "quote": "3월 월례회",
-            "image_urls": [
-              "https://res.cloudinary.com/dbbz6xmot/image/upload/v1774537292/dxnm1ft6hbcj7ffbpal3.jpg",
-              "https://res.cloudinary.com/dbbz6xmot/image/upload/v1774537294/iir6mbdxhupjtcrs5biu.jpg",
-              "https://res.cloudinary.com/dbbz6xmot/image/upload/v1774537296/ddgbcrss8xy71urkcglq.jpg",
-              "https://res.cloudinary.com/dbbz6xmot/image/upload/v1774537297/vfrseoicnztdocxi5btr.jpg",
-              "https://res.cloudinary.com/dbbz6xmot/image/upload/v1774537300/iudgo25shgnhqqifq8h8.jpg"
-            ]
-          },
-          {
-            "id": "de5e5e60-eaf9-46d3-89d4-39de4a244c94",
-            "date": "2026.04.03",
-            "location": "아시아나cc",
-            "quote": "회장단 라운드 for 5/27 원우회장 배 골프대회 준비 ",
-            "image_urls": [
-              "https://res.cloudinary.com/dbbz6xmot/image/upload/v1775266462/imnleoiv4dd086p71xvm.jpg",
-              "https://res.cloudinary.com/dbbz6xmot/image/upload/v1775266464/eyzpt3s6syrb6tqu9pxq.jpg"
-            ]
-          },
-          {
-            "id": "8e83bf18-54ca-4d6e-8fad-e906c2cf522d",
-            "date": "2026.04.22",
-            "location": "신원CC",
-            "quote": "4월 월례회",
-            "image_urls": [
-              "https://res.cloudinary.com/dbbz6xmot/image/upload/v1776913490/tuphdyt8px6syflnvmgz.jpg",
-              "https://res.cloudinary.com/dbbz6xmot/image/upload/v1776935051/uxthu3dalj6zodpi2mft.jpg"
-            ]
-          },
-          {
-            "id": "cc2a1dfd-015f-4df3-8510-3b5bfc4586b7",
-            "date": "2026.05.27",
-            "location": "신원CC",
-            "quote": "5월 월례회. 웜우회장 배 골대회",
-            "image_urls": [
-              "https://res.cloudinary.com/dbbz6xmot/image/upload/v1780584632/jsolxx1zhnan4nwvnthz.jpg",
-              "https://res.cloudinary.com/dbbz6xmot/image/upload/v1780584633/p9qr3mikverz6mcdf3ed.jpg"
-            ]
-          },
-          {
-            "id": "16be369f-2389-47c6-be08-ed9e00d1e6c8",
-            "date": "2026.06.24",
-            "location": "신원CC",
-            "quote": "6월 월례회",
-            "image_urls": [
-              "https://res.cloudinary.com/dbbz6xmot/image/upload/v1782310177/qunbax6vfz3kbezvartm.jpg",
-              "https://res.cloudinary.com/dbbz6xmot/image/upload/v1782310179/gxntx4kfw0bxagbc2ryw.jpg"
-            ]
-          },
-          {
-            "id": "b8ea4d4e-d777-4ef1-9f25-94dd187be584",
-            "date": "2026.07.10",
-            "location": "스마트KU",
-            "quote": "T&T",
-            "image_urls": [
-              "https://res.cloudinary.com/dbbz6xmot/image/upload/v1787569069/ffot2da3yrod4bowgyak.jpg",
-              "https://res.cloudinary.com/dbbz6xmot/image/upload/v1787569071/wcnzdk9244vnskd1giyl.jpg"
-            ]
-          },
-          {
-            "id": "c39e633b-41bb-4589-a045-74ac81b984ec",
-            "date": "2026.07.22",
-            "location": "베어크리크 크리크 코스",
-            "quote": "7월 벙개 라운딩",
-            "image_urls": [
-              "https://res.cloudinary.com/dbbz6xmot/image/upload/v1787568673/pmpt8byntghuhhfe9n9n.jpg",
-              "https://res.cloudinary.com/dbbz6xmot/image/upload/v1787568677/sjmlvxo6ydiaqslflarf.jpg"
-            ]
-          },
-          {
-            "id": "df67fec3-b6f2-4616-aeb1-c0cb4274df88",
-            "date": "2026.09.30",
-            "location": "신원CC",
-            "quote": "9월 월례회 ",
-            "image_urls": [
-              "https://res.cloudinary.com/dbbz6xmot/image/upload/v1790895651/hm4tkvwtq3giqqyerolf.jpg",
-              "https://res.cloudinary.com/dbbz6xmot/image/upload/v1790895652/cmqngwheskock5aqqmrz.jpg"
-            ]
-          }
-        ];
+  {
+    "id": "c77f1e6e-8a51-4288-b7d5-9b3f454b36d2",
+    "date": "2025.12.17",
+    "location": "여의도 증권사 사무실",
+    "quote": "26년을 위한 골프회 임원 회의.",
+    "image_urls": [
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1776935543/tbg5cfoi6dhcooovfukl.jpg"
+    ]
+  },
+  {
+    "id": "568c4a1f-b54f-4a8c-876d-97a26b0a6704",
+    "date": "20260205",
+    "location": "cruise",
+    "quote": "cruise",
+    "image_urls": [
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1771325272/g6acksnhinb8bukwnyqp.jpg"
+    ]
+  },
+  {
+    "id": "1e0ec71e-20ac-46bf-8ab1-c06128028204",
+    "date": "2026.02.06",
+    "location": "소노펠리체CC in 하이퐁",
+    "quote": "테스트",
+    "image_urls": [
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1771424549/olh9klsof7jwaluvucpr.jpg"
+    ]
+  },
+  {
+    "id": "af558d36-bbea-4d77-8bac-67af95247ecd",
+    "date": "2026.02.07",
+    "location": "소노펠리체CC in 하이퐁",
+    "quote": "베트남 하이퐁 워크샾",
+    "image_urls": [
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1771327731/fnwccmp6nr4tykdpbzow.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1771327733/g3jt52bhkypzqailh31v.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1771327735/smpniv7bvnn1etsklkmv.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1771327738/jf1zs4puaz1uavqpkdrj.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1771327739/zxyky013cmodh5jm6oht.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1771327741/rdolvfefxqqhybiht86s.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1771327742/q4qkfjchwizmakqwlzbx.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1771327745/rhzzu1qd7zh9gtdrh7xm.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1771327748/e1venybheziv6ehfum0p.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1771327750/fqlpveqiqlnlv89nrpt3.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1771327753/cnlcrqm3vsr0whx7yztu.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1771327757/sqle4qmtprwixavlux89.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1771327760/wywfvv8ydcz1kcgpossh.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1771327764/nmfvuovzpnf0wmgbdd6o.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1771327766/uiy3q18kk0lky863qnsr.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1771327767/u6gn0i8srxx2kq1nemxi.jpg"
+    ]
+  },
+  {
+    "id": "8963bc05-ea1f-4082-87b5-5d04574f9a6d",
+    "date": "2026.03.24",
+    "location": "신원CC",
+    "quote": "3월 월례회",
+    "image_urls": [
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1774537292/dxnm1ft6hbcj7ffbpal3.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1774537294/iir6mbdxhupjtcrs5biu.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1774537296/ddgbcrss8xy71urkcglq.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1774537297/vfrseoicnztdocxi5btr.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1774537300/iudgo25shgnhqqifq8h8.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1774537304/snc3m4pjgurwgbzmu6ms.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1774537306/fdqllmgure3vtylvuywl.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1774537310/ll2ehmnmqkwyhy40um94.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1774537316/pa6juyf8urylly48i2ay.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1774537317/ztckswn0rtqieqfhuhig.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1774537319/lbdlovpobgyd9bqyupcx.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1774537320/qdajudlbyfech968fyn2.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1774537322/qdr84nowo8gmeevhmrzo.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1774537327/rwjpps3fh8lbg7olzooa.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1774537333/hze2eymxvcrgzmxga3kn.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1774537335/kxcuwxxuorwy3aexn1pj.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1774537337/cn7ozkatqrfcxiasgohz.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1774537338/fpxp53oouumorjw0o7q9.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1774537341/fiknsxjfxlstl7sga9ww.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1774537346/vtt4xfy1uogxjupzovsk.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1774537351/zs1wjp3ywduqnrdufbhs.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1774537355/qhz4oawlfjvrlppsybq0.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1774537356/oy6wxtihndtulig9l0a6.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1774537359/yooknzoqty4fhikqechf.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1774537362/ivplochdyd4vabbavzuz.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1774537363/geoqi9oqdysk4xtg4rng.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1774537365/ko5n4g2zb8hy7ofp83wr.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1774537366/mgk7g054wz53kxcoezcn.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1774537367/c8vkkyl32tjnmb4qeaqo.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1774537369/oesk113c3jrrmztcxof3.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1774537370/uvgnxujmasijk5bcrdxq.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1774537372/nqozskxmc9wwal6zladu.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1774537374/zamvbv6ioqpnqumjdi9k.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1774537375/hgnxnataojzgt67bm7e3.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1774537378/iyfhmjwlxeisdnpl3rbz.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1774537382/x5xz4zuxqfjsgi2xtqu0.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1774537387/vw3anmft7tgcamlg8tlz.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1774537393/u08mjeblfcjnuybiigvb.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1774537398/mj6gvitrs7dlsjtq6slz.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1774537401/cylur63pblnzfhoko39o.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1774537403/cuiyg73sncs6v65br2cp.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1774537408/lxe074urc8efxb4lhngs.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1774537411/zg8ionh19br9qqpnzqky.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1774537414/dhym2qezqxxfjzxik0dm.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1774537416/u2bzkco2fxdq1ga2m0rj.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1774537419/omq9uqoxxgm8x9emqkzk.jpg"
+    ]
+  },
+  {
+    "id": "de5e5e60-eaf9-46d3-89d4-39de4a244c94",
+    "date": "2026.04.03",
+    "location": "아시아나cc",
+    "quote": "회장단 라운드 for 5/27 원우회장 배 골프대회 준비 ",
+    "image_urls": [
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1775266462/imnleoiv4dd086p71xvm.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1775266464/yqydc1e20u1vqwpdqrwr.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1775266465/wxhsxrb6yfknbh8t2nez.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1775266466/zancenvmtk6efb7mrf6h.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1775266468/ixsuhgs7ov3t0ak2mxgw.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1775266469/r3m2ezlppqp22v8z5yrf.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1775266470/ypys3gkrk6plajtlbria.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1775266471/fwbj2venyljisbbvubgc.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1775266473/cybmwydrxsxl6cxt7vqi.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1775266474/vqm4fvrplxgwtfw5rzt5.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1775266476/jfoifilquwrnyxxmsosn.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1775266479/w2koevsarikycjaorgyr.jpg"
+    ]
+  },
+  {
+    "id": "8e83bf18-54ca-4d6e-8fad-e906c2cf522d",
+    "date": "2026.04.22",
+    "location": "신원CC",
+    "quote": "4월 월례회",
+    "image_urls": [
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1776913490/tuphdyt8px6syflnvmgz.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1776913494/v83pao5fkvg5sfaqg3ec.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1776934872/lrfql2d7ewwxhnmzzfzj.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1776934875/dbwsfmgj4gmtlfqguaa1.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1776934878/hzes9jqbupna0lmfx6cr.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1776934880/imjgbzlpbjmftrlnxrf2.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1776934882/xehkpvdxsqdrloorumhz.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1776934884/f3s1go09vdhlqz2q09gp.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1776934887/pqhxjerbkroppeg8ybml.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1776934889/cwlifg5lbytlhwjxiu5r.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1776934891/i7bsyohglzzrf62itzef.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1776934894/n7kfx09ajm2venbqvzjb.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1776934896/kscjowkgzyedp77nzqdy.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1776934899/ay2jsdzl7wgajrpn5een.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1776934901/o658mq87rerqxb21ibup.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1776934904/p3dymepassjnh1v5mgtq.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1776934907/hynqwilu1itbppxv57dv.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1776934911/wg7y3tn5ez6s2p0miwlg.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1776934914/wqnz0qob3wnnigcq0fbe.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1776934916/mzypvu6ovns9gy6ec9ao.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1776934919/kvnbyvf3lzccb7apr6jb.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1776934922/d4ag4us8ydhbaz2fhyg5.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1776934925/zhpt8scjh53wvsdwfc2r.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1776934929/juael8wx2p7wjlbqt8er.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1776934932/x1pruegdccjki69hnpv5.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1776934935/zgtszlajoyczk2clbr3l.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1776934938/vh5zja2fxapefsymvfhn.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1776934942/byxqjysdqzz9auv1iczb.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1776934945/uxgsbz5onguzr0smokds.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1776934949/ih3jkws86zdk7xz1glds.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1776934952/oa1aavqkcfred3da8tw6.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1776934955/h62xjqp6icifwfw8avti.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1776934958/ip73j2rvykixwkykeku6.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1776934963/fvwhv57tehirn6zwuyrc.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1776934968/colk49gxqe2b3ezak38n.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1776934972/llg3e6yo8lvrlnwa9b1l.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1776934976/ieuujcuvet9fky1eijip.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1776934979/ceipkshbd9k5hvota12y.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1776934984/o2dhpqer93kajvfjdc2w.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1776934988/tasgz4cvf0zmrg02usrg.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1776934991/nizwzb7r44mymnqlrffg.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1776934994/n03siw1gm8nnffge7plh.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1776934998/sn4a2rsmothj6lb070kk.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1776935001/w8xoq2sps5shkcuig5sv.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1776935004/kutz7zkyphwemay5ema4.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1776935006/jgznllakzrd9kbhusstk.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1776935010/bnunxazizzse3t88grzj.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1776935014/lsf8ovzdvmu4wpqjceks.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1776935018/kalowpnzg3yubvjnlns7.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1776935022/qrqkiixsb6e38ftohdx4.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1776935025/crfm81p3newxq4b5ufiu.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1776935029/zkeybcsuguptkzta1wjq.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1776935033/le47hwidsf0noerx8dvc.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1776935036/p2yjnaq5hiztfg7cnewu.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1776935038/gkdbqe9q7pw21yezrgxk.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1776935041/ilwrmdeitn5yjdjtkf7n.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1776935044/vgpl5lmrowmowehljxz7.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1776935048/w2rva6t3ki2l9dpqty7s.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1776935051/uxthu3dalj6zodpi2mft.jpg"
+    ]
+  },
+  {
+    "id": "cc2a1dfd-015f-4df3-8510-3b5bfc4586b7",
+    "date": "2026.05.27",
+    "location": "신원CC",
+    "quote": "5월 월례회. 웜우회장 배 골대회",
+    "image_urls": [
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1780584632/jsolxx1zhnan4nwvnthz.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1780584633/p9qr3mikverz6mcdf3ed.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1780584634/d91euyoyejc2lmx3rmmf.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1780584637/alksvjcyb5k5u4yirgzq.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1780584638/jzbavj8733y8ecg0wczc.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1780584641/idvtii1iqguno6tzgycz.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1780584646/rmuryhqeo9hfhxzmqgcm.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1780584670/li0csx6brisylfuhtcda.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1780584681/zve4rzegx9lpaj7opakl.jpg"
+    ]
+  },
+  {
+    "id": "16be369f-2389-47c6-be08-ed9e00d1e6c8",
+    "date": "2026.6.24",
+    "location": "신원CC",
+    "quote": "6월 월례회",
+    "image_urls": [
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1782310177/qunbax6vfz3kbezvartm.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1782310179/gxntx4kfw0bxagbc2ryw.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1782310180/heik39vytyvhdqe5ueke.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1782310182/vmlrp3qwkd7hhgrliru1.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1782310184/uglcxn08f9c7igezbec8.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1782310188/iweppxlajyrgpusewsjl.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1782310189/jwezjwkpllqbkre4c0vt.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1782310191/v3jxn9k0lef5eb123srb.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1782310193/cvp6zxl4qqni5pzteqoc.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1782310194/mfuzpdnfyqykyq5ps3d0.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1782310196/trdul9abmmzhssm4m3cu.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1782310197/gwnqs1ufoc3lidsop41p.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1782310198/kjku9id0nmctummwmftw.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1782310200/rj0u0cuskxohyhzmurh8.jpg"
+    ]
+  },
+  {
+    "id": "b8ea4d4e-d777-4ef1-9f25-94dd187be584",
+    "date": "2026.07.10",
+    "location": "스마트KU",
+    "quote": "T&T",
+    "image_urls": [
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1787569069/ffot2da3yrod4bowgyak.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1787569071/wcnzdk9244vnskd1giyl.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1787569072/pdbglemv1160uq8mgve3.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1787569073/wkyup13pajoy0gi4cbac.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1787569075/rkf27dpybu7izdzktgvz.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1787569076/x1xhwqes8dgf15k2azce.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1787569078/lb4gvkrnrk0x9e7chzh8.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1787569079/yh9h9fmaxvsrjn5cdhsx.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1787569081/z5t4c3a0cyvhspg2aivq.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1787569082/lkbihdbosmksprczq8dm.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1787569084/qmvddoc0m7l78gbc1fqw.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1787569086/thlbdfve5sit0cxw5kkm.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1787569087/ntf7seadhye6t0bnsahx.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1787569088/f9j18tagfi4778i6uqed.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1787569089/w1kf51mnwxcqiomunrv8.jpg"
+    ]
+  },
+  {
+    "id": "c39e633b-41bb-4589-a045-74ac81b984ec",
+    "date": "2026.07.22",
+    "location": "베어크리크 크리크 코스",
+    "quote": "7월 벙개 라운딩",
+    "image_urls": [
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1787568673/pmpt8byntghuhhfe9n9n.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1787568677/sjmlvxo6ydiaqslflarf.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1787568678/ac8qtsd9kfzqxlxig7nz.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1787568679/usx32klmn92bslvyiuox.jpg"
+    ]
+  },
+  {
+    "id": "df67fec3-b6f2-4616-aeb1-c0cb4274df88",
+    "date": "2026.09.30",
+    "location": "신원CC",
+    "quote": "9월 월례회 ",
+    "image_urls": [
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1790895651/hm4tkvwtq3giqqyerolf.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1790895652/cmqngwheskock5aqqmrz.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1790895653/asuww0fyuy4ogjwlocvh.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1790895654/sajdeskpxrs3stlvsmwj.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1790895655/oelv04rimozwijktdkzw.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1790895656/yohu7knpnnexw39cmaoi.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1790895657/cv7rlj063lmukfviostu.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1790895658/fxhmxtjofdufludvpn7y.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1790895659/kyufxky9vcpz8pbcp2jl.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1790895660/x8kjzgiwbpdbu0orvaks.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1790895661/shhpnyibxfad1t5q5fab.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1790895663/s0jgomeu6ykbebijt2jn.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1790895664/y5f0xitpdhmvj9wdsgbz.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1790895665/glmbgmk44zibmbg4vcd2.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1790895667/cyxzh7jbvhigrrhd1k0n.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1790895668/zdu7kzwatxq8dmwxzcfc.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1790895670/fptvlsqr46k1915ottj1.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1790895671/voj53hooqi174tvprgqc.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1790895672/y4xpxku7ru7gfbjtc3yt.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1790895673/d72tas2a6rijsymkpey4.jpg"
+    ]
+  },
+  {
+    "id": "a8bf6e74-8766-41bb-b348-27079191ff2f",
+    "date": "2026.10.11",
+    "location": "샴발라CC",
+    "quote": "주말 라운드",
+    "image_urls": [
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1791716548/suzqpqkshvkvxjvggba7.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1791716550/f6gg8kvh66qh52afx789.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1791716551/slhu98dmpinkpxbyf1fm.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1791716553/dwoprzkshjbwww5aqw9e.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1791716554/ttjcfs0ghxes3a4tgrl8.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1791716556/cvfxvvkjpxquyslg6p2c.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1791716557/gpjfcrwpnndi3bvxazr6.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1791716559/z8mjhovv5yqufdk8jplz.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1791716560/fpzn3tcoydwtzxjtg2n0.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1791716671/b7jszksrrftgr0n2kjvu.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1791716672/pzkvi56nuaqh63ewlnko.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1791716673/waaj1cmrleqd7bdurwte.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1791716674/oudpqnfaymfq30b4ouxr.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1791716675/dyccknusryk5d91gdwju.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1791716676/ughbqvms1nwbwsvbfmss.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1791716677/mudi4uqnhcc20n0hrsmd.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1791716678/cn9kfwigahgnf4l4bjhm.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1791716680/e01pstumvnn0yxzz2wxg.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1791718639/ox2gmixfctihrkoxkmpi.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1791718640/cfnzekpot0wc5q1fpxoj.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1791718642/bcmfxi7t2emr8qlyrpge.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1791718643/uphrjprh8yyxx2jo2y2y.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1791718645/khgcdp8phgyuduwsau1l.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1791718647/hapkrfwufitqqnsmcw9j.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1791718649/d4doudqhdjcy2ipdvcd5.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1791718649/qy6l43gnk9lmrdoqrkwc.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1791718650/idgxfv4vh23gmcnchcho.jpg"
+    ]
+  },
+  {
+    "id": "94ed0d5a-44a5-4626-b3b4-8c56f36266b1",
+    "date": "2026.10.28",
+    "location": "신원cc",
+    "quote": "10월 정기 월례회",
+    "image_urls": [
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1793269331/ggdobpqj8rxxgvlcho27.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1793269333/s2agrpl243k2nlvvpjxx.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1793269334/imd0ag3wrnpukryevwgj.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1793269336/c1sh8ergqtxtjap1hfzx.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1793269337/ds8tti4sbhcw6h0kkgkz.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1793269338/pypf7qswhwqsucffjdgs.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1793269339/itkonqlcsweuicbkw9mg.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1793269340/et3ye0vfgmy5hniupf20.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1793269341/z6wiuy2xng5ih33qykld.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1793269343/jcwdbtaxkdwi7ljxagkr.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1793269344/dzctykgqnkmflp5vznit.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1793269345/v0cn1vuigytdnvzfdlhb.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1793269346/kjup5n6dnpbz59cnwvak.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1793269347/fzuosrpsm6gw2bt1yikx.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1793269348/lxjng8s9uikzu7n4cdea.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1793269349/jtazz4oez8jdzd9u590f.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1793269350/s1kjl7xmabqrqbhs8wrf.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1793269351/uorzqdaom6shdvfo4ny5.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1793269352/vjqs6bto0gmi1gnflckk.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1793269354/rhgtzdpdmnw9qdhdoy3y.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1793269355/um2oxhzedgcjizaerpdv.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1793269356/nrozhdvo9tmhna5c2vt4.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1793269357/mdlzaww7mzf0i09vbos5.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1793269358/mmqaizkbkjngf7rsa1xq.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1793269359/epfxkqadvdn1eatftot5.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1793269361/qqvfyoiulvxpnxfpmxsc.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1793269362/azdyhklh39dvyzteqbue.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1793269364/nbnnlpi3rnqbwsceqhvv.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1793269365/p6s0oospk19t8pvddgqp.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1793269366/cceywmcseatbrglfmimz.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1793269367/bwv3ulx3cjcjzkusnmn3.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1793269368/zaybqnvwcwv8yj9khmae.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1793269369/ezzf1wsagffum5rdnmup.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1793269371/bdzxblbx4r3jjklj2x4x.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1793269372/e2onpqqkl3oy7bezfpwr.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1793269374/jq79jktuh1feaj1aih1g.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1793269375/dfwmhef84x3cgtqfu598.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1793269376/nawua4yb0x7ys18f2jq5.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1793269377/lkx67qvpn0h3flyon147.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1793269378/un6xxnekujwhmdbvbxzi.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1793269380/wjkzulg8tqtdi4pgh4n2.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1793269381/j2awc0ofwz2muhkd02hv.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1793269383/qg4tmtwqutj9l1bvxsws.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1793269385/zajygmkakqm8jijspgfr.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1793269387/uwruqbpeocn4wn6goyo0.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1793269388/ne4yvjxhhy3asearj9dh.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1793269392/nt2vlexswr1tesyygqea.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1793269395/g6grqqyhueq3ftupoyqx.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1793269398/kplof9mlcmyczhp8tslz.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1793269399/k2oifjyeqj5fnuldswi4.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1793269401/fuasbgwudt4mxbcdy7ci.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1793269403/rtkl9miuchwtmdga6e0q.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1793269404/ahwrux7r8lzjbqe5oddl.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1793269406/trmwxdy6jwe8hh0zvylb.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1793269407/bhcg2vh0os0i3ncseyau.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1793269409/risricanay8g0lbfa98f.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1793269411/eqmafabmkmflrjyhmlej.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1793269412/eov6heo3lsqc6amxzmyh.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1793269414/ok7pv4hu6m5iszgq0ehv.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1793269415/i2b6uzfv7gs1lvawdzwh.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1793269417/drafkravdnp6wepwxb14.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1793269419/keqk2vypdwrxowaain9m.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1793269421/fxsfq7cvksqcbzlfoggi.jpg",
+      "https://res.cloudinary.com/dbbz6xmot/image/upload/v1793269422/iaisqxfzhl3mhguawqq7.jpg"
+    ]
+  }
+];
 
         let logsData = EMBEDDED_LOGS;
         let currentEventIndex = 0;
         let currentPhotoIndex = 0;
         let autoPlayTimer = null;
+        let progressInterval = null;
         let isPlaying = false;
+        let slideDuration = 4000;
+        let progressElapsed = 0;
 
         document.addEventListener('DOMContentLoaded', () => {
             initSlides(EMBEDDED_LOGS);
             setupKeyboard();
             fetchLogsDynamic();
+            setTimeout(() => fireConfetti(), 500);
         });
+
+        function fireConfetti() {
+            if (typeof confetti === 'function') {
+                confetti({
+                    particleCount: 70,
+                    spread: 70,
+                    origin: { y: 0.6 },
+                    colors: ['#f1c40f', '#d35400', '#2ecc71', '#ffffff']
+                });
+            }
+        }
 
         function initSlides(data) {
             data.forEach(log => {
@@ -660,12 +1088,18 @@
                 const images = log.image_urls || [];
                 const quote = log.quote || log.title || '';
 
-                // Build Thumbnails HTML
                 let thumbsHtml = '';
+                let gridHtml = '';
                 images.forEach((imgUrl, pIdx) => {
                     thumbsHtml += `
                         <div class="thumb-item ${pIdx === 0 ? 'active' : ''}" id="thumb-${eIdx}-${pIdx}" onclick="showEvent(${eIdx}, ${pIdx})">
-                            <img src="${imgUrl}" alt="Thumbnail">
+                            <img src="${imgUrl}" alt="Thumbnail" loading="lazy">
+                        </div>
+                    `;
+                    gridHtml += `
+                        <div class="grid-drawer-item ${pIdx === 0 ? 'active' : ''}" id="grid-item-${eIdx}-${pIdx}" onclick="selectFromGrid(${eIdx}, ${pIdx})">
+                            <img src="${imgUrl}" alt="Photo ${pIdx + 1}" loading="lazy">
+                            <span class="grid-drawer-num">#${pIdx + 1}</span>
                         </div>
                     `;
                 });
@@ -679,8 +1113,10 @@
                             </div>
                             <h2 class="slide-title">${quote || log.location + ' 라운드 기록'}</h2>
                         </div>
-                        <div class="slide-count-badge" id="photo-count-badge-${eIdx}">
-                            <i class="fas fa-camera"></i> 사진 1 / ${images.length}
+                        <div class="slide-header-right">
+                            <div class="slide-count-badge" id="photo-count-badge-${eIdx}">
+                                <i class="fas fa-camera"></i> 사진 1 / ${images.length}
+                            </div>
                         </div>
                     </div>
                     
@@ -692,6 +1128,10 @@
 
                         <div class="main-photo-wrapper">
                             <img id="main-photo-${eIdx}" src="${images[0] || ''}" alt="${quote}" onclick="openLightbox(this.src)">
+                        </div>
+
+                        <div class="grid-drawer" id="grid-drawer-${eIdx}">
+                            ${gridHtml}
                         </div>
 
                         ${images.length > 1 ? `
@@ -730,10 +1170,19 @@
                 }
             });
 
-            // Update main photo & count badge
+            // Update main photo & ambient backdrop
+            const currentImgUrl = images[currentPhotoIndex] || '';
             const mainImg = document.getElementById(`main-photo-${currentEventIndex}`);
-            if (mainImg && images[currentPhotoIndex]) {
-                mainImg.src = images[currentPhotoIndex];
+            if (mainImg && currentImgUrl) {
+                mainImg.classList.remove('ken-burns');
+                mainImg.src = currentImgUrl;
+                void mainImg.offsetWidth; // trigger reflow for animation
+                mainImg.classList.add('ken-burns');
+            }
+
+            const backdrop = document.getElementById('ambient-backdrop');
+            if (backdrop && currentImgUrl) {
+                backdrop.style.backgroundImage = `url('${currentImgUrl}')`;
             }
 
             const badge = document.getElementById(`photo-count-badge-${currentEventIndex}`);
@@ -750,8 +1199,32 @@
                 }
             });
 
+            // Update active grid item
+            const gridItems = document.querySelectorAll(`#grid-drawer-${currentEventIndex} .grid-drawer-item`);
+            gridItems.forEach((g, pIdx) => {
+                g.classList.toggle('active', pIdx === currentPhotoIndex);
+            });
+
             // Update bottom control slide indicator
             document.getElementById('slide-indicator').textContent = `${currentEventIndex + 1} / ${logsData.length} 행사`;
+            resetProgress();
+        }
+
+        function toggleGridDrawer() {
+            const drawer = document.getElementById(`grid-drawer-${currentEventIndex}`);
+            const btn = document.getElementById('grid-toggle-btn');
+            if (drawer) {
+                const isOpen = drawer.classList.toggle('open');
+                btn.classList.toggle('active', isOpen);
+            }
+        }
+
+        function selectFromGrid(eIdx, pIdx) {
+            const drawer = document.getElementById(`grid-drawer-${eIdx}`);
+            const btn = document.getElementById('grid-toggle-btn');
+            if (drawer) drawer.classList.remove('open');
+            if (btn) btn.classList.remove('active');
+            showEvent(eIdx, pIdx);
         }
 
         function nextStep() {
@@ -773,6 +1246,14 @@
             }
         }
 
+        function nextEvent() {
+            showEvent(currentEventIndex + 1, 0);
+        }
+
+        function prevEvent() {
+            showEvent(currentEventIndex - 1, 0);
+        }
+
         function nextPhoto(eIdx) {
             if (eIdx !== currentEventIndex) return;
             nextStep();
@@ -783,16 +1264,48 @@
             prevStep();
         }
 
+        function resetProgress() {
+            progressElapsed = 0;
+            const bar = document.getElementById('autoplay-progress');
+            if (bar) bar.style.width = '0%';
+        }
+
+        function startAutoPlayTimers() {
+            clearInterval(autoPlayTimer);
+            clearInterval(progressInterval);
+            resetProgress();
+
+            progressInterval = setInterval(() => {
+                progressElapsed += 100;
+                const pct = Math.min((progressElapsed / slideDuration) * 100, 100);
+                const bar = document.getElementById('autoplay-progress');
+                if (bar) bar.style.width = pct + '%';
+            }, 100);
+
+            autoPlayTimer = setInterval(() => {
+                nextStep();
+            }, slideDuration);
+        }
+
         function toggleAutoPlay() {
             const btn = document.getElementById('play-btn');
             if (isPlaying) {
                 clearInterval(autoPlayTimer);
+                clearInterval(progressInterval);
                 isPlaying = false;
                 btn.innerHTML = '<i class="fas fa-play"></i>';
+                resetProgress();
             } else {
                 isPlaying = true;
                 btn.innerHTML = '<i class="fas fa-pause"></i>';
-                autoPlayTimer = setInterval(() => nextStep(), 4000);
+                startAutoPlayTimers();
+            }
+        }
+
+        function changeSpeed(ms) {
+            slideDuration = Number(ms);
+            if (isPlaying) {
+                startAutoPlayTimers();
             }
         }
 
@@ -807,11 +1320,15 @@
         function setupKeyboard() {
             document.addEventListener('keydown', (e) => {
                 if (e.key === 'ArrowRight' || e.key === ' ') {
+                    e.preventDefault();
                     nextStep();
                 } else if (e.key === 'ArrowLeft') {
+                    e.preventDefault();
                     prevStep();
                 } else if (e.key === 'f' || e.key === 'F') {
                     toggleFullScreen();
+                } else if (e.key === 'g' || e.key === 'G') {
+                    toggleGridDrawer();
                 }
             });
         }
