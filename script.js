@@ -2319,7 +2319,7 @@ async function renderSponsorHall(prefetchedData = null) {
             if (trimmed === '박청산') return '사무부총장님';
             if (trimmed === '남서우') return '총무이사님';
             if (trimmed === '이진우') return '총무이사님';
-            if (trimmed === '정진우') return '총무이사님';
+            if (trimmed === '정진우') return '(비선실세)';
             if (trimmed === '곽노준') return '교수님';
             return '원우님';
         };
