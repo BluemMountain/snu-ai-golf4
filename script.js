@@ -1193,7 +1193,7 @@ async function renderPublicRSVPs() {
     <div style="display: flex; flex-wrap: wrap; gap: 10px;">
         ${sponsors.sort((a, b) => {
             const order = key.startsWith('11월')
-                ? ['골프회', '원우회', '김대욱', '박철호', '정민호', '박청산', '정진우', '심민선', '이문형', '정대규', '전은미']
+                ? ['골프회', '원우회', '현성호', '김종세', '김대욱', '박철호', '정민호', '박청산', '정진우', '정대규', '전은미', '이문형', '정지환', '신수희', '이영규']
                 : ['골프회', '원우회', '김대욱', '정민호', '박철호', '전은미', '현성호', '이문형', '이영규', '조중규', '남서우', '박청산'];
             const idxA = order.indexOf(a.name);
             const idxB = order.indexOf(b.name);
@@ -2313,8 +2313,9 @@ async function renderSponsorHall(prefetchedData = null) {
             if (trimmed === '정민호') return '부회장님';
             if (trimmed === '박철호') return '부회장님';
             if (trimmed === '전은미' || trimmed === '심민선') return '총무님';
-            if (trimmed === '정대규') return '대표님';
+            if (trimmed === '정대규') return '원우님';
             if (trimmed === '현성호') return '원우회장님';
+            if (trimmed === '김종세') return '수석부회장님';
             if (trimmed === '조중규') return '사무총장님';
             if (trimmed === '박청산') return '사무부총장님';
             if (trimmed === '남서우') return '총무이사님';
@@ -2378,7 +2379,7 @@ async function renderSponsorHall(prefetchedData = null) {
                     r22.forEach(i => list.push(i.text));
                 }
             } else if (m === "11월") {
-                const novOrder = ['골프회', '원우회', '김대욱', '박철호', '정민호', '박청산', '정진우', '심민선', '이문형', '정대규', '전은미'];
+                const novOrder = ['골프회', '원우회', '현성호', '김종세', '김대욱', '박철호', '정민호', '박청산', '정진우', '정대규', '전은미', '이문형', '정지환', '신수희', '이영규'];
                 items.sort((a, b) => {
                     const getIdx = (txt) => {
                         const idx = novOrder.findIndex(name => txt.startsWith(name));
