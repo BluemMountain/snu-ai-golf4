@@ -177,7 +177,7 @@
                     <div class="date">7.22</div>
                     <div class="day">수요일</div>
                     <div class="event-label" style="display: block; margin-top: 15px; font-weight: bold; color: #2980b9;">(혹서기 벙개 라운드)</div>
-                    <div class="event-label" style="display: block; margin-top: 5px;">크리크 코스 : 14:25, 14:32</div>
+                    <div class="event-label" style="display: block; margin-top: 5px;">베어크리크CC 크리크 코스 : 14:25, 14:32</div>
                 </div>
                 <!-- 8월 -->
                 <div class="schedule-card">
@@ -223,6 +223,81 @@
                     <div class="event-label" style="display: block; margin-top: 5px;">솔로몬 코스: 12:07, 12:15, 12:22</div>
                 </div>
             </div>
+
+            <div class="section-header" style="margin-top: 70px;">
+                <h2>2027년 연간 일정</h2>
+                <div class="divider"></div>
+                <p>2027년 정기 라운드는 매월 세번째 수요일에 진행됩니다. (일정을 클릭하여 참석 신청이 가능합니다)</p>
+            </div>
+
+            <div class="schedule-grid">
+                <!-- 2027년 3월 -->
+                <div class="schedule-card" data-year="2027">
+                    <div class="month" data-real-month="27년 3월">3월</div>
+                    <div class="date">3.17</div>
+                    <div class="day">수요일</div>
+                    <div class="event-label" style="display: block; margin-top: 15px;">신원CC 5팀 (12:00 ~ 13:00)</div>
+                </div>
+                <!-- 2027년 4월 -->
+                <div class="schedule-card" data-year="2027">
+                    <div class="month" data-real-month="27년 4월">4월</div>
+                    <div class="date">4.21</div>
+                    <div class="day">수요일</div>
+                    <div class="event-label" style="display: block; margin-top: 15px;">신원CC 5팀 (12:00 ~ 13:00)</div>
+                </div>
+                <!-- 2027년 5월 -->
+                <div class="schedule-card" data-year="2027">
+                    <div class="month" data-real-month="27년 5월">5월</div>
+                    <div class="date">5.19</div>
+                    <div class="day">수요일</div>
+                    <div class="event-label" style="display: block; margin-top: 15px;">원우회장배 골프대회</div>
+                    <div class="event-label" style="display: block; margin-top: 10px;">신원CC 10팀 (12:00 ~ 13:00)</div>
+                </div>
+                <!-- 2027년 6월 -->
+                <div class="schedule-card" data-year="2027">
+                    <div class="month" data-real-month="27년 6월">6월</div>
+                    <div class="date">6.16</div>
+                    <div class="day">수요일</div>
+                    <div class="event-label" style="display: block; margin-top: 15px;">신원CC 5팀 (12:00 ~ 13:00)</div>
+                </div>
+                <!-- 2027년 7월 (혹서기 휴장) -->
+                <div class="schedule-card break" data-year="2027">
+                    <div class="month">7월</div>
+                    <div class="date">휴</div>
+                    <div class="day">혹서기 휴장</div>
+                    <div class="event-label" style="display: block; margin-top: 15px;">7월 혹서기 정기 라운드 휴장</div>
+                </div>
+                <!-- 2027년 8월 -->
+                <div class="schedule-card" data-year="2027">
+                    <div class="month" data-real-month="27년 8월">8월</div>
+                    <div class="date">8.18</div>
+                    <div class="day">수요일</div>
+                    <div class="event-label" style="display: block; margin-top: 15px;">신원CC 5팀 (12:00 ~ 13:00)</div>
+                </div>
+                <!-- 2027년 9월 -->
+                <div class="schedule-card" data-year="2027">
+                    <div class="month" data-real-month="27년 9월">9월</div>
+                    <div class="date">9.22</div>
+                    <div class="day">수요일</div>
+                    <div class="event-label" style="display: block; margin-top: 15px;">신원CC 5팀 (12:00 ~ 13:00)</div>
+                    <div class="event-label" style="display: block; margin-top: 5px; font-size: 0.8rem; color: #888;">(추석 연휴로 1주 연기)</div>
+                </div>
+                <!-- 2027년 10월 -->
+                <div class="schedule-card" data-year="2027">
+                    <div class="month" data-real-month="27년 10월">10월</div>
+                    <div class="date">10.20</div>
+                    <div class="day">수요일</div>
+                    <div class="event-label" style="display: block; margin-top: 15px;">신원CC 5팀 (12:00 ~ 13:00)</div>
+                </div>
+                <!-- 2027년 11월 -->
+                <div class="schedule-card" data-year="2027">
+                    <div class="month" data-real-month="27년 11월">11월</div>
+                    <div class="date">11.17</div>
+                    <div class="day">수요일</div>
+                    <div class="event-label" style="display: block; margin-top: 15px;">골프회장배 골프대회 겸 납회식</div>
+                    <div class="event-label" style="display: block; margin-top: 10px;">신원CC 10팀 (12:00 ~ 13:00)</div>
+                </div>
+            </div>
         </div>
     </section>
 
@@ -233,6 +308,10 @@
                 <h2>신청 현황</h2>
                 <div class="divider"></div>
                 <p>각 월별 라운딩 신청 현황 및 참가자 정보입니다.</p>
+                <div style="display: flex; justify-content: center; gap: 10px; margin-top: 18px;">
+                    <button id="rsvp-year-btn-2026" onclick="switchRsvpYear('2026')" style="padding: 8px 24px; border-radius: 25px; border: 2px solid #1e3a2b; background: #1e3a2b; color: #fff; font-weight: bold; cursor: pointer; font-size: 0.95rem; transition: all 0.2s;">2026년 신청 현황</button>
+                    <button id="rsvp-year-btn-2027" onclick="switchRsvpYear('2027')" style="padding: 8px 24px; border-radius: 25px; border: 2px solid #1e3a2b; background: #fff; color: #1e3a2b; font-weight: bold; cursor: pointer; font-size: 0.95rem; transition: all 0.2s;">2027년 신청 현황</button>
+                </div>
             </div>
             <div id="public-rsvp-container" class="rsvp-status-container">
                 <!-- Content generated via JS -->
@@ -278,9 +357,13 @@
     <section id="sponsors-hall" class="section-padding bg-light protected-section">
         <div class="container fade-in-on-scroll">
             <div class="section-header">
-                <h2>🏅 2026년 명예의 스폰서</h2>
+                <h2 id="sponsor-hall-heading">🏅 2026년 명예의 스폰서</h2>
                 <div class="divider"></div>
                 <p>골프회 발전을 위해 소중한 물품과 찬조를 해주신 원우님들께 감사드립니다.</p>
+                <div style="display: flex; justify-content: center; gap: 10px; margin-top: 18px;">
+                    <button id="sponsor-year-btn-2026" onclick="switchSponsorYear('2026')" style="padding: 8px 24px; border-radius: 25px; border: 2px solid #c5a059; background: #c5a059; color: #fff; font-weight: bold; cursor: pointer; font-size: 0.95rem; transition: all 0.2s;">2026년 스폰서</button>
+                    <button id="sponsor-year-btn-2027" onclick="switchSponsorYear('2027')" style="padding: 8px 24px; border-radius: 25px; border: 2px solid #c5a059; background: #fff; color: #c5a059; font-weight: bold; cursor: pointer; font-size: 0.95rem; transition: all 0.2s;">2027년 스폰서</button>
+                </div>
             </div>
             <div id="sponsor-hall-container" class="sponsor-grid">
                 <!-- Content generated via JS -->
@@ -293,9 +376,15 @@
         <div class="container fade-in-on-scroll">
             <!-- 1. 명예의 전당 블록 (상단 배치) -->
             <div class="honor-block" style="margin-bottom: 60px;">
-                <div class="section-header" style="text-align: left; margin-bottom: 25px;">
-                    <h2 style="font-size: 1.8rem; color: #1e3a2b;">🏆 명예의 전당</h2>
-                    <div class="divider" style="margin: 10px 0; width: 60px;"></div>
+                <div class="section-header" style="text-align: left; margin-bottom: 25px; display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 15px;">
+                    <div>
+                        <h2 style="font-size: 1.8rem; color: #1e3a2b;">🏆 명예의 전당</h2>
+                        <div class="divider" style="margin: 10px 0; width: 60px;"></div>
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <button id="award-year-btn-2026" onclick="switchAwardYear('2026')" style="padding: 8px 20px; border-radius: 25px; border: 2px solid #1e3a2b; background: #1e3a2b; color: #fff; font-weight: bold; cursor: pointer; font-size: 0.9rem; transition: all 0.2s;">2026년 수상 내역</button>
+                        <button id="award-year-btn-2027" onclick="switchAwardYear('2027')" style="padding: 8px 20px; border-radius: 25px; border: 2px solid #1e3a2b; background: #fff; color: #1e3a2b; font-weight: bold; cursor: pointer; font-size: 0.9rem; transition: all 0.2s;">2027년 수상 내역</button>
+                    </div>
                 </div>
                 
                 <!-- 2025년 시즌 연간 우승자 및 개근상 (제일 위) -->
@@ -452,8 +541,8 @@
 
     <!-- Supabase JS -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="script.js?v=7.02"></script>
+    <script src="script.js?v=7.03"></script>
 </body>
 
 </html><!-- trigger redeploy: 2026-10-17 -->
-<!-- force update v7.02 -->
+<!-- force update v7.03 -->

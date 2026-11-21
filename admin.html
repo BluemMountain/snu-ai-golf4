@@ -312,6 +312,12 @@
                     </div>
                 </div>
 
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+                    <div style="display: flex; gap: 10px;">
+                        <button id="admin-rsvp-year-btn-2026" onclick="switchAdminRsvpYear('2026')" style="padding: 8px 20px; border-radius: 6px; border: 2px solid #1e3a2b; background: #1e3a2b; color: #fff; font-weight: bold; cursor: pointer;">2026년 신청 내역</button>
+                        <button id="admin-rsvp-year-btn-2027" onclick="switchAdminRsvpYear('2027')" style="padding: 8px 20px; border-radius: 6px; border: 2px solid #1e3a2b; background: #fff; color: #1e3a2b; font-weight: bold; cursor: pointer;">2027년 신청 내역</button>
+                    </div>
+                </div>
                 <div class="table-container-wrapper">
                     <div id="admin-table-container" class="score-table-container">
                         <table id="admin-table" style="border-collapse: collapse; font-size: 0.85rem;">
@@ -449,7 +455,7 @@
     <!-- Supabase JS -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="admin_stats.js?v=6.90"></script>
-    <script src="script.js?v=6.90"></script>
+    <script src="script.js?v=7.03"></script>
 
     <script>
         // Inline Auth Logic for Admin Page

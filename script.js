@@ -19,6 +19,11 @@ if (localStorage.getItem('snu_golf_logged_in')) {
 
 // Global Score Data Storage (Original 2D Array format for compatibility)
 let G_SCORES_RAW = [];
+let CURRENT_RSVP_YEAR = '2026';
+let CURRENT_SPONSOR_YEAR = '2026';
+let CURRENT_AWARD_YEAR = '2026';
+let CURRENT_ADMIN_RSVP_YEAR = '2026';
+let G_CACHED_RSVPS = null;
 
 /**
  * Supabase에서 스코어 데이터를 불러와 기존 CSV 호환 형식(2D Array)으로 변환합니다.
@@ -248,7 +253,8 @@ function initRSVP() {
     // Open Modal
     cards.forEach(card => {
         card.addEventListener('click', () => {
-            const month = card.querySelector('.month').textContent.trim();
+            const monthEl = card.querySelector('.month');
+            const month = (monthEl.getAttribute('data-real-month') || monthEl.textContent).trim();
             const dateEl = card.querySelector('.date');
             const date = (dateEl.getAttribute('data-real-date') || dateEl.textContent).trim();
 
@@ -331,6 +337,11 @@ function initRSVP() {
             alert('참석 신청이 완료되었습니다.');
             modal.style.display = 'none';
             form.reset();
+
+            if (formData.month.startsWith('27년')) {
+                CURRENT_RSVP_YEAR = '2027';
+                updateYearButtonStyles('rsvp-year-btn', '2027', '#1e3a2b');
+            }
 
             // Refresh public view and admin
             renderPublicRSVPs();
@@ -874,25 +885,18 @@ async function loadAdminData() {
             }, groupedData);
 
             const sortedKeys = Object.keys(groupedData).filter(key => {
+                const is2027Key = key.startsWith('27년');
+                if (CURRENT_ADMIN_RSVP_YEAR === '2027' && !is2027Key) return false;
+                if (CURRENT_ADMIN_RSVP_YEAR === '2026' && is2027Key) return false;
                 const monthMatch = key.match(/(\d+)월/);
                 const dateMatch = key.match(/\.(\d+)/);
-                if (monthMatch && dateMatch) {
-                    const m = parseInt(monthMatch[1]) - 1; // 0-indexed
-                    const d = parseInt(dateMatch[1]);
-                    const eventDate = new Date(2026, m, d);
-
-                    const today = new Date();
-                    today.setHours(0, 0, 0, 0);
-
-                    // 관리자 페이지에서는 모든 2026년 라운드를 표시 (과거 기록 관리 및 스코어 입력을 위해)
-                    return eventDate.getFullYear() === 2026;
-                }
-                return false;
+                return Boolean(monthMatch && dateMatch);
             }).sort((a, b) => {
                 const parseK = (k) => {
+                    const yr = k.startsWith('27년') ? 2027 : 2026;
                     const mm = k.match(/(\d+)월/);
                     const dd = k.match(/\.(\d+)/);
-                    return new Date(2026, parseInt(mm[1]) - 1, parseInt(dd[1]));
+                    return new Date(yr, parseInt(mm[1]) - 1, parseInt(dd[1]));
                 };
                 return parseK(a) - parseK(b);
             });
@@ -903,12 +907,13 @@ async function loadAdminData() {
                 headerRow.style.backgroundColor = "#e8f5e9";
                 const attendCount = items.filter(i => i.status === 'attend').length;
 
-                // 5월만 10팀(40명), 3월~11월 정규 라운드는 5팀(20명) 예약으로 정원 고정
+                // 5월( 및 27년 11월) 10팀(40명), 3월~11월 정규 라운드는 5팀(20명) 예약으로 정원 고정
                 let totalDisplay = items.length;
-                const monthMatch = key.match(/^(\d+)월/);
+                const is2027Key = key.startsWith('27년');
+                const monthMatch = key.match(/(\d+)월/);
                 if (monthMatch) {
                     const monthNum = parseInt(monthMatch[1]);
-                    if (monthNum === 5) {
+                    if (monthNum === 5 || (is2027Key && monthNum === 11)) {
                         totalDisplay = 40;
                     } else if (monthNum >= 3 && monthNum <= 11) {
                         totalDisplay = 20;
@@ -1040,6 +1045,7 @@ async function renderPublicRSVPs() {
         return;
     }
 
+    G_CACHED_RSVPS = data || [];
     const publicData = (data || []).filter(item => !item.name.includes('기부천사'));
 
     if (publicData.length === 0) {
@@ -1062,17 +1068,18 @@ async function renderPublicRSVPs() {
         return acc;
     }, {});
 
-    const now = new Date();
-    const currentMonth = now.getMonth() + 1; // 1-12
-
     const sortedKeys = Object.keys(groupedData).filter(key => {
+        const is2027Key = key.startsWith('27년');
+        if (CURRENT_RSVP_YEAR === '2027' && !is2027Key) return false;
+        if (CURRENT_RSVP_YEAR === '2026' && is2027Key) return false;
+
         const monthMatch = key.match(/(\d+)월/);
         const dateMatch = key.match(/\.(\d+)/);
         if (monthMatch && dateMatch) {
+            const yr = is2027Key ? 2027 : 2026;
             const m = parseInt(monthMatch[1]) - 1; // 0-indexed
-            const dStr = dateMatch[1];
-            const d = parseInt(dStr);
-            const eventDate = new Date(2026, m, d);
+            const d = parseInt(dateMatch[1]);
+            const eventDate = new Date(yr, m, d);
 
             const today = new Date();
             today.setHours(0, 0, 0, 0);
@@ -1082,24 +1089,30 @@ async function renderPublicRSVPs() {
         return false;
     }).sort((a, b) => {
         const parseK = (k) => {
+            const yr = k.startsWith('27년') ? 2027 : 2026;
             const mm = k.match(/(\d+)월/);
             const dd = k.match(/\.(\d+)/);
-            return new Date(2026, parseInt(mm[1]) - 1, parseInt(dd[1]));
+            return new Date(yr, parseInt(mm[1]) - 1, parseInt(dd[1]));
         };
         return parseK(a) - parseK(b);
     }).slice(0, 2); // Only take the nearest 2
 
     container.innerHTML = '';
 
+    if (sortedKeys.length === 0) {
+        container.innerHTML = `<div style="text-align:center; padding: 40px; color:#888;">${CURRENT_RSVP_YEAR}년 예정된 라운드 신청 내역이 아직 없습니다. 위 연간 일정 카드를 클릭하여 신청하실 수 있습니다.</div>`;
+    }
+
     sortedKeys.forEach(key => {
         const items = groupedData[key];
 
-        // 정원 계산 (5월 10팀-40명, 3월~11월 5팀-20명 고정)
+        // 정원 계산 (5월 및 27년 11월 10팀-40명, 3월~11월 5팀-20명 고정)
         let totalCapacity = 20;
-        const monthMatch = key.match(/^(\d+)월/);
+        const is2027Key = key.startsWith('27년');
+        const monthMatch = key.match(/(\d+)월/);
         if (monthMatch) {
             const mNum = parseInt(monthMatch[1]);
-            if (mNum === 5) {
+            if (mNum === 5 || (is2027Key && mNum === 11)) {
                 totalCapacity = 40;
             } else if (mNum < 3 || mNum > 11) {
                 totalCapacity = 999; // 2월 등 예측 불가능한 일정 예외
@@ -2106,11 +2119,13 @@ async function autoCalculateAwards(groupKey) {
 /* --- RSVP Availability Helper --- */
 function getRSVPAvailability(monthText) {
     const now = new Date();
-    const targetMonth = parseInt(monthText);
+    const is2027 = String(monthText).startsWith('27년');
+    const monthMatch = String(monthText).match(/(\d+)월/);
+    const targetMonth = monthMatch ? parseInt(monthMatch[1]) : parseInt(monthText);
     if (isNaN(targetMonth)) return { status: 'unknown' };
 
-    // 2026년 라운드 기준 로직
-    const targetYear = 2026;
+    // 2026년 / 2027년 라운드 기준 로직
+    const targetYear = is2027 ? 2027 : 2026;
 
     // 정기 신청 마감일: 전월 말일 23:59
     const regEnd = new Date(targetYear, targetMonth - 1, 0, 23, 59, 59);
@@ -2135,7 +2150,15 @@ const GOLF_SCHEDULE = [
     { month: '9월', date: '9.30' },
     { month: '10월', date: '10.11' },
     { month: '10월', date: '10.28' },
-    { month: '11월', date: '11.25' }
+    { month: '11월', date: '11.25' },
+    { month: '27년 3월', date: '3.17' },
+    { month: '27년 4월', date: '4.21' },
+    { month: '27년 5월', date: '5.19' },
+    { month: '27년 6월', date: '6.16' },
+    { month: '27년 8월', date: '8.18' },
+    { month: '27년 9월', date: '9.22' },
+    { month: '27년 10월', date: '10.20' },
+    { month: '27년 11월', date: '11.17' }
 ];
 
 /* --- Tee Time Definitions for Group Assignment --- */
@@ -2348,9 +2371,15 @@ async function renderSponsorHall(prefetchedData = null) {
             });
         });
 
-        // 4. 월별 카드 조립 (기존 하드코딩 데이터를 동적 데이터로 마이그레이션)
+        // 4. 월별 카드 조립 (연도별 분리 지원)
+        const headingEl = document.getElementById('sponsor-hall-heading');
+        if (headingEl) {
+            headingEl.textContent = `🏅 ${CURRENT_SPONSOR_YEAR}년 명예의 스폰서`;
+        }
         const sponsorHistory = [];
-        const monthsInOrder = ["11월", "10월", "9월", "8월", "6월", "5월", "4월", "3월"];
+        const monthsInOrder = CURRENT_SPONSOR_YEAR === '2027'
+            ? ["27년 11월", "27년 10월", "27년 9월", "27년 8월", "27년 6월", "27년 5월", "27년 4월", "27년 3월"]
+            : ["11월", "10월", "9월", "8월", "6월", "5월", "4월", "3월"];
 
         monthsInOrder.forEach(m => {
             const items = monthlySponsors[m] || [];
@@ -2414,6 +2443,11 @@ async function renderSponsorHall(prefetchedData = null) {
         });
 
         container.innerHTML = '';
+
+        if (sponsorHistory.length === 0) {
+            container.innerHTML = `<div style="grid-column: 1/-1; text-align:center; padding: 40px; color:#888;">${CURRENT_SPONSOR_YEAR}년 등록된 스폰서 내역이 아직 없습니다.</div>`;
+            return;
+        }
 
         sponsorHistory.forEach(data => {
             const card = document.createElement('div');
@@ -2494,8 +2528,12 @@ async function renderAwardsHall(prefetchedData = null) {
             rsvps = data;
         }
 
-        // 2. 수상 내역이 있는 데이터만 필터링
-        const awardRsvps = rsvps.filter(r => (r.roundaward || '').trim() !== '');
+        // 2. 수상 내역이 있는 데이터만 필터링 (선택된 연도 기준)
+        const awardRsvps = rsvps.filter(r => {
+            if ((r.roundaward || '').trim() === '') return false;
+            const is2027 = (r.month || '').trim().startsWith('27년');
+            return CURRENT_AWARD_YEAR === '2027' ? is2027 : !is2027;
+        });
 
         // 3. 월/일 기준으로 라운드 그룹화
         const rounds = {};
@@ -2505,18 +2543,21 @@ async function renderAwardsHall(prefetchedData = null) {
             rounds[key].push(r);
         });
 
-        // 10월 정기 라운드(10.28) 및 11월 납회식(11.25) 시상 칸이 항상 표시되도록 초기화
-        if (!rounds["10월|10.28"]) rounds["10월|10.28"] = [];
-        if (!rounds["11월|11.25"]) rounds["11월|11.25"] = [];
+        // 2026년 조회 시 10월 정기 라운드(10.28) 및 11월 납회식(11.25) 시상 칸이 항상 표시되도록 초기화
+        if (CURRENT_AWARD_YEAR === '2026') {
+            if (!rounds["10월|10.28"]) rounds["10월|10.28"] = [];
+            if (!rounds["11월|11.25"]) rounds["11월|11.25"] = [];
+        }
 
         // 4. 라운드 날짜별 정렬 (최신 라운드가 맨 위로 오도록 내림차순 정렬)
         const sortedRoundKeys = Object.keys(rounds).sort((a, b) => {
             const parseK = (k) => {
                 const parts = k.split('|');
+                const yr = parts[0].startsWith('27년') ? 2027 : 2026;
                 const mm = parts[0].match(/(\d+)월/);
                 const dd = parts[1].match(/\.(\d+)/);
                 if (mm && dd) {
-                    return new Date(2026, parseInt(mm[1]) - 1, parseInt(dd[1]));
+                    return new Date(yr, parseInt(mm[1]) - 1, parseInt(dd[1]));
                 }
                 return new Date(0);
             };
@@ -2610,6 +2651,12 @@ async function renderAwardsHall(prefetchedData = null) {
         const getRoundTitle = (month, date) => {
             const m = month.trim();
             const d = date.trim();
+            if (m.startsWith("27년")) {
+                const cleanM = m.replace("27년", "").trim();
+                if (cleanM === "5월") return "2027년 5월 원우회장배 골프대회 수상";
+                if (cleanM === "11월") return "2027년 11월 골프회장배 골프대회 겸 납회식 수상";
+                return `2027년 ${cleanM} 정기 라운드 수상`;
+            }
             if (m === "5월") return "2026년 5월 원우회장(현성호) 배 골프대회 수상";
             if (m === "11월") return "2026년 11월 골프회장(김대욱) 배 골프대회 및 납회식 수상";
             if (m === "10월" && (d === "10.11" || d === "11")) {
@@ -2641,6 +2688,11 @@ async function renderAwardsHall(prefetchedData = null) {
         };
 
         container.innerHTML = '';
+
+        if (sortedRoundKeys.length === 0) {
+            container.innerHTML = `<div style="grid-column: 1/-1; text-align:center; padding: 40px; color:#888; background:#fff; border-radius:15px; border:1px dashed #e0c58a;">${CURRENT_AWARD_YEAR}년 수상 내역이 아직 없습니다.</div>`;
+            return;
+        }
 
         // 6. 각 라운드별로 동적 카드 생성 및 추가
         sortedRoundKeys.forEach(key => {
@@ -2786,3 +2838,48 @@ function showToast(message, duration = 3000) {
 window.renderSponsorHall = renderSponsorHall;
 window.renderAwardsHall = renderAwardsHall;
 window.showToast = showToast;
+
+
+function updateYearButtonStyles(prefix, activeYear, activeColor) {
+    ['2026', '2027'].forEach(yr => {
+        const btn = document.getElementById(`${prefix}-${yr}`);
+        if (btn) {
+            if (yr === activeYear) {
+                btn.style.background = activeColor;
+                btn.style.color = '#fff';
+            } else {
+                btn.style.background = '#fff';
+                btn.style.color = activeColor;
+            }
+        }
+    });
+}
+
+function switchRsvpYear(year) {
+    CURRENT_RSVP_YEAR = year;
+    updateYearButtonStyles('rsvp-year-btn', year, '#1e3a2b');
+    renderPublicRSVPs();
+}
+
+function switchSponsorYear(year) {
+    CURRENT_SPONSOR_YEAR = year;
+    updateYearButtonStyles('sponsor-year-btn', year, '#c5a059');
+    renderSponsorHall(G_CACHED_RSVPS);
+}
+
+function switchAwardYear(year) {
+    CURRENT_AWARD_YEAR = year;
+    updateYearButtonStyles('award-year-btn', year, '#1e3a2b');
+    renderAwardsHall(G_CACHED_RSVPS);
+}
+
+function switchAdminRsvpYear(year) {
+    CURRENT_ADMIN_RSVP_YEAR = year;
+    updateYearButtonStyles('admin-rsvp-year-btn', year, '#1e3a2b');
+    loadAdminData();
+}
+
+window.switchRsvpYear = switchRsvpYear;
+window.switchSponsorYear = switchSponsorYear;
+window.switchAwardYear = switchAwardYear;
+window.switchAdminRsvpYear = switchAdminRsvpYear;
