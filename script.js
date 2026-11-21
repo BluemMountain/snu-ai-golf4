@@ -2705,32 +2705,112 @@ async function renderAwardsHall(prefetchedData = null) {
 
             const listItems = [];
             const perfectAttendanceNames = [];
+            const groupedMultiWinners = {}; // 다버디, 참가상 등 동일 상 다수 수상자 병합용
+
+            // 수상 문자열(예: "신페리오 우승(90/15.6/74.4)", "롱기스트 230", "다버디 1")을 상 이름과 상세 수치로 자동 분리
+            const parseAwardText = (rawAward, roundScore, month, date, memberName) => {
+                let text = rawAward.trim();
+                let extractedDetail = '';
+
+                // 1) "4월 신페리오우승" 처럼 앞에 월이 붙은 경우 제거
+                text = text.replace(/^\d+월\s*/, '');
+
+                // 2) 괄호 안의 수치 추출 (단, '임원 제외', '실4등', '뒤 4등' 등 설명성 텍스트는 상 이름에 유지하거나 별도 처리)
+                const parenMatch = text.match(/^(.*?)\s*\(([^)]+)\)\s*$/);
+                if (parenMatch) {
+                    const baseCandidate = parenMatch[1].trim();
+                    const insideParen = parenMatch[2].trim();
+                    // 숫자나 슬래시(/), m 등이 포함된 기록 데이터인 경우 상세 수치로 분리
+                    if (/^[0-9./mM\s+-]+$/.test(insideParen)) {
+                        text = baseCandidate;
+                        extractedDetail = insideParen;
+                    }
+                }
+
+                // 3) 공백 뒤 수치 추출 (예: "롱기스트 230", "다보기 11", "니어리스트 5m", "신페리오 우승 84/12/72", "롱기스트 210m(5)")
+                if (!extractedDetail) {
+                    const spaceNumMatch = text.match(/^(메달리스트|신페리오\s*우승|신페리오\s*준우승|신페리오\s*[23]등|신페리오\s*[23]위|롱기스트|니어리스트|다\s*버디|다\s*파|다\s*보기|다\s*따블|다\s*더블)\s+([0-9./mM()\s]+)$/);
+                    if (spaceNumMatch) {
+                        text = spaceNumMatch[1].trim();
+                        extractedDetail = spaceNumMatch[2].trim();
+                    }
+                }
+
+                // 4) 상 이름 표준화 (띄어쓰기 보정)
+                text = text
+                    .replace(/^신페리오우승$/, '신페리오 우승')
+                    .replace(/^신페리오준우승$/, '신페리오 준우승')
+                    .replace(/^다\s+버디$/, '다버디')
+                    .replace(/^다\s+파$/, '다파')
+                    .replace(/^다\s+보기$/, '다보기')
+                    .replace(/^다\s+따블$/, '다따블')
+                    .replace(/^다\s+더블$/, '다더블')
+                    .replace(/^메달$/, '메달리스트');
+
+                // 5) awardDetails 사전 우선 확인 후, 없으면 추출된 상세값 또는 라운드 스코어 사용
+                const lookupKey = `${month}|${date}|${memberName}|${text}`;
+                const rawLookupKey = `${month}|${date}|${memberName}|${rawAward.trim()}`;
+                let finalDetail = '';
+
+                if (awardDetails[lookupKey]) {
+                    finalDetail = awardDetails[lookupKey];
+                } else if (awardDetails[rawLookupKey]) {
+                    finalDetail = awardDetails[rawLookupKey];
+                } else if (extractedDetail) {
+                    finalDetail = extractedDetail;
+                } else if (text.includes('메달') || text.includes('신페리오')) {
+                    finalDetail = roundScore ? `${roundScore}` : '';
+                }
+
+                return { cleanAward: text, detail: finalDetail };
+            };
 
             roundRsvps.forEach(r => {
                 const awards = r.roundaward.split(',').map(a => a.trim());
-                awards.forEach(award => {
-                    if (!award) return;
+                awards.forEach(rawAward => {
+                    if (!rawAward) return;
 
-                    if (award === '개근상') {
+                    if (rawAward === '개근상') {
                         perfectAttendanceNames.push(r.name.trim());
                         return;
                     }
 
-                    const lookupKey = `${month}|${date}|${r.name.trim()}|${award}`;
-                    let detailVal = '';
-                    if (awardDetails[lookupKey]) {
-                        detailVal = awardDetails[lookupKey];
-                    } else {
-                        if (award.includes('메달') || award.includes('신페리오')) {
-                            detailVal = r.roundscore ? `${r.roundscore}` : '';
-                        }
+                    const memberName = r.name.trim();
+                    const { cleanAward, detail } = parseAwardText(rawAward, r.roundscore, month, date, memberName);
+
+                    // 다버디, 참가상 등 동일 항목 공동 수상자는 한 줄에 묶어서 표시 ("정민호 (1), 김도열 (1)" / "김도균, 조중규")
+                    if (cleanAward === '다버디' || cleanAward === '참가상') {
+                        if (!groupedMultiWinners[cleanAward]) groupedMultiWinners[cleanAward] = [];
+                        groupedMultiWinners[cleanAward].push({
+                            name: memberName,
+                            detail: detail
+                        });
+                        return;
                     }
 
                     listItems.push({
-                        name: r.name.trim(),
-                        award: award,
-                        detail: detailVal
+                        name: memberName,
+                        award: cleanAward,
+                        detail: detail
                     });
+                });
+            });
+
+            // 공동 수상자(다버디, 참가상) 병합 항목 추가
+            Object.keys(groupedMultiWinners).forEach(awardKey => {
+                const winners = groupedMultiWinners[awardKey];
+                // 정민호 우선, 김도균 우선 등 자연스러운 정렬
+                if (awardKey === '다버디') {
+                    winners.sort((a, b) => (a.name === '정민호' ? -1 : b.name === '정민호' ? 1 : 0));
+                } else if (awardKey === '참가상') {
+                    winners.sort((a, b) => a.name.localeCompare(b.name, 'ko'));
+                }
+                listItems.push({
+                    isMulti: true,
+                    award: awardKey,
+                    winners: winners,
+                    name: winners.map(w => w.name).join(', '),
+                    detail: ''
                 });
             });
 
@@ -2751,21 +2831,42 @@ async function renderAwardsHall(prefetchedData = null) {
                 });
             }
 
-            // 예정 라운드 템플릿 중 아직 수상자가 등록되지 않은 항목도 빈칸으로 함께 표시
-            if (defaultAwardTemplates[key]) {
+            // 아직 수상자가 전혀 없는 예정 라운드(예: 11월 납회식 나머지 항목)만 빈칸 템플릿 표시
+            if (defaultAwardTemplates[key] && key === "11월|11.25") {
                 const existingAwards = new Set(listItems.map(i => i.award.replace(/\s*:\s*$/, '').trim()));
                 defaultAwardTemplates[key].forEach(awardName => {
                     if (!existingAwards.has(awardName)) {
                         listItems.push({
                             name: '',
-                            award: `${awardName} :`,
-                            detail: ''
+                            award: awardName,
+                            detail: '',
+                            isEmptyTemplate: true
                         });
                     }
                 });
             }
 
-            listItems.sort((a, b) => getAwardDisplayPriority(a.award) - getAwardDisplayPriority(b.award));
+            // 정렬: 상 우선순위 기준 + 동일 상(롱기스트, 다보기 등) 내 정렬
+            const octLongestOrder = ['이재욱', '곽노준', '이교구', '전은미'];
+            const octBogeyOrder = ['심민선', '박철호', '이문형'];
+            listItems.sort((a, b) => {
+                const pA = getAwardDisplayPriority(a.award);
+                const pB = getAwardDisplayPriority(b.award);
+                if (pA !== pB) return pA - pB;
+
+                if (a.award === '롱기스트' && b.award === '롱기스트') {
+                    const idxA = octLongestOrder.indexOf(a.name);
+                    const idxB = octLongestOrder.indexOf(b.name);
+                    if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+                    return (parseFloat(b.detail) || 0) - (parseFloat(a.detail) || 0);
+                }
+                if (a.award === '다보기' && b.award === '다보기') {
+                    const idxA = octBogeyOrder.indexOf(a.name);
+                    const idxB = octBogeyOrder.indexOf(b.name);
+                    if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+                }
+                return 0;
+            });
 
             const card = document.createElement('div');
             card.className = 'honor-card fade-in-up';
@@ -2777,15 +2878,27 @@ async function renderAwardsHall(prefetchedData = null) {
             card.style.marginTop = '0px';
 
             let listHtml = listItems.map(item => {
-                const detailText = item.detail ? ` <span style="font-size: 0.8rem; color: #999;">(${item.detail})</span>` : '';
+                const awardLabel = item.award.endsWith(':') ? item.award : `${item.award} :`;
+                let rightHtml = '';
+
+                if (item.isMulti && item.winners) {
+                    rightHtml = item.winners.map(w => {
+                        const dText = w.detail ? ` <span style="font-size: 0.8rem; color: #999;">(${w.detail})</span>` : '';
+                        return `<strong style="color: #333;">${w.name}</strong>${dText}`;
+                    }).join(', ');
+                } else {
+                    const detailText = item.detail ? ` <span style="font-size: 0.8rem; color: #999;">(${item.detail})</span>` : '';
+                    rightHtml = `<strong style="color: #333;">${item.name}</strong>${detailText}`;
+                }
+
                 const isWide = item.award === '개근상' && item.name.includes(',');
                 const rowStyle = isWide
                     ? 'grid-column: 1 / -1; display: flex; justify-content: space-between; border-bottom: 1px dashed #f0f0f0; padding-bottom: 4px; gap: 10px;'
                     : 'display: flex; justify-content: space-between; border-bottom: 1px dashed #f0f0f0; padding-bottom: 4px; gap: 10px; white-space: nowrap;';
                 return `
                     <div style="${rowStyle}">
-                        <span style="color: #666; flex-shrink: 0;">${item.award}</span>
-                        <span style="text-align: right;"><strong style="color: #333;">${item.name}</strong>${detailText}</span>
+                        <span style="color: #666; flex-shrink: 0;">${awardLabel}</span>
+                        <span style="text-align: right;">${rightHtml}</span>
                     </div>
                 `;
             }).join('');
