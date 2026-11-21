@@ -1206,7 +1206,7 @@ async function renderPublicRSVPs() {
     <div style="display: flex; flex-wrap: wrap; gap: 10px;">
         ${sponsors.sort((a, b) => {
             const order = key.startsWith('11월')
-                ? ['골프회', '원우회', '현성호', '김종세', '김대욱', '박철호', '정민호', '박청산', '정진우', '정대규', '전은미', '이문형', '정지환', '신수희', '이영규']
+                ? ['현성호', '김종세', '김대욱', '박철호', '정민호', '박청산', '정진우', '정대규', '전은미', '이문형', '정지환', '신수희', '이영규', '신소우', '조호진', '골프회']
                 : ['골프회', '원우회', '김대욱', '정민호', '박철호', '전은미', '현성호', '이문형', '이영규', '조중규', '남서우', '박청산'];
             const idxA = order.indexOf(a.name);
             const idxB = order.indexOf(b.name);
@@ -2408,7 +2408,7 @@ async function renderSponsorHall(prefetchedData = null) {
                     r22.forEach(i => list.push(i.text));
                 }
             } else if (m === "11월") {
-                const novOrder = ['골프회', '원우회', '현성호', '김종세', '김대욱', '박철호', '정민호', '박청산', '정진우', '정대규', '전은미', '이문형', '정지환', '신수희', '이영규'];
+                const novOrder = ['현성호', '김종세', '김대욱', '박철호', '정민호', '박청산', '정진우', '정대규', '전은미', '이문형', '정지환', '신수희', '이영규', '신소우', '조호진', '골프회'];
                 items.sort((a, b) => {
                     const getIdx = (txt) => {
                         const idx = novOrder.findIndex(name => txt.startsWith(name));
