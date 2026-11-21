@@ -2641,11 +2641,17 @@ async function renderAwardsHall(prefetchedData = null) {
             // 7. 다보기
             if (a.includes('다보기')) return 9;
             
-            // 8. 다따블
+            // 8. 다따블 / 다떠블
             if (a.includes('다더블') || a.includes('다따블') || a.includes('다떠블')) return 10;
+
+            // 9. 특별 시상 (패셔니스트, 베스트 포토제닉, 노력상, 행운상 등)
+            if (a.includes('패셔니스트') || a.includes('패션퀸') || a.includes('패션')) return 11;
+            if (a.includes('포토제닉') || a.includes('포토')) return 12;
+            if (a.includes('노력상') || a.includes('노력')) return 13;
+            if (a.includes('행운상') || a.includes('행운')) return 14;
             
-            // 9. 그 외 상 (고생상, 행운상, 패션퀸, 똑바로, 발전상 등)
-            return 11;
+            // 10. 그 외 상 (고생상, 똑바로, 발전상, 참가상 등)
+            return 15;
         };
 
         const getRoundTitle = (month, date) => {
@@ -2683,7 +2689,7 @@ async function renderAwardsHall(prefetchedData = null) {
                 "메달리스트", "신페리오 우승", "롱기스트", "니어리스트", "다버디", "다파", "다보기"
             ],
             "11월|11.25": [
-                "개근상", "우승", "준우승", "메달리스트", "신페리오 우승", "신페리오 준우승", "롱기스트", "니어리스트", "다버디", "다파", "다보기"
+                "개근상", "우승", "준우승", "메달리스트", "메달리스트 2위", "신페리오 우승", "신페리오 준우승", "롱기스트", "니어리스트", "다버디", "다파", "다보기", "다떠블", "패셔니스트", "베스트 포토제닉", "노력상", "행운상"
             ]
         };
 
